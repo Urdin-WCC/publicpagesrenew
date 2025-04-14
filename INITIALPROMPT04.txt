@@ -1,0 +1,211 @@
+Neurowitch - Complete Modular Development Guide
+Chapter 0: Common Information & Project Principles
+0.1 Introduction
+Welcome to the developyment guide for the "Neurowitch" project. This document details the modular architecture and technical specifications for building the application. The goal of this modular structure is to enable parallel and efficient development, where each developer or AI agent can focus on a specific module with self-contained instructions.
+This Chapter 0 contains all the fundamental and common information that all developers must know before starting work on any module. The subsequent chapters (1-14) describe the specific modules. To work on a module (e.g., Module 5: Blog), you will need to read this Chapter 0 and the corresponding module chapter (Chapter 5).
+0.2 Project Overview
+Neurowitch is a complete, responsive, and accessible web application featuring an administration panel for managing content (blog, portfolio, static pages), SEO, appearance (theming), and site statistics. It consists of a publicly accessible front-end and an administration panel protected by role-based authentication.
+0.3 Mandatory Tech Stack
+All development must exclusively use the following technology stack to ensure compatibility:
+Primary Framework: Next.js (version 14+ with App Router)
+Language: TypeScript
+UI Library: React (version 18+)
+Database: MySQL (version 5.7+)
+ORM: Prisma
+CSS Styling: Tailwind CSS
+Authentication: Next-Auth.js (v5+)
+Form Handling: React Hook Form
+UI Components (Recommended): Shadcn/ui (installed and configured in the base project)
+State Management (Client-side): Zustand (preferred) or React Context API
+HTML Editor: React Quill or Tiptap
+File Upload (UI): React Dropzone
+Charts: Recharts
+Package Manager: npm or yarn
+0.4 Credentials & Initial Setup
+Database (MySQL):
+Connection URL (to be configured in /.env as DATABASE_URL for Prisma):
+DATABASE_URL=mysql://u643065128_masterx:sql93893M@srv1789.hstgr.io:3306/u643065128_neurox
+
+
+Default Users (to be created in the initial DB seed script):
+Role master: name: "master", login: "master@app.com", password: "12345.Abcd"
+Role admin: name: "admin", login: "admin@app.com", password: "12345.Abcd"
+Role editor: name: "editor", login: "editor@app.com", password: "12345.Abcd"
+Role collaborator: name: "collaborator", login: "collaborator@app.com", password: "12345.Abcd"
+(Note: Passwords must be stored hashed in the DB using bcrypt)
+Role Hierarchy (Strict):
+master > admin > editor > collaborator
+A user can only view/manage users and content at their level or lower, as specified in each module. Access to admin panel sections/features must be strictly restricted by role.
+0.5 General Principles & Mandatory Requirements
+All modules must adhere to the following principles:
+Responsiveness & Accessibility: All interfaces (public and admin) must be fully responsive and follow accessibility best practices (WCAG 2.1 AA). Use Tailwind CSS for this.
+No Public Signup: The application does not allow public user registration. Users are created from the admin panel.
+NO Browser Local Storage: Under no circumstances should localStorage or sessionStorage be used for storing sensitive information or application state. Use secure cookies (managed by Next-Auth for session) or server/URL state.
+Clean & Commented Code: Write clear, well-structured, and maintainable TypeScript code. Comment complex logic, public functions, and data types (use TSDoc).
+Documentation: Maintain necessary documentation (TSDoc, comments) to understand the module's functionality.
+Robustness & Reliability: Use the tech stack tools appropriately. Implement error handling (try/catch, UI error states). Do not simulate, remove, hide, or simplify described features without authorization.
+Security: Implement basic security measures: input validation in API routes, CSRF protection (Next-Auth helps), XSS protection (React helps, be careful with dangerouslySetInnerHTML), security header configuration, route/API protection by role. Prevent Path Traversal in file handling. Hash passwords.
+Performance: Optimize public page load times (Next.js SSR/SSG), image loading (use next/image component), and DB queries (Prisma).
+Consistency: Follow the naming and structure conventions defined in this chapter. Use components and utilities from the Core_Module whenever possible.
+Error Handling: Display clear and user-friendly error messages when something fails (both client-side and server-side validations).
+Backups: (Responsibility of the project manager) Perform regular database backups.
+Application Language: IMPORTANT: While these development instructions are in English, the final application's user-facing interface (UI text, labels, messages, content) MUST be in Spanish. Ensure all user-visible text implemented in the components is in Spanish.
+0.6 Recommended Folder Structure (Next.js App Router)
+The project should follow a structure similar to this:
+neurowitch-app/
+├── app/                      # Main routes (App Router)
+│   ├── (admin)/              # Admin panel routes (grouped by layout)
+│   │   ├── admin/            # Base admin route /admin (dashboard, etc.)
+│   │   │   ├── blog/         # Blog management pages
+│   │   │   ├── portfolio/    # Portfolio management pages
+│   │   │   ├── pages/        # Static page management pages
+│   │   │   ├── theme/        # Theme management page
+│   │   │   ├── seo/          # SEO management page
+│   │   │   ├── users/        # User management pages
+│   │   │   ├── settings/     # Settings pages (blog, portfolio, security, etc.)
+│   │   │   ├── files/        # File explorer page
+│   │   │   ├── maintenance/  # Maintenance page
+│   │   │   └── ...           # Other admin pages
+│   │   └── layout.tsx        # Layout specific to /admin
+│   ├── (public)/             # Public routes (grouped by layout)
+│   │   ├── blog/             # Public blog pages ([slug], category, search)
+│   │   ├── portfolio/        # Public portfolio pages ([slug], category, search)
+│   │   ├── [slug]/           # Dynamic route for static pages
+│   │   ├── login/            # Public login page
+│   │   └── page.tsx          # Home page
+│   │   └── layout.tsx        # Layout specific to public routes
+│   ├── api/                  # API Routes
+│   │   ├── auth/             # Next-Auth.js routes ([...nextauth])
+│   │   ├── core/             # Central API routes (if any)
+│   │   ├── blog/             # Blog specific API routes (CRUD, config)
+│   │   ├── portfolio/        # Portfolio specific API routes
+│   │   ├── pages/            # Static page specific API routes
+│   │   ├── theme/            # Theme specific API routes (save, get css)
+│   │   ├── seo/              # SEO specific API routes (save, robots, sitemap)
+│   │   ├── users/            # User specific API routes
+│   │   ├── settings/         # Settings specific API routes
+│   │   ├── files/            # File explorer API routes
+│   │   ├── maintenance/      # Maintenance API routes
+│   │   └── stats/            # Statistics API routes
+│   ├── favicon.ico
+│   ├── globals.css           # Global styles (Tailwind)
+│   ├── layout.tsx            # Root layout
+│   └── ...                   # Other root files (sitemap.ts, robots.ts)
+├── components/               # Reusable React components
+│   ├── core/                 # Core components (HtmlEditor, ImageUploader, etc.)
+│   ├── admin/                # Admin specific components (AdminLayout, Sidebar, etc.)
+│   ├── public/               # Public site specific components (PublicLayout, Header, Footer, Widgets, etc.)
+│   └── ui/                   # Shadcn/ui components (if used)
+├── lib/                      # Shared logic, utilities, config
+│   ├── auth.ts               # Next-Auth.js config
+│   ├── prisma.ts             # Prisma client singleton instance
+│   ├── utils.ts              # Utility functions (generateSlug, etc.)
+│   ├── stats.ts              # Statistics logging functions
+│   └── hooks/                # Custom React hooks
+├── prisma/                   # Prisma config
+│   ├── schema.prisma         # DB schema definition
+│   └── migrations/           # DB migrations
+├── public/                   # Static assets
+│   └── uploads/              # Folder for user uploads
+│       └── images/           # Specific folder for images
+├── .env                      # Environment variables (DATABASE_URL, NEXTAUTH_SECRET, etc.)
+├── .eslintrc.json
+├── .gitignore
+├── middleware.ts             # Next.js middleware (for route protection)
+├── next.config.mjs           # Next.js config
+├── package.json
+├── postcss.config.js
+├── tailwind.config.ts        # Tailwind CSS config
+└── tsconfig.json             # TypeScript config
+
+
+0.7 Core Module Interface Summary (Module 1 Exports)
+The Core_Module (Chapter 1) will establish the foundation and provide the following key tools and functionalities that other modules must use:
+Database Access: Via the singleton Prisma client exported from lib/prisma.ts. All DB interactions must use this typed client.
+Authentication & Session (Next-Auth.js):
+signIn, signOut functions for login/logout.
+useSession hook or auth() function (Server Components) to get current user session data (including role).
+Middleware (middleware.ts) configured to protect admin routes (/admin/**).
+Helpers/Hooks (in lib/auth.ts or lib/hooks/) to check specific user roles.
+ImageUploader Component (components/core/ImageUploader.tsx): Reusable React component for uploading/selecting images. Handles upload to /public/uploads/images via an internal API route, validation, and returns the public image URL. Supports single and multiple uploads.
+HtmlEditor Component (components/core/HtmlEditor.tsx): Reusable React component (based on React Quill or Tiptap) for editing HTML content.
+generateSlug(title: string): string Function (lib/utils.ts): Utility to generate URL-friendly slugs from titles.
+logAdminAction(...) Function (lib/stats.ts): Function to log important actions performed in the admin panel (see Chapter 13).
+Global Configuration: Functions (in lib/config.ts or similar) to read/write global settings stored in the database (e.g., GlobalConfig model in Prisma).
+0.8 Version Control with Git
+
+All development must use Git for version control. Each module should be initialized as a Git repository and commits should be made frequently with descriptive messages.
+
+**Git Configuration:**
+- Repository: Local repository for each module
+- User Configuration:
+  - Email: neurowitch@example.com
+  - Name: Neurowitch Developer
+
+**Basic Git Commands:**
+- Initialize repository: `git init`
+- Configure user (repository level):
+  - `git config user.email "neurowitch@example.com"`
+  - `git config user.name "Neurowitch Developer"`
+- Stage changes: `git add .`
+- Commit changes: `git commit -m "Descriptive message about changes"`
+- View status: `git status`
+- View commit history: `git log`
+
+**Commit Message Guidelines:**
+- Use clear, descriptive messages that explain what changes were made
+- Start with a verb in imperative form (e.g., "Add", "Fix", "Update")
+- Keep the first line under 50 characters
+- For complex changes, add more details in the commit body
+
+**Branching Strategy:**
+- `master` or `main`: Stable, production-ready code
+- `develop`: Integration branch for features
+- `feature/feature-name`: For new features
+- `fix/issue-name`: For bug fixes
+
+0.9 Basic Workflow
+Install Dependencies: npm install (or yarn install).
+Run Migrations: npx prisma migrate dev (during development to create/update DB).
+Generate Prisma Client: npx prisma generate (automatic with migrate dev, but useful if schema.prisma changes).
+Run Development Server: npm run dev (or yarn dev).
+
+Note: If possible, implement a simple test to confirm functionality of the module, the test should be non-destructive. If implementing the test complicates the development too much, ignore this note.
+
+Chapter 4: Site_Configuration_Module (General Site Configuration)
+(Content adapted from previous Spanish Document 4)
+Objective: Implement the admin panel sections allowing configuration of the public site's structural elements and global content (Header, Footer, Sidebar, Social Links, Sharing Buttons).
+Specific Technology: Next.js (App Router, API Routes), React, TypeScript, Prisma (via Core), Tailwind CSS, React Hook Form, Shadcn/ui (optional).
+Detailed Responsibilities:
+1.	Admin Interface [admin]:
+○	Create pages under /app/(admin)/admin/settings/ (e.g., header/page.tsx, footer/page.tsx, sidebar/page.tsx, social/page.tsx, sharing/page.tsx). Use AdminLayout.
+○	Protect access by role [admin] (via layout or hooks). Page titles/headings should be in Spanish.
+2.	Header Configuration:
+○	In header/page.tsx, create a React form (react-hook-form) to manage header-related fields in GlobalConfig. Form labels in Spanish.
+○	Use Core_Module.ImageUploader for logo.
+○	On submit, call API route (app/api/settings/header/route.ts - POST/PUT) to save to GlobalConfig via Prisma (Core). Protect API [admin].
+3.	Footer Configuration:
+○	In footer/page.tsx, React form (react-hook-form) for:
+■	Managing widget list (use useFieldArray from RHF?). Select from list defined in Chapter 0.7. Save as JSON in GlobalConfig. UI text in Spanish.
+■	Height field. Label in Spanish.
+■	Core_Module.HtmlEditor for secondary HTML (editable only if role is [master] - verify role).
+○	Call API route (app/api/settings/footer/route.ts) to save. Protect API [admin].
+4.	Sidebar Configuration:
+○	In sidebar/page.tsx, similar form for widgets, position, width. UI text in Spanish.
+○	Call API route (app/api/settings/sidebar/route.ts) to save. Protect API [admin].
+5.	Social Links Configuration:
+○	In social/page.tsx, interface (useFieldArray?) to manage list of {name, url, icon?, newTab}. UI text in Spanish.
+○	Call API route (app/api/settings/social/route.ts) to save (JSON in GlobalConfig). Protect API [admin].
+6.	Sharing Buttons Configuration:
+○	In sharing/page.tsx, similar interface for {name, shareUrlBase, icon?, newTab}. UI text in Spanish.
+○	Call API route (app/api/settings/sharing/route.ts) to save (JSON in GlobalConfig). Protect API [admin].
+7.	Available Widgets List:
+○	Define WIDGET_TYPES constant/enum in lib/constants.ts (or similar) for use in forms and UI_Framework_Module.
+Dependencies: Core_Module (Auth, DB/Prisma access via API routes, ImageUploader, HtmlEditor, GlobalConfig), UI_Framework_Module (AdminLayout).
+Interactions:
+●	Defines and manages settings pages and specific API routes.
+●	API routes use Prisma (via Core) to save/retrieve configurations from GlobalConfig. They validate role [admin].
+●	Uses shared Core components (ImageUploader, HtmlEditor).
+●	Uses AdminLayout.
+●	Configuration saved here is read by UI_Framework_Module (via Core API routes) to render the public site.
+Instructions for Agent: "Implement the Site_Configuration_Module (Module 4) using Next.js (App Router), React, TypeScript, Tailwind CSS. Create admin pages under /admin/settings/ (header, footer, sidebar, social, sharing). Use AdminLayout and protect by role [admin]. Implement forms using react-hook-form to edit configurations (widgets, secondary footer HTML [master only], social links, sharing buttons). Use Core ImageUploader/HtmlEditor components. Create necessary API routes (/api/settings/...) protected [admin] to save data to GlobalConfig using Prisma (via Core). Define the list of WIDGET_TYPES. Optionally use Shadcn/ui. All user-facing text in the admin UI (labels, buttons, titles) must be in Spanish."

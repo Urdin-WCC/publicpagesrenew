@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+<<<<<<< HEAD
+// Enums
+enum Role {
+  MASTER
+  ADMIN
+  EDITOR
+  COLLABORATOR
+}
+
+enum WidgetType {
+  LATEST_POSTS
+  SEARCH
+  CATEGORIES
+  TAGS
+  SOCIAL_LINKS
+  TEXT
+  NEWSLETTER
+  RECENT_COMMENTS
+}
+
+enum SectionType {
+  HEADER
+  FOOTER
+  SIDEBAR
+}
+
+// Models
+=======
+>>>>>>> feature/modulo4
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role      @default(COLLABORATOR)
+  emailVerified DateTime?
+  image         String?
+<<<<<<< HEAD
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+=======
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+>>>>>>> feature/modulo4
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "Account_userId_fkey")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "Session_userId_fkey")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model GlobalConfig {
+<<<<<<< HEAD
+  id             String   @id @default("global")
+  siteName       String   @default("Neurowitch")
+  siteUrl        String   @default("http://localhost:3000")
+  logoUrl        String?
+  faviconUrl     String?
+  themeColor     String?
+  maintenanceMode Boolean  @default(false)
+  activeThemeId  String?  @default("default")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+=======
+  id         String   @id @default("global")
+  siteName   String   @default("Neurowitch")
+  siteUrl    String   @default("http://localhost:3000")
+  logoUrl    String?
+  faviconUrl String?
+  themeColor String?
+  // Configuración de header (campos: logo, enlaces, etc.)
+  header     Json?
+  // Configuración de footer (widgets, altura, HTML secundario, etc.)
+  footer     Json?
+  // Configuración de sidebar (widgets, posición, ancho, etc.)
+  sidebar    Json?
+  // Enlaces sociales
+  social     Json?
+  // Botones de compartir
+  sharing    Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+>>>>>>> feature/modulo4
+}
+
+model AdminAction {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  details   String?  @db.Text
+  module    String
+  createdAt DateTime @default(now())
+}
+
+<<<<<<< HEAD
+model ThemePreset {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(false)
+  cssVariables Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Widget {
+  id          String     @id @default(cuid())
+  title       String
+  type        WidgetType
+  content     String?    @db.Text
+  config      Json?
+  order       Int        @default(0)
+  isActive    Boolean    @default(true)
+  sectionId   String
+  section     SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model SiteSection {
+  id          String      @id @default(cuid())
+  name        String
+  type        SectionType
+  isActive    Boolean     @default(true)
+  widgets     Widget[]
+  menuItems   MenuItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model MenuItem {
+  id          String      @id @default(cuid())
+  label       String
+  url         String
+  order       Int         @default(0)
+  parentId    String?
+  parent      MenuItem?   @relation("MenuItemToMenuItem", fields: [parentId], references: [id], onDelete: SetNull)
+  children    MenuItem[]  @relation("MenuItemToMenuItem")
+  sectionId   String
+  section     SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+=======
+enum Role {
+  MASTER
+  ADMIN
+  EDITOR
+  COLLABORATOR
+}
+// Estadísticas de visitas y páginas vistas
+model Visit {
+  id        String   @id @default(cuid())
+  date      DateTime @unique // Día de la visita
+  count     Int      @default(0)
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  page      String
+  date      DateTime // Día de la visita
+  count     Int      @default(0)
+}
+
+model Referrer {
+  id        String   @id @default(cuid())
+  referrer  String
+  date      DateTime // Día de la visita
+  count     Int      @default(0)
+}
+
+>>>>>>> feature/modulo4
