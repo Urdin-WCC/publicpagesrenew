@@ -1,5 +1,5 @@
 import { handlers } from "@/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server"; // Importar NextRequest
 import { applyRateLimit, getMaxAttempts, getWindowMs } from "@/lib/rate-limit";
 
 /**
@@ -20,13 +20,10 @@ export const GET = handlers.GET;
  * This handler wraps the original POST handler from auth.ts with rate limiting
  * for credential sign-in attempts.
  */
-export async function POST(req: Request, context: { params: { nextauth: string[] } }) {
+export async function POST(req: NextRequest, { params }: { params: { nextauth: string[] } }) { // Cambiar tipo de req a NextRequest
   // Only apply rate limiting to credential sign-in attempts
-  if (
-    req.url.includes("callback/credentials") &&
-    context.params.nextauth.includes("callback") &&
-    context.params.nextauth.includes("credentials")
-  ) {
+  // Verificar la ruta específica del callback de credenciales usando pathname
+  if (req.nextUrl.pathname === "/api/auth/callback/credentials") {
     // Apply rate limiting with values from environment variables
     const { limited, remaining } = applyRateLimit(req);
 
@@ -50,11 +47,23 @@ export async function POST(req: Request, context: { params: { nextauth: string[]
     }
 
     // Add rate limit headers
-    const response = await handlers.POST(req, context);
+    // handlers.POST ahora solo espera req en NextAuth v5
+    const originalResponse = await handlers.POST(req);
+
+    // Crear una nueva respuesta basada en la original para poder modificar cabeceras
+    // Es necesario clonar o crear una nueva respuesta si queremos modificarla
+    const response = new Response(originalResponse.body, {
+      status: originalResponse.status,
+      headers: originalResponse.headers,
+    });
+
+    // Añadir nuestras cabeceras de rate limit
     response.headers.set("X-RateLimit-Remaining", remaining.toString());
     return response;
   }
 
   // For all other auth routes, proceed normally
-  return handlers.POST(req, context);
+  // Pasar el objeto { params } también aquí
+  // handlers.POST ahora solo espera req
+  return handlers.POST(req);
 }

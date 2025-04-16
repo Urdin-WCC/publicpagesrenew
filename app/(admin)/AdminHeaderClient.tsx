@@ -1,10 +1,12 @@
 "use client";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOut } from "@/lib/auth-client"; // Importar signOut desde el archivo cliente
 import Link from "next/link";
 import { LogOut, Home, User } from "lucide-react";
 
 export default function AdminHeaderClient() {
-  const { data: session } = useSession();
+  // Obtener también el estado de la sesión
+  const { data: session, status } = useSession();
 
   return (
     <div className="flex items-center gap-4">
@@ -18,7 +20,10 @@ export default function AdminHeaderClient() {
       </Link>
       <div className="flex items-center gap-1 px-3 py-1 rounded bg-gray-100 text-gray-700">
         <User className="w-4 h-4" />
-        <span className="font-medium">{session?.user?.name || "Usuario"}</span>
+        <span className="font-medium">
+          {/* Mostrar estado de carga o nombre */}
+          {status === 'loading' ? 'Cargando...' : (session?.user?.name || 'Usuario')}
+        </span>
       </div>
       <button
         onClick={() => signOut({ callbackUrl: "/login" })}

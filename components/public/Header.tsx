@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { t } from '@/app/translations';
+import { translations } from '@/app/translations'; // Corregir importación
 
 interface MenuItem {
   label: string;
-  href: string;
+  url: string; // Cambiar a url para coincidir con datos de BD
 }
 
 interface HeaderProps {
@@ -11,7 +11,8 @@ interface HeaderProps {
   siteName?: string;
 }
 
-export default function Header({ menuItems = [], siteName = t('common', 'appName') }: HeaderProps) {
+// Usar translations para valor por defecto y mapear url
+export default function Header({ menuItems = [], siteName = translations.common.appName }: HeaderProps) {
   return (
     <header className="bg-white shadow-md">
       <nav className="container mx-auto px-4 py-3 flex justify-between items-center">
@@ -19,14 +20,16 @@ export default function Header({ menuItems = [], siteName = t('common', 'appName
           {siteName}
         </Link>
         <ul className="flex space-x-4">
-          {menuItems.map((item) => (
-            <li key={item.href}>
-              <Link href={item.href} className="text-gray-600 hover:text-primary">
-                {item.label}
-              </Link>
-            </li>
+          {/* Filtrar items sin url válida antes de mapear */}
+          {menuItems
+            .filter(item => typeof item.url === 'string' && item.url.trim() !== '')
+            .map((item) => (
+              <li key={item.url}>
+                <Link href={item.url} className="text-gray-600 hover:text-primary">
+                  {item.label}
+                </Link>
+              </li>
           ))}
-          {/* Placeholder for potential future items like login/profile */}
         </ul>
       </nav>
     </header>

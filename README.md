@@ -1,8 +1,6 @@
-<<<<<<< HEAD
-=======
 # neurowitch
-Web App
->>>>>>> feature/modulo4
+# Web App
+
 # Neurowitch - Core Module
 
 Este es el Módulo Core (Módulo 1) para la aplicación Neurowitch. Proporciona la base y los servicios compartidos para todos los demás módulos.
@@ -16,8 +14,6 @@ Este es el Módulo Core (Módulo 1) para la aplicación Neurowitch. Proporciona 
 - **Sistema de Traducciones**: Gestión centralizada de todos los textos de la interfaz en español, siguiendo los requisitos del Capítulo 0
 - **Seguridad**: Limitación de tasa, cabeceras de seguridad y validación de entrada
 
-<<<<<<< HEAD
-=======
 ## Módulo 4: Configuración del Sitio (Admin)
 
 - Configuración avanzada del header: elige qué elementos (logo, texto, menú, iconos sociales, interruptor de tema, bloque HTML) están presentes y su posición (9 posiciones posibles).
@@ -29,7 +25,35 @@ Este es el Módulo Core (Módulo 1) para la aplicación Neurowitch. Proporciona 
 - Guardado y lectura de configuración mediante Server Actions seguras.
 - Arquitectura desacoplada, escalable y lista para integración con otros módulos.
 
->>>>>>> feature/modulo4
+## Módulo 5: Blog (Gestión y Visualización)
+
+Este módulo implementa toda la funcionalidad relacionada con el blog de la aplicación:
+
+- **Gestión de Contenido (Admin)**:
+    - CRUD completo para Posts, Categorías y Etiquetas en `/admin/blog/...`
+    - Formularios con validación y componentes core (`HtmlEditor`, `ImageUploader`).
+    - Lógica de permisos básica por rol (`COLLABORATOR` crea borradores, `EDITOR+` publica/gestiona todo).
+    - Página de configuración específica del blog en `/admin/settings/blog` (posts por página, comentarios, etc.) para `ADMIN+`.
+- **Visualización Pública**:
+    - Listado de posts publicados en `/blog` con paginación.
+    - Página de detalle de post en `/blog/[slug]`.
+    - Páginas de archivo por categoría (`/blog/category/[slug]`) y etiqueta (`/blog/tag/[slug]`).
+    - Página de búsqueda (`/blog/search?q=...`).
+    - Generación de metadatos (título, descripción) para SEO en páginas de detalle.
+- **API**:
+    - Endpoints RESTful en `/api/blog`, `/api/blog/[id]`, `/api/blog/latest` para operaciones CRUD y obtención de datos.
+    - Endpoint en `/api/settings/blog` para gestionar la configuración.
+- **Modelos de Datos**:
+    - `Post`, `Category`, `Tag` definidos en `prisma/schema.prisma` con relaciones adecuadas.
+
+**Estructura relevante:**
+- `app/(admin)/admin/blog/`: Páginas de administración del blog.
+- `app/(admin)/admin/settings/blog/`: Página de configuración del blog.
+- `app/(public)/blog/`: Páginas públicas del blog.
+- `app/api/blog/`: Rutas API del blog.
+- `app/api/settings/blog/`: Ruta API de configuración del blog.
+- `prisma/schema.prisma`: Modelos `Post`, `Category`, `Tag`, `PostStatus`.
+
 ## Primeros Pasos
 
 ### Requisitos Previos
@@ -132,20 +156,11 @@ La aplicación utiliza un sistema centralizado de traducciones para todos los te
 
 - Todos los textos visibles para el usuario están en español
 - Centralización de textos en un solo archivo para fácil mantenimiento
-<<<<<<< HEAD
 - Preparado para futura internacionalización
 
 **Cómo usar el sistema:**
 
 Actualmente, se utiliza el objeto `translations` directamente. Ejemplo:
-
-=======
-- API simple para usar traducciones en componentes
-- Soporte para parámetros dinámicos en textos
-- Preparado para futura internacionalización
-
-**Cómo usar el sistema:**
->>>>>>> feature/modulo4
 ```tsx
 import { translations } from "@/app/translations";
 
@@ -158,45 +173,25 @@ const textoBienvenida = translations.admin.welcome.replace("{0}", "Usuario");
 
 Consulta la [Documentación del Sistema de Traducciones](./docs/translation-system.md) o la [versión en español](./docs/sistema-traducciones.md) para más detalles.
 
-<<<<<<< HEAD
 ### Obtención Dinámica de Contenido y Configuración
 
 Todas las páginas públicas obtienen su contenido, apariencia y configuración dinámicamente desde la base de datos a través de las funciones del Core Module. No debe haber textos ni datos hardcoded en los componentes públicos. Los layouts y componentes principales reciben la configuración y los textos desde la base de datos y el sistema de traducciones.
 
-## Estructura de Carpetas
-
-```
-=======
 ---
 
-## Dashboard de Administración
+## Dashboard de Administración (Módulo 3)
 
-El dashboard de administración (Módulo 3) está implementado en `/admin/dashboard` y proporciona:
-
-- Estadísticas generales del sitio (visitas, páginas más vistas, referers principales).
-- Logs de acciones administrativas (solo para admin/master).
-- Enlaces rápidos para crear publicaciones y proyectos.
-- Navegación lateral con iconos y acceso a todas las secciones del panel.
-- Cabecera con usuario activo, enlace a la página pública y botón de logout.
-- Todo el texto visible está en español y la interfaz es responsiva y accesible.
-
-**Tecnologías utilizadas:**  
-Next.js (App Router), React 18+, TypeScript, Tailwind CSS, Zustand, SWR, Prisma, Next-Auth.js, Recharts, lucide-react.
-
-**Estructura relevante:**
-- `app/(admin)/layout.tsx`: Layout de administración con navegación y cabecera.
-- `app/(admin)/admin/dashboard/page.tsx`: Página principal del dashboard.
-- `app/(admin)/admin/dashboard/DashboardClient.tsx`: Lógica client del dashboard.
-- `app/(admin)/AdminHeaderClient.tsx`: Cabecera client con usuario y logout.
-- `components/admin/`: Componentes específicos del panel.
-- `app/api/stats/summary/route.ts`: API de estadísticas.
+El dashboard de administración está implementado en `/admin/dashboard` y proporciona:
+- Estadísticas generales del sitio.
+- Logs de acciones administrativas (admin/master).
+- Enlaces rápidos.
+- Navegación lateral y cabecera de administración.
 
 ---
 
 ## Estructura de Carpetas
 
 ```text
->>>>>>> feature/modulo4
 neurowitch-app/
 ├── app/                      # Rutas principales (App Router)
 │   ├── (admin)/              # Rutas del panel de administración
@@ -264,31 +259,13 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000) con tu navegador para ver el resultado.
 
-<<<<<<< HEAD
-=======
 ---
 
 ## Flujo de trabajo con Git y despliegue
 
-1. Inicializa el repositorio si no existe:
-   ```bash
-   git init
-   ```
-2. Añade todos los archivos y haz commit:
-   ```bash
-   git add .
-   git commit -m "Implementación completa del dashboard de administración y mejoras de UI"
-   ```
-3. Añade el remoto de GitHub y sube el código:
-   ```bash
-   git remote add origin https://github.com/Urdin-WCC/neurowitch.git
-   git branch -M main
-   git push -u origin main
-   ```
+(Sección omitida para brevedad, mantener la versión existente si es relevante)
 
 ---
-
->>>>>>> feature/modulo4
 ## Licencia
 
 Este proyecto es propietario y confidencial.

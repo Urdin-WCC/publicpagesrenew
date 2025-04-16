@@ -3,7 +3,7 @@
  *
  * This file contains all the translations for the application in Spanish.
  * All user-facing text should be referenced from here to facilitate
- * future internationalization.
+ * future internationalization, except the content editable by the user like posts, projects or static pages (text stored in the database).
  */
 
 // Spanish translations
@@ -29,14 +29,11 @@ export const translations = {
     "yes": "Sí",
     "no": "No",
     "confirm": "Confirmar",
-<<<<<<< HEAD
-    "actions": "Acciones", // Añadir coma faltante
-    "appName": "Neurowitch", // Añadir coma faltante
+    "actions": "Acciones",
+    "appName": "Neurowitch",
     "maintenanceModeTitle": "Sitio en Mantenimiento",
     "maintenanceModeText": "Estamos realizando tareas de mantenimiento. Volveremos pronto.",
-=======
-    "actions": "Acciones"
->>>>>>> feature/modulo4
+    "unknown": "Desconocido" // Añadido para traducciones faltantes
   },
   "auth": {
     "login": "Iniciar sesión",
@@ -71,11 +68,8 @@ export const translations = {
     "seoDescription": "Configura metadatos, sitemap y robots.txt",
     "theme": "Tema",
     "themeDescription": "Personaliza la apariencia del sitio",
-<<<<<<< HEAD
     "switchToLight": "Cambiar a tema claro",
     "switchToDark": "Cambiar a tema oscuro",
-=======
->>>>>>> feature/modulo4
     "users": "Usuarios",
     "usersDescription": "Gestiona usuarios y permisos",
     "files": "Archivos",
@@ -85,7 +79,58 @@ export const translations = {
     "stats": "Estadísticas",
     "statsDescription": "Visualiza estadísticas y análisis del sitio",
     "maintenance": "Mantenimiento",
-    "maintenanceDescription": "Realiza tareas de mantenimiento del sitio"
+    "maintenanceDescription": "Realiza tareas de mantenimiento del sitio",
+
+    // Traducciones específicas para la lista de posts del blog en admin
+    "blogList": {
+        "title": "Gestionar Posts del Blog",
+        "newPostButton": "Nuevo Post",
+        "searchPlaceholder": "Buscar posts por título o contenido...",
+        "statusFilterPlaceholder": "Filtrar por estado",
+        "statusAll": "Todos los Estados",
+        "statusPublished": "Publicado",
+        "statusDraft": "Borrador",
+        "statusArchived": "Archivado",
+        "tableTitle": "Título",
+        "tableAuthor": "Autor",
+        "tableStatus": "Estado",
+        "tableCategories": "Categorías",
+        "tableTags": "Etiquetas",
+        "tableDate": "Fecha Creación",
+        "tableActions": "Acciones",
+        "editAction": "Editar post",
+        "deleteAction": "Eliminar post",
+        "deleteConfirm": "¿Estás seguro de que deseas eliminar el post", // Se completará con el título
+        "deleteSuccess": "Post eliminado correctamente.",
+        "deleteError": "Error al eliminar el post.",
+        "fetchError": "Error al cargar los posts.",
+        "genericError": "Ocurrió un error inesperado.",
+        "noPostsFound": "No se encontraron posts.",
+        "createError": "Error al crear el post." // Añadida clave faltante
+    },
+    // Traducciones para la página de gestión de taxonomías (categorías/etiquetas)
+    "taxonomies": {
+        "pageTitle": "Gestionar Taxonomías del Blog",
+        "categoriesTitle": "Categorías",
+        "tagsTitle": "Etiquetas",
+        // Placeholder para futuras traducciones de CRUD
+        "addCategory": "Añadir Categoría",
+        "editCategory": "Editar Categoría",
+        "deleteCategory": "Eliminar Categoría",
+        "addTag": "Añadir Etiqueta",
+        "editTag": "Editar Etiqueta",
+        "deleteTag": "Eliminar Etiqueta",
+        "nameLabel": "Nombre",
+        "slugLabel": "Slug",
+        "descriptionLabel": "Descripción",
+        "confirmDeleteCategory": "¿Estás seguro de que deseas eliminar la categoría '{0}'?",
+        "confirmDeleteTag": "¿Estás seguro de que deseas eliminar la etiqueta '{0}'?",
+        "fetchError": "Error al cargar las taxonomías.",
+        "saveSuccess": "Taxonomía guardada correctamente.",
+        "saveError": "Error al guardar la taxonomía.",
+        "deleteSuccess": "Taxonomía eliminada correctamente.",
+        "deleteError": "Error al eliminar la taxonomía."
+    }
   },
   "public": {
     "home": "Inicio",
@@ -105,7 +150,17 @@ export const translations = {
     "in": "en",
     "comments": "Comentarios",
     "noResults": "No se encontraron resultados",
-    "searchResults": "Resultados de búsqueda para \"{0}\""
+    "searchResults": "Resultados de búsqueda para \"{0}\"",
+    "postsInCategory": "Posts en la categoría:", // Nueva traducción
+    "category": "Categoría", // Nueva traducción
+    "tag": "Etiqueta", // Añadir también para la página de etiquetas
+    "postsInTag": "Posts con la etiqueta:",
+    // Traducciones para la búsqueda pública
+    "searchTitle": "Buscar en el Blog",
+    "searchPlaceholder": "Escribe tu búsqueda...",
+    "searchButton": "Buscar",
+    "searchResultsFor": "Resultados de búsqueda para: {0}", // Corregido (antes era searchResults)
+    "noResultsFor": "No se encontraron resultados para: {0}" // Nueva clave
   },
   "imageUploader": {
     "dropImage": "Arrastra y suelta una imagen aquí, o haz clic para seleccionar",
@@ -141,66 +196,5 @@ export const translations = {
     "confirmDelete": "¿Estás seguro de que deseas eliminar esto? Esta acción no se puede deshacer."
   }
 };
-<<<<<<< HEAD
-=======
-
-/**
- * Interface for translation options
- */
-export interface TranslationOptions {
-  /**
-   * Parameters to replace in the translation string
-   * For example, if the translation is "Hello, {0}", and params is ["World"],
-   * the result will be "Hello, World"
-   */
-  params?: (string | number)[];
-}
-
-/**
- * Get a translation by key
- *
- * @param group - The translation group (e.g., 'common', 'auth')
- * @param key - The translation key
- * @param options - Translation options (e.g., parameters to replace)
- * @returns The translated string, or the key if the translation is not found
- *
- * @example
- * ```ts
- * // Get a simple translation
- * const text = t('common', 'save'); // "Guardar"
- *
- * // Get a translation with parameters
- * const text = t('admin', 'welcome', { params: ['John'] }); // "Bienvenido, John"
- * ```
- */
-export function t(group: string, key: string, options?: TranslationOptions): string {
-  // Get the translation
-  const groupTranslations = translations[group as keyof typeof translations] || {};
-  let translation = groupTranslations[key as keyof typeof groupTranslations] || `${group}.${key}`;
-
-  // Replace parameters if provided
-  if (options?.params) {
-    options.params.forEach((param, index) => {
-      translation = translation.replace(`{${index}}`, String(param));
-    });
-  }
-
-  return translation;
-}
-
-/**
- * Create a translator for a specific group
- *
- * @param group - The translation group (e.g., 'common', 'auth')
- * @returns A function that gets translations from the specified group
- *
- * @example
- * ```ts
- * const tCommon = createTranslator('common');
- * const text = tCommon('save'); // "Guardar"
- * ```
- */
-export function createTranslator(group: string) {
-  return (key: string, options?: TranslationOptions) => t(group, key, options);
-}
->>>>>>> feature/modulo4
+// Fin del objeto translations
+// Fin del objeto translations

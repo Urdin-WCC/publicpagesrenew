@@ -27,6 +27,8 @@ const navLinks = [
     label: "Configuración",
     icon: <Settings className="w-5 h-5" />,
     children: [
+      // Añadir enlace a Configuración del Blog
+      { href: "/admin/settings/blog", label: "Blog", icon: <FileText className="w-4 h-4" /> },
       { href: "/admin/settings/header", label: "Encabezado", icon: <FileText className="w-4 h-4" /> },
       { href: "/admin/settings/footer", label: "Pie de página", icon: <FileText className="w-4 h-4" /> },
       { href: "/admin/settings/sidebar", label: "Barra lateral", icon: <FolderKanban className="w-4 h-4" /> },

@@ -1,116 +1,87 @@
-import { Role } from "@prisma/client";
-import { useSession } from "next-auth/react";
-import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { Role } from '@prisma/client'; // Importar enum Role de Prisma
+
+// Definir la jerarquía de roles numéricamente para facilitar la comparación
+const roleHierarchy: Record<Role, number> = {
+  [Role.COLLABORATOR]: 1,
+  [Role.EDITOR]: 2,
+  [Role.ADMIN]: 3,
+  [Role.MASTER]: 4,
+};
+
+// Definir permisos mínimos requeridos para acciones comunes (ajustar según sea necesario)
+// Esto podría expandirse para ser más granular (ej. 'edit_own_post', 'edit_any_post')
+const requiredPermissions: Record<string, Role> = {
+    'view_admin_panel': Role.COLLABORATOR,
+    'create_post': Role.COLLABORATOR,
+    'edit_post': Role.COLLABORATOR,
+    'edit_any_post': Role.EDITOR,
+    'delete_post': Role.COLLABORATOR,
+    'delete_any_post': Role.EDITOR,
+    'publish_post': Role.EDITOR,
+    'manage_blog_taxonomies': Role.EDITOR, // Añadir permiso para taxonomías (EDITOR+)
+    'manage_users': Role.ADMIN,
+    'manage_settings': Role.ADMIN,
+    'manage_seo': Role.ADMIN,
+    'manage_theme': Role.ADMIN,
+};
 
 /**
- * Auth.js v5 utilities for authentication and authorization
- * 
- * This file contains utility functions for authentication and authorization
- * that work with Auth.js v5.
+ * Verifica si un usuario tiene el permiso necesario basado en su rol.
+ *
+ * @param userRole El rol del usuario actual (puede ser undefined si no está autenticado).
+ * @param requiredAction La acción o recurso que requiere permiso (clave de requiredPermissions).
+ * @returns true si el usuario tiene permiso, false en caso contrario.
  */
-
-/**
- * Get the current session
- * 
- * This is a wrapper around the auth() function from Auth.js v5.
- * 
- * @returns Promise resolving to the current session or null if not authenticated
- * @public
- */
-export async function getServerSession() {
-  return await auth();
-}
-
-/**
- * Auth function for Next.js App Router
- * 
- * This is a wrapper around the auth() function from Auth.js v5.
- * 
- * @returns Promise resolving to the current session or null if not authenticated
- * @public
- */
-export async function authFunction() {
-  return await auth();
-}
-
-/**
- * Hook to get the current user's role
- * 
- * This hook returns the current user's role from the session.
- * It can be used in client components to check the user's role.
- * 
- * @returns The current user's role or null if not authenticated
- * @public
- */
-export function useRole() {
-  const { data: session } = useSession();
-  return session?.user?.role;
-}
-
-/**
- * Check if the current user has the required role
- * 
- * This function checks if the current user has the required role.
- * It redirects to the login page if the user is not authenticated.
- * It redirects to the unauthorized page if the user doesn't have the required role.
- * 
- * @param requiredRole - The role required to access the page
- * @param redirectTo - The URL to redirect to if the user doesn't have the required role
- * @public
- */
-export async function requireRole(requiredRole: Role, redirectTo = "/unauthorized") {
-  const session = await getServerSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
-  const userRole = session.user?.role;
-
+export function hasPermission(userRole: Role | undefined | null, requiredAction: string): boolean {
   if (!userRole) {
-    redirect("/login");
+    return false; // No autenticado, sin permisos
   }
 
-  const roleHierarchy: Record<Role, number> = {
-    MASTER: 4,
-    ADMIN: 3,
-    EDITOR: 2,
-    COLLABORATOR: 1,
-  };
-
-  if (roleHierarchy[userRole] < roleHierarchy[requiredRole]) {
-    redirect(redirectTo);
+  const requiredRole = requiredPermissions[requiredAction];
+  if (!requiredRole) {
+    console.warn(`Permiso desconocido solicitado: ${requiredAction}`);
+    return false; // Acción no definida, denegar por seguridad
   }
+
+  const userLevel = roleHierarchy[userRole] ?? 0;
+  const requiredLevel = roleHierarchy[requiredRole] ?? Infinity; // Si el rol requerido no está en la jerarquía, requerir nivel infinito
+
+  return userLevel >= requiredLevel;
 }
 
 /**
- * Check if the current user is authenticated
- * 
- * This function checks if the current user is authenticated.
- * It redirects to the login page if the user is not authenticated.
- * 
- * @public
+ * Obtiene el rol del usuario desde la sesión de NextAuth.js.
+ * Asegúrate de que el tipo Session y User en `types/next-auth.d.ts` incluya el campo 'role'.
+ *
+ * @param session La sesión obtenida de `useSession` o `auth()`.
+ * @returns El rol del usuario o undefined si no hay sesión o rol.
  */
-export async function requireAuth() {
-  const session = await getServerSession();
+// import { Session } from 'next-auth'; // Asegúrate de importar el tipo correcto
+// export function getUserRole(session: Session | null): Role | undefined {
+//   return session?.user?.role;
+// }
 
-  if (!session) {
-    redirect("/login");
+// Ejemplo de cómo extender la sesión en types/next-auth.d.ts:
+/*
+import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
+import { Role } from "@prisma/client"; // Importa tu enum Role
+
+declare module "next-auth" {
+  interface Session extends DefaultSession {
+    user?: {
+      id: string;
+      role: Role; // Añade el campo role aquí
+    } & DefaultSession["user"];
+  }
+
+  interface User extends DefaultUser {
+    role: Role; // Añade el campo role aquí
   }
 }
 
-/**
- * Type definition for the session user with role
- * 
- * This type extends the default session user with the role property.
- * 
- * @public
- */
-export interface SessionUserWithRole {
-  id: string;
-  name?: string | null;
-  email?: string | null;
-  image?: string | null;
-  role: Role;
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: Role; // Añade el campo role aquí
+  }
 }
+*/

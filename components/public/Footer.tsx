@@ -1,25 +1,21 @@
-import { t } from '@/app/translations';
+import { translations } from '@/app/translations';
 
-// Placeholder para la estructura de un widget
 interface WidgetConfig {
   id: string;
-  type: string; // e.g., 'latestPosts', 'search', 'categories'
-  // ... otras propiedades específicas del widget
+  type: string;
 }
 
 interface FooterProps {
   text?: string;
-  widgets?: WidgetConfig[]; // Placeholder para la configuración de widgets
+  widgets?: WidgetConfig[];
 }
 
-export default function Footer({ text = `© ${new Date().getFullYear()} ${t('common', 'appName')}. Todos los derechos reservados.`, widgets = [] }: FooterProps) {
+export default function Footer({ text = `© ${new Date().getFullYear()} ${translations.common.appName}. Todos los derechos reservados.`, widgets = [] }: FooterProps) {
   return (
     <footer className="bg-gray-100 border-t border-gray-200 mt-auto">
       <div className="container mx-auto px-4 py-6">
-        {/* Placeholder para renderizar widgets */}
         {widgets.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            {/* TODO: Mapear widgets y renderizar componentes correspondientes */}
             <p>Widgets irían aquí...</p>
           </div>
         )}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+// import { signIn } from "next-auth/react"; // Importación original
+import { signIn } from "@/lib/auth-client"; // Usar el archivo cliente seguro
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -16,11 +17,8 @@ import Link from "next/link";
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-<<<<<<< HEAD
-  const callbackUrl = searchParams.get("callbackUrl") || "/admin";
-=======
+  // Usar /admin/dashboard como callback por defecto
   const callbackUrl = searchParams.get("callbackUrl") || "/admin/dashboard";
->>>>>>> feature/modulo4
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,19 +35,32 @@ export default function LoginPage() {
     setError("");
 
     try {
+      // Volver a usar redirect: false para manejar la redirección manualmente
       const result = await signIn("credentials", {
         redirect: false,
         email,
         password,
+        // No necesitamos pasar callbackUrl aquí si redirect es false
       });
 
+      console.log("SignIn Result:", result); // Log para depuración
       if (result?.error) {
-        setError("Credenciales inválidas. Por favor, inténtalo de nuevo.");
+        // Mostrar error específico si existe, o uno genérico
+        setError(result.error === "CredentialsSignin"
+          ? "Credenciales inválidas. Por favor, inténtalo de nuevo."
+          : `Error de autenticación: ${result.error}`);
+      } else if (result?.ok) {
+          // Éxito: Forzar redirección a la callbackUrl calculada,
+          // ignorando result.url que parece ser incorrecto.
+          console.log(`Login OK. Forzando redirección a: ${callbackUrl}`);
+          router.push(callbackUrl);
       } else {
-        router.push(callbackUrl);
+          // Caso inesperado si no hay error pero tampoco ok
+           setError("Fallo al iniciar sesión por un motivo desconocido.");
       }
-    } catch (error) {
-      setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.");
+    } catch (error: any) { // Capturar cualquier error
+      console.error("Login Catch Error:", error); // Log del error
+      setError(`Error inesperado: ${error.message || "Inténtalo de nuevo."}`);
     } finally {
       setIsLoading(false);
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { SessionProvider } from "next-auth/react";
+import { Session } from "next-auth"; // Importar tipo Session
 import { ReactNode } from "react";
 
 /**
@@ -12,6 +13,12 @@ import { ReactNode } from "react";
  * @param children - The child components
  * @returns The auth provider component
  */
-export default function AuthProvider({ children }: { children: ReactNode }) {
-  return <SessionProvider>{children}</SessionProvider>;
+interface AuthProviderProps {
+  children: ReactNode;
+  session?: Session | null; // Hacer la sesión opcional
+}
+
+export default function AuthProvider({ children, session }: AuthProviderProps) {
+  // Pasar la sesión (o undefined si no se proporciona) al SessionProvider
+  return <SessionProvider session={session ?? undefined}>{children}</SessionProvider>;
 }

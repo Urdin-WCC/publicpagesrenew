@@ -1,10 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-<<<<<<< HEAD
-import { translations } from "./translations";
-=======
-import { t } from "./translations";
->>>>>>> feature/modulo4
+import { translations } from "./translations"; // Usar importación directa
 
 /**
  * Home page component
@@ -15,20 +11,12 @@ import { t } from "./translations";
  * @returns The home page component
  */
 export default function Home() {
-  // Get translations using the t function
-<<<<<<< HEAD
+  // Acceder a traducciones directamente desde el objeto
   const welcomeText = translations.admin.welcome.replace("{0}", "Usuario");
   const blogText = translations.admin.blog;
   const portfolioText = translations.admin.portfolio;
   const pagesText = translations.admin.pages;
   const loginText = translations.auth.login;
-=======
-  const welcomeText = t("admin", "welcome", { params: ["Usuario"] });
-  const blogText = t("admin", "blog");
-  const portfolioText = t("admin", "portfolio");
-  const pagesText = t("admin", "pages");
-  const loginText = t("auth", "login");
->>>>>>> feature/modulo4
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -39,29 +27,17 @@ export default function Home() {
             <ul className="flex space-x-6">
               <li>
                 <Link href="/" className="text-gray-800 hover:text-primary">
-<<<<<<< HEAD
                   {translations.public.home}
-=======
-                  {t("public", "home")}
->>>>>>> feature/modulo4
                 </Link>
               </li>
               <li>
                 <Link href="/blog" className="text-gray-800 hover:text-primary">
-<<<<<<< HEAD
                   {translations.public.blogPublic}
-=======
-                  {t("public", "blogPublic")}
->>>>>>> feature/modulo4
                 </Link>
               </li>
               <li>
                 <Link href="/portfolio" className="text-gray-800 hover:text-primary">
-<<<<<<< HEAD
                   {translations.public.portfolioPublic}
-=======
-                  {t("public", "portfolioPublic")}
->>>>>>> feature/modulo4
                 </Link>
               </li>
               <li>
@@ -106,33 +82,21 @@ export default function Home() {
                 <div className="text-4xl mb-4">📝</div>
                 <h3 className="text-xl font-semibold mb-2">{blogText}</h3>
                 <p className="text-gray-600">
-<<<<<<< HEAD
                   {translations.admin.blogDescription}
-=======
-                  {t("admin", "blogDescription")}
->>>>>>> feature/modulo4
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="text-4xl mb-4">🖼️</div>
                 <h3 className="text-xl font-semibold mb-2">{portfolioText}</h3>
                 <p className="text-gray-600">
-<<<<<<< HEAD
                   {translations.admin.portfolioDescription}
-=======
-                  {t("admin", "portfolioDescription")}
->>>>>>> feature/modulo4
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="text-4xl mb-4">📄</div>
                 <h3 className="text-xl font-semibold mb-2">{pagesText}</h3>
                 <p className="text-gray-600">
-<<<<<<< HEAD
                   {translations.admin.pagesDescription}
-=======
-                  {t("admin", "pagesDescription")}
->>>>>>> feature/modulo4
                 </p>
               </div>
             </div>
@@ -146,17 +110,10 @@ export default function Home() {
               <div className="p-4 border rounded-md">
                 <h3 className="text-lg font-semibold mb-4">Ejemplos de Traducciones</h3>
                 <ul className="list-disc pl-5 space-y-2">
-<<<<<<< HEAD
                   <li>common.save: {translations.common.save}</li>
                   <li>admin.welcome con parámetro: {translations.admin.welcome.replace("{0}", "Usuario")}</li>
                   <li>auth.login: {translations.auth.login}</li>
                   <li>auth.logout: {translations.auth.logout}</li>
-=======
-                  <li>common.save: {t("common", "save")}</li>
-                  <li>admin.welcome con parámetro: {t("admin", "welcome", ["Usuario"])}</li>
-                  <li>auth.login: {t("auth", "login")}</li>
-                  <li>auth.logout: {t("auth", "logout")}</li>
->>>>>>> feature/modulo4
                 </ul>
               </div>
             </div>

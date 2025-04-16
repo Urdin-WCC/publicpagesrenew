@@ -31,12 +31,14 @@ export const HtmlEditor: React.FC<HtmlEditorProps> = ({
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
+    immediatelyRender: false, // Añadir esta línea para evitar error SSR
   });
 
   return (
     <div className="mb-4">
       {label && <label className="block mb-2 font-medium">{label}</label>}
-      <div className="border rounded bg-white">
+      {/* Añadir clases prose para estilos básicos y padding */}
+      <div className="border rounded bg-white p-2 prose max-w-none">
         <EditorContent editor={editor} />
       </div>
     </div>

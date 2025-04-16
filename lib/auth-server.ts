@@ -1,4 +1,4 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
+// Eliminamos la importación del adaptador de Prisma
 import type { NextAuthConfig, Session, User } from "next-auth";
 import type { AdapterUser } from "@auth/core/adapters"; // Importar AdapterUser
 import Credentials from "next-auth/providers/credentials";
@@ -25,7 +25,7 @@ type CredentialsType = Partial<Record<string, unknown>>;
 /**
  */
 export const authOptions: NextAuthConfig = {
-  adapter: PrismaAdapter(prisma),
+  // Eliminamos el adaptador de Prisma para evitar problemas con node:async_hooks
   session: {
     strategy: "jwt",
   },

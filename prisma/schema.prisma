@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/client" // Especificar ruta de salida explícita
 }
 
 datasource db {
@@ -7,8 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-<<<<<<< HEAD
-// Enums
 enum Role {
   MASTER
   ADMIN
@@ -33,9 +32,6 @@ enum SectionType {
   SIDEBAR
 }
 
-// Models
-=======
->>>>>>> feature/modulo4
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -44,17 +40,11 @@ model User {
   role          Role      @default(COLLABORATOR)
   emailVerified DateTime?
   image         String?
-<<<<<<< HEAD
   accounts      Account[]
   sessions      Session[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-=======
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
->>>>>>> feature/modulo4
+  posts         Post[] // Relation to posts authored by the user
 }
 
 model Account {
@@ -95,37 +85,28 @@ model VerificationToken {
 }
 
 model GlobalConfig {
-<<<<<<< HEAD
-  id             String   @id @default("global")
-  siteName       String   @default("Neurowitch")
-  siteUrl        String   @default("http://localhost:3000")
-  logoUrl        String?
-  faviconUrl     String?
-  themeColor     String?
+  id              String   @id @default("global")
+  siteName        String   @default("Neurowitch")
+  siteUrl         String   @default("http://localhost:3000")
+  logoUrl         String?
+  faviconUrl      String?
+  themeColor      String?
   maintenanceMode Boolean  @default(false)
-  activeThemeId  String?  @default("default")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-=======
-  id         String   @id @default("global")
-  siteName   String   @default("Neurowitch")
-  siteUrl    String   @default("http://localhost:3000")
-  logoUrl    String?
-  faviconUrl String?
-  themeColor String?
+  activeThemeId   String?  @default("default")
   // Configuración de header (campos: logo, enlaces, etc.)
-  header     Json?
+  header          Json?
   // Configuración de footer (widgets, altura, HTML secundario, etc.)
-  footer     Json?
+  footer          Json?
   // Configuración de sidebar (widgets, posición, ancho, etc.)
-  sidebar    Json?
+  sidebar         Json?
   // Enlaces sociales
-  social     Json?
+  social          Json?
   // Botones de compartir
-  sharing    Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
->>>>>>> feature/modulo4
+  sharing         Json?
+  // Configuración específica del Blog
+  blogConfig      Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model AdminAction {
@@ -137,40 +118,39 @@ model AdminAction {
   createdAt DateTime @default(now())
 }
 
-<<<<<<< HEAD
 model ThemePreset {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  isActive    Boolean  @default(false)
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  isActive     Boolean  @default(false)
   cssVariables Json
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Widget {
-  id          String     @id @default(cuid())
+  id          String      @id @default(cuid())
   title       String
   type        WidgetType
-  content     String?    @db.Text
+  content     String?     @db.Text
   config      Json?
-  order       Int        @default(0)
-  isActive    Boolean    @default(true)
+  order       Int         @default(0)
+  isActive    Boolean     @default(true)
   sectionId   String
   section     SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model SiteSection {
-  id          String      @id @default(cuid())
+  id          String     @id @default(cuid())
   name        String
   type        SectionType
-  isActive    Boolean     @default(true)
+  isActive    Boolean    @default(true)
   widgets     Widget[]
   menuItems   MenuItem[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 model MenuItem {
@@ -187,13 +167,7 @@ model MenuItem {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
-=======
-enum Role {
-  MASTER
-  ADMIN
-  EDITOR
-  COLLABORATOR
-}
+
 // Estadísticas de visitas y páginas vistas
 model Visit {
   id        String   @id @default(cuid())
@@ -215,4 +189,49 @@ model Referrer {
   count     Int      @default(0)
 }
 
->>>>>>> feature/modulo4
+// --- MODELOS BLOG ---
+model Post {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  content     String     @db.Text
+  excerpt     String?    @db.Text
+  coverImage  String?
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  featured    Boolean    @default(false)
+  authorDisplayName String? // Nombre del autor a mostrar públicamente (opcional)
+  deleted     Boolean    @default(false)
+  authorId    String?
+  author      User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  categories  Category[] @relation("PostCategories")
+  tags        Tag[]      @relation("PostTags")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  posts       Post[]   @relation("PostCategories")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  posts     Post[]   @relation("PostTags")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+// --- FIN MODELOS BLOG ---
