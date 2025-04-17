@@ -29,7 +29,7 @@ export default async function RootLayout({
   // Obtener la sesión del servidor
   const session = await auth();
   return (
-    <html lang="es"> {/* Cambiar a español */}
+    <html lang="es">{/* Cambiar a español */}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         // Mantener clases de fuente (comentario fuera de las props)

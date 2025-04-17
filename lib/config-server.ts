@@ -29,6 +29,24 @@ export const defaultBlogConfig: BlogConfig = {
   showSidebarInPost: true,
 };
 
+// Interfaz para la configuración específica del portfolio
+export interface PortfolioConfig {
+  projectsPerPage: number;
+  defaultDisplayType: string;
+  showSidebarInList: boolean;
+  showSidebarInProject: boolean;
+  layoutMode: 'grid' | 'list';
+}
+
+// Valores por defecto para la configuración del portfolio
+export const defaultPortfolioConfig: PortfolioConfig = {
+  projectsPerPage: 12,
+  defaultDisplayType: 'GALLERY',
+  showSidebarInList: true,
+  showSidebarInProject: true,
+  layoutMode: 'grid',
+};
+
 // Ya no necesitamos extender GlobalConfig, usamos el tipo directamente de Prisma
 
 /**
@@ -56,6 +74,41 @@ export async function getBlogConfig(): Promise<BlogConfig> {
   const currentConfig = {
     ...defaultBlogConfig,
     ...savedBlogConfig,
+  };
+
+  return currentConfig;
+}
+
+/**
+ * Obtiene la configuración específica del portfolio combinada con los valores por defecto (Server-Side Only).
+ * @returns {Promise<PortfolioConfig>} Objeto con la configuración completa del portfolio.
+ */
+export async function getPortfolioConfig(): Promise<PortfolioConfig> {
+  const globalConfig = await getGlobalConfig();
+  
+  // Intentar extraer la configuración de portfolio desde blogConfig
+  let savedPortfolioConfig: Partial<PortfolioConfig> = {};
+  
+  if (globalConfig?.blogConfig) {
+    try {
+      // Parsear blogConfig que es un string JSON
+      const blogConfig = typeof globalConfig.blogConfig === 'string' 
+        ? JSON.parse(globalConfig.blogConfig) 
+        : globalConfig.blogConfig;
+      
+      // Acceder a la propiedad portfolio dentro de blogConfig
+      if (blogConfig && blogConfig.portfolio) {
+        savedPortfolioConfig = blogConfig.portfolio;
+      }
+    } catch (error) {
+      console.error('Error parsing portfolio config from blogConfig:', error);
+    }
+  }
+
+  // Combinar configuración guardada con valores por defecto
+  const currentConfig = {
+    ...defaultPortfolioConfig,
+    ...savedPortfolioConfig,
   };
 
   return currentConfig;

@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { getServerSession } from "@/lib/auth-utils";
+import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
@@ -19,7 +19,7 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }) {
-  const session = await getServerSession();
+  const session = await auth();
 
   if (!session?.user) {
     redirect("/login");

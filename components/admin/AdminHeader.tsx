@@ -3,10 +3,7 @@
 import { useState } from "react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-<<<<<<< HEAD
-import { t } from "@/app/translations"; // Importar la función de traducción
-=======
->>>>>>> feature/modulo4
+import { translations } from "@/app/translations";
 
 /**
  * Admin header component props
@@ -22,10 +19,10 @@ interface AdminHeaderProps {
 
 /**
  * Admin header component
- * 
+ *
  * This component displays the header for the admin panel.
  * All user-facing text is in Spanish as required.
- * 
+ *
  * @param props - The component props
  * @returns The admin header component
  */
@@ -49,12 +46,8 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6">
       <div className="flex items-center md:hidden">
-<<<<<<< HEAD
         {/* TODO: Implementar funcionalidad del menú hamburguesa si es necesario */}
-        <button className="text-gray-500 hover:text-gray-700" aria-label={t('admin', 'openMenu', { default: "Abrir menú" })}>
-=======
         <button className="text-gray-500 hover:text-gray-700" aria-label="Abrir menú">
->>>>>>> feature/modulo4
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6"
@@ -74,11 +67,7 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
 
       <div className="flex-1 md:flex-initial">
         <Link href="/" target="_blank" className="text-sm text-gray-500 hover:text-primary">
-<<<<<<< HEAD
-          {t('admin', 'viewWebsite')}
-=======
           Ver sitio web
->>>>>>> feature/modulo4
         </Link>
       </div>
 
@@ -93,17 +82,6 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
             {user.image ? (
               <img
                 src={user.image}
-<<<<<<< HEAD
-                alt={user.name || t('common', 'user', { default: "Usuario" })}
-                className="w-8 h-8 rounded-full"
-              />
-            ) : (
-              <span>{user.name?.charAt(0) || user.email?.charAt(0) || t('common', 'userInitial', { default: "U" })}</span>
-            )}
-          </div>
-          <span className="text-sm font-medium hidden md:block">
-            {user.name || user.email || t('common', 'user', { default: "Usuario" })}
-=======
                 alt={user.name || "Usuario"}
                 className="w-8 h-8 rounded-full"
               />
@@ -113,7 +91,6 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
           </div>
           <span className="text-sm font-medium hidden md:block">
             {user.name || user.email || "Usuario"}
->>>>>>> feature/modulo4
           </span>
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -135,48 +112,29 @@ export default function AdminHeader({ user }: AdminHeaderProps) {
         {isDropdownOpen && (
           <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-200">
             <div className="px-4 py-2 border-b border-gray-100">
-<<<<<<< HEAD
-              <p className="text-sm font-medium">{user.name || t('common', 'user', { default: "Usuario" })}</p>
-              <p className="text-xs text-gray-500">{user.email}</p>
-              {/* Usar t con parámetros para el rol */}
-              <p className="text-xs text-gray-500 mt-1">{t('admin', 'role', { params: [user.role || 'N/A'] })}</p>
-=======
               <p className="text-sm font-medium">{user.name || "Usuario"}</p>
               <p className="text-xs text-gray-500">{user.email}</p>
               <p className="text-xs text-gray-500 mt-1">Rol: {user.role}</p>
->>>>>>> feature/modulo4
             </div>
             <Link
               href="/admin/profile"
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               onClick={() => setIsDropdownOpen(false)}
             >
-<<<<<<< HEAD
-              {t('admin', 'profile')}
-=======
               Mi Perfil
->>>>>>> feature/modulo4
             </Link>
             <Link
               href="/admin/settings"
               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               onClick={() => setIsDropdownOpen(false)}
             >
-<<<<<<< HEAD
-              {t('admin', 'settings')}
-=======
               Configuración
->>>>>>> feature/modulo4
             </Link>
             <button
               onClick={handleSignOut}
               className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
             >
-<<<<<<< HEAD
-              {t('auth', 'logout')}
-=======
               Cerrar sesión
->>>>>>> feature/modulo4
             </button>
           </div>
         )}

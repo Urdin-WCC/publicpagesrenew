@@ -4,6 +4,7 @@ import React from 'react';
 import { useSession } from 'next-auth/react';
 import { hasPermission } from '@/lib/auth-utils';
 import { translations } from '@/app/translations';
+import { Settings } from 'lucide-react'; // Importar icono de Settings
 import Link from 'next/link'; // Para enlaces a subsecciones
 
 const AdminSettingsPage: React.FC = () => {
@@ -21,23 +22,25 @@ const AdminSettingsPage: React.FC = () => {
     return <p className="text-red-500 p-4">{translations.auth.unauthorized}</p>;
   }
 
-  // Contenido básico de la página de configuración principal
+  // Contenido simplificado de la página de configuración
   return (
-    <div className="container mx-auto p-4 md:p-6">
-      <h1 className="text-2xl font-bold mb-6">{translations.admin.settingsModule}</h1>
-      <p className="mb-4">
-        Selecciona una sección de configuración del menú lateral o de los siguientes enlaces:
-      </p>
-      {/* Podríamos añadir enlaces a las subsecciones existentes */}
-      <ul className="list-disc pl-5 space-y-2">
-        <li><Link href="/admin/settings/blog" className="text-primary hover:underline">Configuración del Blog</Link></li>
-        <li><Link href="/admin/settings/header" className="text-primary hover:underline">Configuración de Cabecera</Link></li>
-        <li><Link href="/admin/settings/footer" className="text-primary hover:underline">Configuración de Pie de Página</Link></li>
-        <li><Link href="/admin/settings/sidebar" className="text-primary hover:underline">Configuración de Barra Lateral</Link></li>
-        <li><Link href="/admin/settings/social" className="text-primary hover:underline">Configuración Social</Link></li>
-        <li><Link href="/admin/settings/sharing" className="text-primary hover:underline">Configuración de Compartir</Link></li>
-        {/* Añadir enlaces a otras secciones de configuración (SEO, Tema, etc.) cuando existan */}
-      </ul>
+    <div className="container mx-auto p-8 md:p-12">
+      <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <div className="flex flex-col items-center text-center">
+          <Settings className="h-16 w-16 text-primary mb-4" />
+          
+          <h1 className="text-2xl font-bold mb-3">{translations.admin.settingsModule}</h1>
+          
+          <p className="mb-6 text-lg text-gray-600">
+            Utiliza el menú de navegación lateral para acceder a las diferentes opciones de configuración del sistema.
+          </p>
+          
+          <p className="text-sm text-gray-500 max-w-md">
+            Cada elemento de configuración te permite personalizar diferentes aspectos de la aplicación, como el blog, 
+            la apariencia, las redes sociales y más.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,35 +1,11 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/client" // Especificar ruta de salida explícita
+  output   = "./generated/client"
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  MASTER
-  ADMIN
-  EDITOR
-  COLLABORATOR
-}
-
-enum WidgetType {
-  LATEST_POSTS
-  SEARCH
-  CATEGORIES
-  TAGS
-  SOCIAL_LINKS
-  TEXT
-  NEWSLETTER
-  RECENT_COMMENTS
-}
-
-enum SectionType {
-  HEADER
-  FOOTER
-  SIDEBAR
 }
 
 model User {
@@ -40,11 +16,12 @@ model User {
   role          Role      @default(COLLABORATOR)
   emailVerified DateTime?
   image         String?
-  accounts      Account[]
-  sessions      Session[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  posts         Post[] // Relation to posts authored by the user
+  accounts      Account[]
+  posts         Post[]
+  projects      Project[]
+  sessions      Session[]
 }
 
 model Account {
@@ -91,22 +68,17 @@ model GlobalConfig {
   logoUrl         String?
   faviconUrl      String?
   themeColor      String?
-  maintenanceMode Boolean  @default(false)
-  activeThemeId   String?  @default("default")
-  // Configuración de header (campos: logo, enlaces, etc.)
-  header          Json?
-  // Configuración de footer (widgets, altura, HTML secundario, etc.)
-  footer          Json?
-  // Configuración de sidebar (widgets, posición, ancho, etc.)
-  sidebar         Json?
-  // Enlaces sociales
-  social          Json?
-  // Botones de compartir
-  sharing         Json?
-  // Configuración específica del Blog
-  blogConfig      Json?
+  header          String?  @db.LongText
+  footer          String?  @db.LongText
+  sidebar         String?  @db.LongText
+  social          String?  @db.LongText
+  sharing         String?  @db.LongText
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  activeThemeId   String?  @default("default")
+  maintenanceMode Boolean  @default(false)
+  blogConfig      String?  @db.LongText
+  portfolioConfig String?  @db.LongText
 }
 
 model AdminAction {
@@ -123,7 +95,7 @@ model ThemePreset {
   name         String
   description  String?
   isActive     Boolean  @default(false)
-  cssVariables Json
+  cssVariables String   @db.LongText
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -133,13 +105,15 @@ model Widget {
   title     String
   type      WidgetType
   content   String?     @db.Text
-  config    Json?
+  config    String?     @db.LongText
   order     Int         @default(0)
   isActive  Boolean     @default(true)
   sectionId String
-  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId], map: "Widget_sectionId_fkey")
 }
 
 model SiteSection {
@@ -147,10 +121,10 @@ model SiteSection {
   name      String
   type      SectionType
   isActive  Boolean     @default(true)
-  widgets   Widget[]
-  menuItems MenuItem[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  menuItems MenuItem[]
+  widgets   Widget[]
 }
 
 model MenuItem {
@@ -159,37 +133,38 @@ model MenuItem {
   url       String
   order     Int         @default(0)
   parentId  String?
-  parent    MenuItem?   @relation("MenuItemToMenuItem", fields: [parentId], references: [id], onDelete: SetNull)
-  children  MenuItem[]  @relation("MenuItemToMenuItem")
   sectionId String
-  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   isActive  Boolean     @default(true)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+  parent    MenuItem?   @relation("MenuItemToMenuItem", fields: [parentId], references: [id])
+  children  MenuItem[]  @relation("MenuItemToMenuItem")
+  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([parentId], map: "MenuItem_parentId_fkey")
+  @@index([sectionId], map: "MenuItem_sectionId_fkey")
 }
 
-// Estadísticas de visitas y páginas vistas
 model Visit {
   id    String   @id @default(cuid())
-  date  DateTime @unique // Día de la visita
+  date  DateTime @unique
   count Int      @default(0)
 }
 
 model PageView {
   id    String   @id @default(cuid())
   page  String
-  date  DateTime // Día de la visita
+  date  DateTime
   count Int      @default(0)
 }
 
 model Referrer {
   id       String   @id @default(cuid())
   referrer String
-  date     DateTime // Día de la visita
+  date     DateTime
   count    Int      @default(0)
 }
 
-// --- MODELOS BLOG ---
 model Post {
   id                String     @id @default(cuid())
   title             String
@@ -200,14 +175,83 @@ model Post {
   status            PostStatus @default(DRAFT)
   publishedAt       DateTime?
   featured          Boolean    @default(false)
-  authorDisplayName String? // Nombre del autor a mostrar públicamente (opcional)
   deleted           Boolean    @default(false)
   authorId          String?
-  author            User?      @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  categories        Category[] @relation("PostCategories")
-  tags              Tag[]      @relation("PostTags")
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
+  authorDisplayName String?
+  author            User?      @relation(fields: [authorId], references: [id])
+  categories        Category[] @relation("PostCategories")
+  tags              Tag[]      @relation("PostTags")
+
+  @@index([authorId], map: "Post_authorId_fkey")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]   @relation("PostCategories")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]   @relation("PostTags")
+}
+
+model Project {
+  id                  String             @id @default(cuid())
+  title               String
+  slug                String             @unique
+  content             String             @db.Text
+  excerpt             String?            @db.Text
+  coverImage          String?
+  additionalImageUrls String?            @db.LongText
+  displayType         ProjectDisplayType @default(SINGLE)
+  status              ProjectStatus      @default(DRAFT)
+  publishedAt         DateTime?
+  featured            Boolean            @default(false)
+  authorDisplayName   String?
+  deleted             Boolean            @default(false)
+  authorId            String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  categoryIds         String?            @db.Text // Campo JSON para almacenar IDs de categorías
+  author              User?              @relation(fields: [authorId], references: [id])
+
+  @@index([authorId], map: "Project_authorId_fkey")
+}
+
+enum Role {
+  MASTER
+  ADMIN
+  EDITOR
+  COLLABORATOR
+}
+
+enum WidgetType {
+  LATEST_POSTS
+  LATEST_PROJECTS
+  SEARCH
+  CATEGORIES
+  TAGS
+  SOCIAL_LINKS
+  TEXT
+  NEWSLETTER
+  RECENT_COMMENTS
+}
+
+enum SectionType {
+  HEADER
+  FOOTER
+  SIDEBAR
 }
 
 enum PostStatus {
@@ -216,23 +260,15 @@ enum PostStatus {
   ARCHIVED
 }
 
-model Category {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  description String?  @db.Text
-  posts       Post[]   @relation("PostCategories")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+enum ProjectStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }
 
-model Tag {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  posts     Post[]   @relation("PostTags")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum ProjectDisplayType {
+  SINGLE
+  GALLERY
+  SLIDER
+  GRID
 }
-
-// --- FIN MODELOS BLOG ---

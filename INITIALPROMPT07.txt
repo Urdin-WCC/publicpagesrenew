@@ -175,41 +175,41 @@ Note: If possible, implement a simple test to confirm functionality of the modul
 
 
 
-Chapter 5: Blog_Module (Blog Management and Display)
-(Content adapted from previous Spanish Document 5)
-Objective: Implement all blog-related functionality: CRUD in admin panel and public site display.
-Specific Technology: Next.js (App Router, API Routes, SSR/SSG/Server Components), React, TypeScript, Prisma (via Core), Tailwind CSS, React Hook Form.
+Chapter 7: Static_Pages_Module (Static Page Management)
+(Content adapted from previous Spanish Document 7)
+Objective: Manage pages with custom HTML content and configure the main navigation menu.
+Specific Technology: Next.js (App Router, API Routes, SSG/SSR/Server Components), React, TypeScript, Prisma (via Core), Tailwind CSS, React Hook Form, react-beautiful-dnd.
 Detailed Responsibilities:
 1.	Data Model (Prisma Schema):
-○	Ensure schema.prisma (in Core) contains Post, Category, Tag models with all required fields and relations to User.
-2.	Admin Panel Blog Management [collaborator]:
-○	Create pages: app/(admin)/admin/blog/page.tsx (list), new/page.tsx, edit/[id]/page.tsx. Use AdminLayout. UI text (titles, labels, buttons) in Spanish.
-○	List: Client component using useSWR/useQuery to fetch from API route /api/blog (GET, with pagination/filters/search). Display in table. Edit/Delete buttons (call API DELETE /api/blog/[id]) with role logic [collaborator+].
-○	Create/Edit: Form (react-hook-form). Use Core ImageUploader, HtmlEditor. Status logic [collaborator] vs [editor+]. Call API route /api/blog (POST) or /api/blog/[id] (PUT) to save via Prisma. Validate roles in API.
-3.	Admin Panel Blog Configuration [admin]:
-○	Create page app/(admin)/admin/settings/blog/page.tsx. Use AdminLayout. Access [admin]. UI text in Spanish.
-○	Form (react-hook-form) for blog options.
-○	Call API route (/api/settings/blog) to save to GlobalConfig (Prisma via Core). Protect API [admin].
-4.	Public Blog Site:
-○	Create public routes under app/(public)/blog/:
-■	page.tsx (List): Use Server Components or generateStaticParams+page to fetch published posts (Prisma). Apply config (pagination, sidebar). UI text (e.g., "Leer más") in Spanish.
-■	[slug]/page.tsx (Detail): Use Server Components or generateStaticParams+page to fetch by slug. Render content. UI text (e.g., author, date format) in Spanish.
-■	search/page.tsx (Search): Page using query param q to search via Prisma. UI text in Spanish.
-■	category/[slug]/page.tsx, tag/[slug]/page.tsx: Filter posts. UI text in Spanish.
-○	Use PublicLayout.
+○	Ensure StaticPage model in schema.prisma with necessary fields (incl. menuOrder).
+2.	Admin Panel Static Page Management [admin]:
+○	Create page app/(admin)/admin/pages/page.tsx. Use AdminLayout. Access [admin]. UI text in Spanish.
+○	Management Interface: Client component using useSWR/useQuery to fetch from API /api/pages. Display list. Use react-beautiful-dnd for reordering (call API to save new menuOrder). Controls for Edit, Delete, Visibility toggle, Menu toggle, Set Home (call specific APIs like /api/pages/[id]/toggle-visibility). Create New button.
+○	Editor (app/(admin)/admin/pages/new/page.tsx, edit/[id]/page.tsx): Form (react-hook-form). Use Core_Module.HtmlEditor. Call API /api/pages (POST) or /api/pages/[id] (PUT).
+3.	Admin Panel Additional Configuration [admin]:
+○	Create page app/(admin)/admin/settings/privacy/page.tsx. Access [admin]. UI text in Spanish.
+○	Form for cookie banner text and link to privacy policy page (select existing StaticPage). Save to GlobalConfig via API (/api/settings/privacy).
+4.	Public Site:
+○	Page Rendering: Use dynamic route app/(public)/[slug]/page.tsx. Use generateStaticParams (if SSG) or page (Server Components/SSR) to fetch page by slug via Prisma. 404 if not found. Page with isHomePage=true handled by app/(public)/page.tsx. Render contentHtml (use dangerouslySetInnerHTML) within PublicLayout. UI text (e.g., share buttons if shown) in Spanish.
+○	Navigation Menu: Header component (in UI_Framework) fetches pages with includeInMenu=true (ordered by menuOrder) via API (/api/pages/menu). Renders links.
+○	Cookie Banner: PublicLayout includes CookieBanner component displaying text/link from GlobalConfig. Banner text/button in Spanish.
 5.	API Routes:
-○	Define API routes under app/api/blog/:
-■	route.ts (GET for list with filters/pagination, POST for create).
-■	[id]/route.ts (GET for detail, PUT for update, DELETE for delete).
-■	latest/route.ts (GET for widget).
-○	Protect routes appropriately (public GETs, role-protected POST/PUT/DELETE). Use Prisma (via Core). Call Core's logAdminAction on writes.
-Dependencies: Core_Module (Auth, DB/Prisma, Utilities, Components, logAdminAction), UI_Framework_Module (Layouts).
+○	Define under app/api/pages/:
+■	route.ts (GET list, POST create).
+■	[id]/route.ts (GET detail, PUT update, DELETE delete).
+■	[id]/toggle-visibility/route.ts (PUT).
+■	[id]/toggle-menu/route.ts (PUT).
+■	[id]/set-home/route.ts (PUT, ensure only one).
+■	reorder/route.ts (PUT, receives new order).
+■	menu/route.ts (GET, returns menu items).
+○	Protect [admin]. Use Prisma. Call logAdminAction.
+Dependencies: Core_Module (Auth, DB/Prisma, HtmlEditor, logAdminAction), UI_Framework_Module (Layouts, Header, CookieBanner).
 Interactions:
-●	Defines/uses Prisma models.
-●	Defines blog admin pages and API routes.
+●	Defines/uses StaticPage model.
+●	Defines management pages and API routes.
 ●	API routes use Prisma, validate roles, log actions.
-●	Uses Core components/utilities.
+●	Uses Core HtmlEditor.
 ●	Uses Layouts.
-●	Public pages use Next.js data fetching with Prisma.
-●	Provides API for WidgetLatestPosts.
-Instructions for Agent: "Implement the Blog_Module (Module 5) using Next.js (App Router), React, TypeScript, Prisma (via Core), Tailwind CSS. Define/ensure Post, Category, Tag models in schema.prisma. Create CRUD [collaborator+, restrictions] in /admin/blog/... pages (use react-hook-form, Core Components, useSWR/useQuery). Create config page /admin/settings/blog [admin]. Create necessary API routes under /api/blog/ (public/protected GETs, role-protected POST/PUT/DELETE) using Prisma and calling logAdminAction. Implement public views /blog/... (list, detail, search, category) using Server Components or SSG/SSR for Prisma fetching. Use Layouts and Core services. All user-facing text (admin UI and public site) must be in Spanish."
+●	Public pages use Next.js data fetching (prefer SSG) with Prisma.
+●	Provides API for menu and cookie banner config.
+Instructions for Agent: "Implement the Static_Pages_Module (Module 7) using Next.js (App Router), React, TypeScript, Prisma (via Core), Tailwind CSS. Define/ensure StaticPage model. Create admin management page /admin/pages [admin] (list with react-beautiful-dnd reordering, create, edit with Core HtmlEditor, delete, toggles). Create cookie banner config page /admin/settings/privacy [admin]. Create API routes under /api/pages/ for all operations (Prisma, logAdminAction). Implement public rendering at /[slug] (prefer SSG with generateStaticParams) and /. Create API /api/pages/menu for Header. Ensure CookieBanner works. Use Layouts and Core services. All user-facing text (admin UI and public site/banner) must be in Spanish."

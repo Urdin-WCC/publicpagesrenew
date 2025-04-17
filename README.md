@@ -232,6 +232,7 @@ neurowitch-app/
 
 - [Authentication System](./docs/authentication-system.md): Authentication and authorization system based on Auth.js v5, implementing the requirements from Chapter 0
 - [Translation System](./docs/translation-system.md): Documentation of the translation system that ensures all user-visible text is in Spanish
+- [Portfolio Module](./docs/portfolio-module.md): Documentación del módulo de Portfolio, incluyendo mejoras de robustez y manejo de errores
 
 ### Guías para Desarrolladores
 
