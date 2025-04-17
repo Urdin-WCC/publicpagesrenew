@@ -264,7 +264,8 @@ exports.Prisma.PostScalarFieldEnum = {
   authorId: 'authorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  authorDisplayName: 'authorDisplayName'
+  authorDisplayName: 'authorDisplayName',
+  categoryIds: 'categoryIds'
 };
 
 exports.Prisma.CategoryScalarFieldEnum = {
@@ -422,7 +423,8 @@ exports.Prisma.PostOrderByRelevanceFieldEnum = {
   excerpt: 'excerpt',
   coverImage: 'coverImage',
   authorId: 'authorId',
-  authorDisplayName: 'authorDisplayName'
+  authorDisplayName: 'authorDisplayName',
+  categoryIds: 'categoryIds'
 };
 
 exports.Prisma.CategoryOrderByRelevanceFieldEnum = {

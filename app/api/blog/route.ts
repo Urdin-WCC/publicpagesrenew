@@ -10,21 +10,17 @@ export async function GET(request: Request) {
   // const session = await auth(); // Descomentar para obtener sesión
   // const userRole = getUserRole(session); // Obtener rol del usuario
 
-  // TODO: Implementar lógica de acceso basada en rol si es necesario
-  // Por ejemplo, los colaboradores solo ven sus posts, editores+ ven todos.
-  // Los no autenticados podrían ver solo los publicados.
-
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '1', 10);
   const limit = parseInt(searchParams.get('limit') || '10', 10);
   const searchTerm = searchParams.get('search') || '';
   const categorySlug = searchParams.get('category') || '';
-  const tagSlug = searchParams.get('tag') || '';
   const status = searchParams.get('status') || undefined; // Filtrar por estado (DRAFT, PUBLISHED, ARCHIVED)
 
   const skip = (page - 1) * limit;
 
   try {
+    // Preparar la cláusula where básica
     const whereClause: any = {
       deleted: false, // No mostrar posts borrados lógicamente
       OR: searchTerm
@@ -33,15 +29,12 @@ export async function GET(request: Request) {
             { content: { contains: searchTerm } },
           ]
         : undefined,
-      categories: categorySlug
-        ? { some: { slug: categorySlug } }
-        : undefined,
-      tags: tagSlug ? { some: { slug: tagSlug } } : undefined,
       status: status ? status : undefined, // Aplicar filtro de estado si se proporciona
     };
 
     // TODO: Ajustar whereClause según el rol del usuario si es necesario
 
+    // Obtener los posts básicos primero
     const posts = await prisma.post.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
@@ -51,22 +44,76 @@ export async function GET(request: Request) {
         author: {
           select: { id: true, name: true, email: true }, // Incluir datos del autor
         },
-        categories: {
-          select: { id: true, name: true, slug: true }, // Incluir categorías
-        },
-        tags: {
-          select: { id: true, name: true, slug: true }, // Incluir etiquetas
-        },
       },
     });
 
+    // Contar el total para la paginación
     const totalPosts = await prisma.post.count({ where: whereClause });
-
+    
+    // Si se busca por categoría, debemos filtrar los posts después de obtenerlos
+    let filteredPosts = [...posts];
+    
+    if (categorySlug) {
+      // Obtener el ID de la categoría por su slug
+      const category = await prisma.category.findUnique({
+        where: { slug: categorySlug },
+        select: { id: true }
+      });
+      
+      if (category) {
+        // Filtrar los posts que contienen this categoría por ID
+        filteredPosts = posts.filter(post => {
+          try {
+            // @ts-ignore - El campo categoryIds existe en la base de datos
+            const categoryIds: string[] = post.categoryIds ? JSON.parse(post.categoryIds as string) : [];
+            return categoryIds.includes(category.id);
+          } catch {
+            return false;
+          }
+        });
+      } else {
+        // Si no se encuentra la categoría, no hay posts para mostrar
+        filteredPosts = [];
+      }
+    }
+    
+    // Obtener las categorías para cada post
+    type CategoryType = { id: string; name: string; slug: string };
+    
+    const enhancedPosts = await Promise.all(filteredPosts.map(async (post) => {
+      try {
+        // Parsear categoryIds si existe
+        // @ts-ignore - El campo categoryIds existe en la base de datos
+        const categoryIds: string[] = post.categoryIds ? JSON.parse(post.categoryIds as string) : [];
+        
+        // Obtener detalles de categorías
+        let categories: CategoryType[] = [];
+        if (categoryIds.length > 0) {
+          categories = await prisma.category.findMany({
+            where: { id: { in: categoryIds } },
+            select: { id: true, name: true, slug: true }
+          });
+        }
+        
+        // Añadir categorías al post
+        return {
+          ...post,
+          categories
+        };
+      } catch (error) {
+        console.error(`Error parsing categories for post ${post.id}:`, error);
+        return {
+          ...post,
+          categories: []
+        };
+      }
+    }));
+    
     // Obtener la configuración del blog
     const blogConfig = await getBlogConfig();
 
     return NextResponse.json({
-      posts,
+      posts: enhancedPosts,
       totalPages: Math.ceil(totalPosts / limit),
       currentPage: page,
       totalPosts,
@@ -90,22 +137,21 @@ export async function POST(request: Request) {
   // Verificar permiso para crear
   if (!hasPermission(userRole, 'create_post')) {
      return NextResponse.json({ message: 'No autorizado para crear posts' }, { status: 403 });
-  } // <- Corregir cierre de llave aquí
+  } 
 
   try {
     const body = await request.json();
-    // Asegurarse de que status sea del tipo PostStatus o undefined y añadir authorDisplayName
-    let { title, content, slug, status, categoryIds, tagIds, coverImage, excerpt, featured, authorDisplayName } = body as {
+    // Asegurarse de que status sea del tipo PostStatus o undefined 
+    let { title, content, slug, status, categoryIds, coverImage, excerpt, featured, authorDisplayName } = body as {
         title: string;
         content: string;
         slug: string;
         status?: PostStatus;
         categoryIds?: string[];
-        tagIds?: string[];
         coverImage?: string;
         excerpt?: string;
         featured?: boolean;
-        authorDisplayName?: string; // Añadir campo
+        authorDisplayName?: string;
     };
 
     // Validar campos obligatorios básicos
@@ -127,33 +173,56 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'El slug ya existe. Elige un título diferente o modifica el slug.' }, { status: 409 });
     }
 
+    // Preparar datos para la creación
+    const postData: any = {
+      title,
+      slug,
+      content,
+      status,
+      excerpt,
+      coverImage,
+      featured: featured || false,
+      authorDisplayName: authorDisplayName || undefined,
+      author: {
+        connect: { id: userId }
+      }
+    };
+    
+    // Si hay categorías, convertirlas a JSON
+    if (categoryIds && categoryIds.length > 0) {
+      postData.categoryIds = JSON.stringify(categoryIds.filter(Boolean));
+    }
+
+    // Crear el post
     const newPost = await prisma.post.create({
-      data: {
-        title,
-        slug,
-        content,
-        status,
-        excerpt,
-        coverImage,
-        featured: featured || false,
-        // @ts-ignore - Prisma schema includes authorDisplayName, but TS type generation might be lagging/cached
-        authorDisplayName: authorDisplayName || undefined,
-        author: {
-          connect: { id: userId }
-        },
-        categories: categoryIds && categoryIds.length > 0
-          ? { connect: categoryIds.map(id => ({ id })) }
-          : undefined,
-        tags: tagIds && tagIds.length > 0
-          ? { connect: tagIds.map(id => ({ id })) }
-          : undefined,
-      },
-       include: { // Incluir datos relacionados en la respuesta
-        author: { select: { id: true, name: true } },
-        categories: { select: { id: true, name: true } },
-        tags: { select: { id: true, name: true } },
+      data: postData,
+      include: { 
+        author: { select: { id: true, name: true } }
       }
     });
+    
+    // Obtener categorías para el nuevo post
+    type CategoryType = { id: string; name: string; slug: string };
+    let categories: CategoryType[] = [];
+    
+    try {
+      if (categoryIds && categoryIds.length > 0) {
+        // Consultar las categorías por sus IDs
+        categories = await prisma.category.findMany({
+          where: { id: { in: categoryIds } },
+          select: { id: true, name: true, slug: true }
+        });
+      }
+    } catch (error) {
+      console.error(`Error fetching categories for new post ${newPost.id}:`, error);
+      categories = [];
+    }
+    
+    // Añadir las categorías al post antes de devolverlo
+    const postWithCategories = {
+      ...newPost,
+      categories,
+    };
 
     // Registrar la acción administrativa ANTES de devolver la respuesta
     await logAdminAction(
@@ -162,7 +231,7 @@ export async function POST(request: Request) {
       `Post creado: ${newPost.title} (ID: ${newPost.id})`
     );
 
-    return NextResponse.json(newPost, { status: 201 });
+    return NextResponse.json(postWithCategories, { status: 201 });
 
   } catch (error: any) {
     console.error("Error creating post:", error);

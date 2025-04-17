@@ -14,12 +14,11 @@ export async function GET(request: Request, { params }: RouteParams) {
   // const userRole = getUserRole(session);
 
   try {
+    // Obtener post con todos los campos incluyendo categoryIds
     const post = await prisma.post.findUnique({
       where: { id, deleted: false }, // No encontrar posts borrados lógicamente
       include: {
         author: { select: { id: true, name: true, email: true } },
-        categories: { select: { id: true, name: true, slug: true } },
-        tags: { select: { id: true, name: true, slug: true } },
       },
     });
 
@@ -27,13 +26,49 @@ export async function GET(request: Request, { params }: RouteParams) {
       return NextResponse.json({ message: 'Post no encontrado' }, { status: 404 });
     }
 
+    // Obtener las categorías desde el campo JSON categoryIds y añadirlas al post
+    type CategoryType = { id: string; name: string; slug: string };
+    let categories: CategoryType[] = [];
+
+    try {
+      // Parsear categoryIds si existe
+      // @ts-ignore - El campo categoryIds existe en la base de datos pero no en el tipo TypeScript
+      const categoryIds: string[] = post.categoryIds ? JSON.parse(post.categoryIds as string) : [];
+      
+      // Si hay categorías, obtener sus detalles
+      if (categoryIds.length > 0) {
+        // Consultar las categorías por sus IDs
+        const foundCategories = await prisma.category.findMany({
+          where: { 
+            id: { in: categoryIds } 
+          },
+          select: { 
+            id: true, 
+            name: true, 
+            slug: true 
+          },
+        });
+        
+        categories = foundCategories;
+      }
+    } catch (error) {
+      console.error(`Error parsing categories for post ${id}:`, error);
+      categories = [];
+    }
+
+    // Añadir las categorías al post antes de devolverlo
+    const postWithCategories = {
+      ...post,
+      categories,
+    };
+
     // TODO: Implementar lógica de acceso basada en rol si es necesario
     // (ej. solo el autor o editores+ pueden ver borradores)
     // if (post.status === 'DRAFT' && (!session || post.authorId !== session.user.id && !['EDITOR', 'ADMIN', 'MASTER'].includes(userRole))) {
     //   return NextResponse.json({ message: 'No autorizado para ver este borrador' }, { status: 403 });
     // }
 
-    return NextResponse.json(post);
+    return NextResponse.json(postWithCategories);
   } catch (error) {
     console.error(`Error fetching post ${id}:`, error);
     return NextResponse.json({ message: 'Error al obtener el post' }, { status: 500 });
@@ -87,27 +122,57 @@ export async function PUT(request: Request, { params }: RouteParams) {
     //   // Opcional: Podría implementarse un estado 'PENDING_REVIEW'
     // }
 
+    // Organizar los datos para la actualización del post
+    const updateData: any = {
+      title: title ?? postToUpdate.title,
+      content: content ?? postToUpdate.content,
+      slug: slug ?? postToUpdate.slug,
+      status: status ?? postToUpdate.status, // Usar finalStatus si se implementa lógica de roles
+      coverImage: coverImage !== undefined ? coverImage : postToUpdate.coverImage,
+      excerpt: excerpt !== undefined ? excerpt : postToUpdate.excerpt,
+      featured: featured !== undefined ? featured : postToUpdate.featured,
+      publishedAt: (status === 'PUBLISHED' && postToUpdate.status !== 'PUBLISHED') 
+        ? new Date() 
+        : (status !== 'PUBLISHED' ? null : postToUpdate.publishedAt),
+    };
+    
+    // Si se proporcionan categorías, actualizarlas como JSON
+    if (categoryIds !== undefined) {
+      updateData.categoryIds = JSON.stringify(categoryIds.filter(Boolean));
+    }
+    
+    // Realizar la actualización del post
     const updatedPost = await prisma.post.update({
       where: { id },
-      data: {
-        title: title ?? postToUpdate.title,
-        content: content ?? postToUpdate.content,
-        slug: slug ?? postToUpdate.slug,
-        status: status ?? postToUpdate.status, // Usar finalStatus si se implementa lógica de roles
-        coverImage: coverImage !== undefined ? coverImage : postToUpdate.coverImage,
-        excerpt: excerpt !== undefined ? excerpt : postToUpdate.excerpt,
-        featured: featured !== undefined ? featured : postToUpdate.featured,
-        // Actualizar relaciones Many-to-Many (sobrescribir conexiones)
-        categories: categoryIds !== undefined ? { set: categoryIds.map((catId: string) => ({ id: catId })) } : undefined,
-        tags: tagIds !== undefined ? { set: tagIds.map((tagId: string) => ({ id: tagId })) } : undefined,
-        publishedAt: (status === 'PUBLISHED' && postToUpdate.status !== 'PUBLISHED') ? new Date() : (status !== 'PUBLISHED' ? null : postToUpdate.publishedAt),
-      },
-       include: { // Devolver el post actualizado con relaciones
+      data: updateData,
+      include: { 
         author: { select: { id: true, name: true } },
-        categories: { select: { id: true, name: true } },
-        tags: { select: { id: true, name: true } },
       }
     });
+    
+    // Obtener categorías para el post actualizado
+    type CategoryType = { id: string; name: string; slug: string };
+    let categories: CategoryType[] = [];
+    try {
+      // @ts-ignore - El campo categoryIds existe en la base de datos
+      const postCategoryIds: string[] = updatedPost.categoryIds ? JSON.parse(updatedPost.categoryIds as string) : [];
+      
+      if (postCategoryIds.length > 0) {
+        categories = await prisma.category.findMany({
+          where: { id: { in: postCategoryIds } },
+          select: { id: true, name: true, slug: true }
+        });
+      }
+    } catch (error) {
+      console.error(`Error parsing categories for updated post ${id}:`, error);
+      categories = [];
+    }
+    
+    // Añadir las categorías al post actualizado
+    const postWithCategories = {
+      ...updatedPost,
+      categories,
+    };
 
     // Registrar acción administrativa
     await logAdminAction(
@@ -116,7 +181,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       `Post actualizado: ${updatedPost.title} (ID: ${id})`
     );
 
-    return NextResponse.json(updatedPost);
+    return NextResponse.json(postWithCategories);
   } catch (error) {
     console.error(`Error updating post ${id}:`, error);
     return NextResponse.json({ message: 'Error al actualizar el post' }, { status: 500 });

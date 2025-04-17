@@ -180,9 +180,8 @@ model Post {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   authorDisplayName String?
+  categoryIds       String?    @db.Text // Almacenado como JSON string de IDs de categorías
   author            User?      @relation(fields: [authorId], references: [id])
-  categories        Category[] @relation("PostCategories")
-  tags              Tag[]      @relation("PostTags")
 
   @@index([authorId], map: "Post_authorId_fkey")
 }
@@ -194,7 +193,6 @@ model Category {
   description String?  @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  posts       Post[]   @relation("PostCategories")
 }
 
 model Tag {
@@ -203,7 +201,6 @@ model Tag {
   slug      String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  posts     Post[]   @relation("PostTags")
 }
 
 model Project {
