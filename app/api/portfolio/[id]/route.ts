@@ -15,59 +15,38 @@ export async function GET(request: Request, { params }: RouteParams) {
   const { id } = params;
 
   try {
-    // Get project with author info using raw SQL
+    console.log(`🔍 Obteniendo proyecto con ID: ${id}`);
+    
+    // Obtener proyecto con autor y categoría en una sola consulta SQL
     const projectResult = await prisma.$queryRaw`
-      SELECT p.*, u.id as authorId, u.name as authorName
-      FROM Project p
-      LEFT JOIN User u ON p.authorId = u.id
-      WHERE p.id = ${id}
+      SELECT 
+        p.*,
+        u.id as authorId,
+        u.name as authorName,
+        u.email as authorEmail,
+        c.id as categoryId,
+        c.name as categoryName,
+        c.slug as categorySlug
+      FROM 
+        Project p
+        LEFT JOIN User u ON p.authorId = u.id
+        LEFT JOIN Category c ON p.categoryId = c.id
+      WHERE 
+        p.id = ${id}
     `;
     
+    // Verificar si el proyecto fue encontrado
     const project = Array.isArray(projectResult) && projectResult.length > 0 
       ? projectResult[0] 
       : null;
-
+      
     if (!project) {
+      console.log(`❌ Proyecto no encontrado: ${id}`);
       return NextResponse.json({ message: 'Proyecto no encontrado' }, { status: 404 });
     }
-
-    // Format author information
-    if (project.authorId) {
-      project.author = {
-        id: project.authorId,
-        name: project.authorName
-      };
-    }
-
-    // Obtener categorías desde el campo JSON categoryIds
-    try {
-      let projectCategories = [];
-      
-      // Parsear categoryIds si existe
-      const categoryIds = project.categoryIds ? JSON.parse(project.categoryIds) : [];
-      
-      if (categoryIds.length > 0) {
-        // Construir placeholders para la consulta IN
-        const placeholders = categoryIds.map(() => '?').join(',');
-        
-        // Obtener detalles completos de las categorías
-        const categoriesResult = await prisma.$queryRawUnsafe(`
-          SELECT id, name, slug
-          FROM Category
-          WHERE id IN (${placeholders})
-        `, ...categoryIds);
-        
-        projectCategories = Array.isArray(categoriesResult) ? categoriesResult : [];
-      }
-      
-      // Asignar categorías al proyecto
-      project.categories = projectCategories;
-      console.log(`Loaded ${projectCategories.length} categories for project ${id}`);
-    } catch (error) {
-      console.error("Error fetching project categories from JSON:", error);
-      project.categories = [];
-    }
-
+    
+    console.log(`✅ Proyecto encontrado: ${project.title}`);
+    
     // Si el proyecto está marcado como eliminado, solo permitir acceso a usuarios autenticados
     if (project.deleted) {
       const session = await auth();
@@ -75,14 +54,61 @@ export async function GET(request: Request, { params }: RouteParams) {
         return NextResponse.json({ message: 'Proyecto no encontrado' }, { status: 404 });
       }
     }
-
-    // Parsear additionalImageUrls si existe
-    const projectWithParsedImages = {
-      ...project,
-      additionalImageUrls: project.additionalImageUrls ? JSON.parse(project.additionalImageUrls) : [],
+    
+    // 2. Construcción de datos del autor
+    const author = project.authorId ? {
+      id: project.authorId,
+      name: project.authorName,
+      email: project.authorEmail
+    } : null;
+    
+    // 3. Construcción de categorías
+    type CategoryType = { id: string; name: string; slug: string };
+    let categories: CategoryType[] = [];
+    
+    // Si hay una categoría asociada, agregarla al array
+    if (project.categoryId) {
+      console.log(`🏷️ Categoría encontrada: ${project.categoryName} (${project.categoryId})`);
+      categories = [{
+        id: project.categoryId,
+        name: project.categoryName,
+        slug: project.categorySlug
+      }];
+    } else {
+      console.log(`ℹ️ Proyecto sin categoría`);
+    }
+    
+    // 4. Parsear additionalImageUrls si existe
+    let additionalImageUrls = [];
+    try {
+      additionalImageUrls = project.additionalImageUrls ? JSON.parse(project.additionalImageUrls) : [];
+    } catch (error) {
+      console.error("Error parsing additionalImageUrls:", error);
+      additionalImageUrls = [];
+    }
+    
+    // 5. Construir respuesta final
+    const response = {
+      id: project.id,
+      title: project.title,
+      slug: project.slug,
+      content: project.content,
+      excerpt: project.excerpt,
+      coverImage: project.coverImage,
+      additionalImageUrls,
+      displayType: project.displayType,
+      status: project.status,
+      featured: project.featured === 1 || project.featured === true, // Convertir a boolean
+      authorDisplayName: project.authorDisplayName,
+      author,
+      categories, // Array de categorías (0 o 1)
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt
     };
-
-    return NextResponse.json(projectWithParsedImages);
+    
+    console.log(`📤 Devolviendo proyecto con ${categories.length} categoría(s)`);
+    
+    return NextResponse.json(response);
   } catch (error) {
     console.error('Error fetching project:', error);
     return NextResponse.json({ message: 'Error al obtener el proyecto' }, { status: 500 });
@@ -193,15 +219,30 @@ export async function PUT(request: Request, { params }: RouteParams) {
       }
     }
 
-    // Procesar las categorías para almacenarlas como JSON
-    const categoryIdsJson = Array.isArray(categories) 
-      ? JSON.stringify(categories.filter(Boolean)) // Filtramos valores nulos o vacíos
-      : JSON.stringify([]);
-      
-    console.log('Categories received in PUT request:', categories);
-    console.log('Storing categories as JSON:', categoryIdsJson);
+    // El problema está ocurriendo aquí. El error indica que no existe la columna 'categoryIds'.
+    // Además, hay una discrepancia en el mensaje de log que menciona 'categoryIds' mientras
+    // actualizamos 'categoryId' (singular). Vamos a corregir esto.
+
+    // Manejar la categoría - tomamos la primera en caso de que sea un array
+    let categoryId = null;
     
-    // Actualizar el proyecto con SQL directo, incluyendo categoryIds
+    if (Array.isArray(categories) && categories.length > 0) {
+      categoryId = categories[0]; // Tomamos sólo la primera categoría
+      console.log(`🏷️ Usando la primera categoría del array: ${categoryId}`);
+    } else if (typeof categories === 'string') {
+      categoryId = categories; // Si ya es un string, lo usamos directamente
+      console.log(`🏷️ Usando categoría: ${categoryId}`);
+    }
+    
+    // Si se proporciona el valor "none", guardamos un NULL
+    if (categoryId === "none") {
+      categoryId = null;
+      console.log(`ℹ️ Se seleccionó "Sin categoría"`);
+    }
+    
+    console.log(`🔄 Actualizando proyecto ID ${id} con categoryId: ${categoryId || 'NULL'}`);
+    
+    // Actualizar el proyecto con SQL directo, usando categoryId en lugar de categoryIds
     await prisma.$executeRaw`
       UPDATE Project
       SET 
@@ -215,16 +256,25 @@ export async function PUT(request: Request, { params }: RouteParams) {
         status = ${status},
         featured = ${featured || false},
         authorDisplayName = ${authorDisplayName || null},
-        categoryIds = ${categoryIdsJson}, /* Nuevo campo para almacenar categorías como JSON */
+        categoryId = ${categoryId},
         updatedAt = NOW()
       WHERE id = ${id}
     `;
     
-    console.log(`✅ Project updated successfully with categories stored in categoryIds field`);
+    console.log(`✅ Proyecto actualizado exitosamente ${categoryId ? 'con categoría: ' + categoryId : 'sin categoría'}`);
     
-    // Recuperar el proyecto actualizado
+    // Recuperar el proyecto actualizado con la categoría
     const updatedProjectResult = await prisma.$queryRaw`
-      SELECT * FROM Project WHERE id = ${id}
+      SELECT 
+        p.*, 
+        u.name AS authorName,
+        c.id AS categoryId,
+        c.name AS categoryName,
+        c.slug AS categorySlug
+      FROM Project p
+      LEFT JOIN User u ON p.authorId = u.id
+      LEFT JOIN Category c ON p.categoryId = c.id
+      WHERE p.id = ${id}
     `;
     
     const updatedProject = Array.isArray(updatedProjectResult) && updatedProjectResult.length > 0 

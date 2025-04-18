@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { auth } from '@/auth'; // Descomentar para protección de ruta
-import { logAdminAction } from '@/lib/stats'; // Descomentar para logging
-// import { getUserRole } from '@/lib/auth-utils'; // Helper para obtener rol
+import { auth } from '@/auth';
+import { logAdminAction } from '@/lib/stats';
+// import { getUserRole } from '@/lib/auth-utils';
 
 interface RouteParams {
   params: { id: string };
@@ -10,65 +10,83 @@ interface RouteParams {
 
 export async function GET(request: Request, { params }: RouteParams) {
   const { id } = params;
-  // const session = await auth(); // Descomentar para obtener sesión
-  // const userRole = getUserRole(session);
 
   try {
-    // Obtener post con todos los campos incluyendo categoryIds
-    const post = await prisma.post.findUnique({
-      where: { id, deleted: false }, // No encontrar posts borrados lógicamente
-      include: {
-        author: { select: { id: true, name: true, email: true } },
-      },
-    });
-
+    console.log(`🔍 Obteniendo post con ID: ${id}`);
+    
+    // 1. Obtener los datos básicos del post usando SQL directo
+    const postResult = await prisma.$queryRaw`
+      SELECT 
+        p.*,
+        u.name as authorName,
+        u.email as authorEmail,
+        c.id as categoryId,
+        c.name as categoryName,
+        c.slug as categorySlug
+      FROM 
+        Post p
+        LEFT JOIN User u ON p.authorId = u.id
+        LEFT JOIN Category c ON p.categoryId = c.id
+      WHERE 
+        p.id = ${id}
+        AND p.deleted = FALSE
+    `;
+    
+    // Verificar si el post fue encontrado
+    const post = Array.isArray(postResult) && postResult.length > 0 
+      ? postResult[0] 
+      : null;
+      
     if (!post) {
+      console.log(`❌ Post no encontrado: ${id}`);
       return NextResponse.json({ message: 'Post no encontrado' }, { status: 404 });
     }
-
-    // Obtener las categorías desde el campo JSON categoryIds y añadirlas al post
+    
+    console.log(`✅ Post encontrado: ${post.title}`);
+    
+    // 2. Construcción de datos del autor
+    const author = post.authorId ? {
+      id: post.authorId,
+      name: post.authorName,
+      email: post.authorEmail
+    } : null;
+    
+    // 3. Construcción de categorías
     type CategoryType = { id: string; name: string; slug: string };
     let categories: CategoryType[] = [];
-
-    try {
-      // Parsear categoryIds si existe
-      // @ts-ignore - El campo categoryIds existe en la base de datos pero no en el tipo TypeScript
-      const categoryIds: string[] = post.categoryIds ? JSON.parse(post.categoryIds as string) : [];
-      
-      // Si hay categorías, obtener sus detalles
-      if (categoryIds.length > 0) {
-        // Consultar las categorías por sus IDs
-        const foundCategories = await prisma.category.findMany({
-          where: { 
-            id: { in: categoryIds } 
-          },
-          select: { 
-            id: true, 
-            name: true, 
-            slug: true 
-          },
-        });
-        
-        categories = foundCategories;
-      }
-    } catch (error) {
-      console.error(`Error parsing categories for post ${id}:`, error);
-      categories = [];
+    
+    // Si hay una categoría asociada, agregarla al array
+    if (post.categoryId) {
+      console.log(`🏷️ Categoría encontrada: ${post.categoryName} (${post.categoryId})`);
+      categories = [{
+        id: post.categoryId,
+        name: post.categoryName,
+        slug: post.categorySlug
+      }];
+    } else {
+      console.log(`ℹ️ Post sin categoría`);
     }
-
-    // Añadir las categorías al post antes de devolverlo
-    const postWithCategories = {
-      ...post,
-      categories,
+    
+    // 4. Construir respuesta final
+    const response = {
+      id: post.id,
+      title: post.title,
+      slug: post.slug,
+      content: post.content,
+      excerpt: post.excerpt,
+      coverImage: post.coverImage,
+      status: post.status,
+      featured: post.featured === 1 || post.featured === true, // Convertir a boolean
+      authorDisplayName: post.authorDisplayName,
+      author: author,
+      categories: categories, // Array de categorías (0 o 1)
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt
     };
-
-    // TODO: Implementar lógica de acceso basada en rol si es necesario
-    // (ej. solo el autor o editores+ pueden ver borradores)
-    // if (post.status === 'DRAFT' && (!session || post.authorId !== session.user.id && !['EDITOR', 'ADMIN', 'MASTER'].includes(userRole))) {
-    //   return NextResponse.json({ message: 'No autorizado para ver este borrador' }, { status: 403 });
-    // }
-
-    return NextResponse.json(postWithCategories);
+    
+    console.log(`📤 Devolviendo post con ${categories.length} categoría(s)`);
+    
+    return NextResponse.json(response);
   } catch (error) {
     console.error(`Error fetching post ${id}:`, error);
     return NextResponse.json({ message: 'Error al obtener el post' }, { status: 500 });
@@ -78,110 +96,178 @@ export async function GET(request: Request, { params }: RouteParams) {
 export async function PUT(request: Request, { params }: RouteParams) {
   const { id } = params;
   const session = await auth();
-  // const userRole = getUserRole(session); // Obtener rol si se necesita para lógica más fina
 
-  if (!session?.user?.id) { // Verificar ID de usuario
+  if (!session?.user?.id) {
     return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   }
-  const userId = session.user.id; // Guardar userId
+  const userId = session.user.id;
 
   try {
-    const postToUpdate = await prisma.post.findUnique({ where: { id, deleted: false } });
+    // Obtener el post existente usando SQL directo
+    const postResult = await prisma.$queryRaw`
+      SELECT * FROM Post WHERE id = ${id} AND deleted = FALSE
+    `;
+    
+    const postToUpdate = Array.isArray(postResult) && postResult.length > 0 
+      ? postResult[0] 
+      : null;
 
     if (!postToUpdate) {
       return NextResponse.json({ message: 'Post no encontrado' }, { status: 404 });
     }
 
-    // TODO: Implementar lógica de autorización estricta por rol
-    // const canEdit = session.user.id === postToUpdate.authorId || ['EDITOR', 'ADMIN', 'MASTER'].includes(userRole);
-    // if (!canEdit) {
-    //   return NextResponse.json({ message: 'No autorizado para editar este post' }, { status: 403 });
-    // }
-    // // Colaboradores solo pueden editar sus propios posts y no pueden cambiar el estado a PUBLISHED directamente
-    // if (userRole === 'COLLABORATOR' && session.user.id !== postToUpdate.authorId) {
-    //    return NextResponse.json({ message: 'No autorizado para editar posts de otros' }, { status: 403 });
-    // }
-
+    // Obtener datos del request
     const body = await request.json();
-    const { title, content, slug, status, categoryIds, tagIds, coverImage, excerpt, featured } = body;
+    let { title, content, slug, status, categories, coverImage, excerpt, featured, authorDisplayName } = body;
 
-    // TODO: Validar datos de entrada (ej. con Zod)
+    // Usar valores existentes si no se proporcionan
+    title = title || postToUpdate.title;
+    content = content || postToUpdate.content;
+    slug = slug || postToUpdate.slug;
+    status = status || postToUpdate.status;
+    excerpt = excerpt !== undefined ? excerpt : postToUpdate.excerpt;
+    coverImage = coverImage !== undefined ? coverImage : postToUpdate.coverImage;
+    featured = featured !== undefined ? featured : postToUpdate.featured;
+    authorDisplayName = authorDisplayName !== undefined ? authorDisplayName : postToUpdate.authorDisplayName;
 
-    // Verificar si el nuevo slug (si se cambia) ya existe en otro post
-    if (slug && slug !== postToUpdate.slug) {
-      const existingSlug = await prisma.post.findUnique({ where: { slug } });
-      if (existingSlug) {
-        return NextResponse.json({ message: 'El nuevo slug ya existe' }, { status: 409 });
+    // Verificar si el nuevo slug ya existe
+    if (slug !== postToUpdate.slug) {
+      const slugCheckResult = await prisma.$queryRaw`
+        SELECT id FROM Post WHERE slug = ${slug} AND id != ${id} LIMIT 1
+      `;
+
+      if (Array.isArray(slugCheckResult) && slugCheckResult.length > 0) {
+        return NextResponse.json({ message: 'El slug ya existe' }, { status: 409 });
       }
     }
 
-    // // Impedir que Colaboradores publiquen directamente si no son editores+
-    // let finalStatus = status;
-    // if (userRole === 'COLLABORATOR' && status === 'PUBLISHED' && !['EDITOR', 'ADMIN', 'MASTER'].includes(userRole)) {
-    //   finalStatus = postToUpdate.status; // Mantener estado actual o DRAFT si era nuevo
-    //   // Opcional: Podría implementarse un estado 'PENDING_REVIEW'
-    // }
+    // Definir publishedAt según estado
+    let publishedAt = postToUpdate.publishedAt;
+    if (status === 'PUBLISHED' && postToUpdate.status !== 'PUBLISHED') {
+      publishedAt = new Date();
+    } else if (status !== 'PUBLISHED') {
+      publishedAt = null;
+    }
 
-    // Organizar los datos para la actualización del post
-    const updateData: any = {
-      title: title ?? postToUpdate.title,
-      content: content ?? postToUpdate.content,
-      slug: slug ?? postToUpdate.slug,
-      status: status ?? postToUpdate.status, // Usar finalStatus si se implementa lógica de roles
-      coverImage: coverImage !== undefined ? coverImage : postToUpdate.coverImage,
-      excerpt: excerpt !== undefined ? excerpt : postToUpdate.excerpt,
-      featured: featured !== undefined ? featured : postToUpdate.featured,
-      publishedAt: (status === 'PUBLISHED' && postToUpdate.status !== 'PUBLISHED') 
-        ? new Date() 
-        : (status !== 'PUBLISHED' ? null : postToUpdate.publishedAt),
-    };
+    // Nueva implementación para categoría única
     
-    // Si se proporcionan categorías, actualizarlas como JSON
-    if (categoryIds !== undefined) {
-      updateData.categoryIds = JSON.stringify(categoryIds.filter(Boolean));
+    // Manejar la categoría - tomamos la primera en caso de que sea un array
+    let categoryId = null;
+    let categoryData = null;
+    
+    if (Array.isArray(categories) && categories.length > 0) {
+      categoryId = categories[0]; // Tomamos sólo la primera categoría
+      console.log(`Usando la primera categoría del array: ${categoryId}`);
+    } else if (typeof categories === 'string') {
+      categoryId = categories; // Si ya es un string, lo usamos directamente
+      console.log(`Usando categoría: ${categoryId}`);
     }
     
-    // Realizar la actualización del post
-    const updatedPost = await prisma.post.update({
-      where: { id },
-      data: updateData,
-      include: { 
-        author: { select: { id: true, name: true } },
-      }
-    });
+    // Actualizar datos básicos del post, incluyendo la categoría
+    await prisma.$executeRaw`
+      UPDATE Post
+      SET 
+        title = ${title},
+        slug = ${slug},
+        content = ${content},
+        excerpt = ${excerpt},
+        coverImage = ${coverImage},
+        status = ${status},
+        featured = ${featured},
+        authorDisplayName = ${authorDisplayName},
+        categoryId = ${categoryId}, -- Actualizar con el ID de la categoría
+        publishedAt = ${publishedAt},
+        updatedAt = CURRENT_TIMESTAMP()
+      WHERE id = ${id}
+    `;
     
-    // Obtener categorías para el post actualizado
-    type CategoryType = { id: string; name: string; slug: string };
-    let categories: CategoryType[] = [];
-    try {
-      // @ts-ignore - El campo categoryIds existe en la base de datos
-      const postCategoryIds: string[] = updatedPost.categoryIds ? JSON.parse(updatedPost.categoryIds as string) : [];
-      
-      if (postCategoryIds.length > 0) {
-        categories = await prisma.category.findMany({
-          where: { id: { in: postCategoryIds } },
+    // Si tenemos un ID de categoría, obtener sus detalles para la respuesta
+    if (categoryId) {
+      try {
+        const category = await prisma.category.findUnique({
+          where: { id: categoryId },
           select: { id: true, name: true, slug: true }
         });
+        
+        if (category) {
+          console.log(`✅ Asignada categoría: ${category.name} (${category.id})`);
+          categoryData = category;
+        }
+      } catch (error) {
+        console.error(`❌ Error al obtener categoría ${categoryId}:`, error);
       }
-    } catch (error) {
-      console.error(`Error parsing categories for updated post ${id}:`, error);
-      categories = [];
     }
     
-    // Añadir las categorías al post actualizado
-    const postWithCategories = {
+    console.log(`✅ Post updated successfully with categories stored in categoryIds field`);
+    
+    // Obtener el post actualizado
+    const updatedPostResult = await prisma.$queryRaw`
+      SELECT p.*, u.name as authorName 
+      FROM Post p
+      LEFT JOIN User u ON p.authorId = u.id
+      WHERE p.id = ${id}
+    `;
+    
+    const updatedPost = Array.isArray(updatedPostResult) && updatedPostResult.length > 0 
+      ? updatedPostResult[0] 
+      : null;
+    
+    // Obtener la categoría directamente después de actualizar
+    // Si ya tenemos los datos de la categoría, no necesitamos otra consulta
+    if (categoryData) {
+      console.log(`✅ Usando datos de categoría ya obtenidos: ${categoryData.name}`);
+      
+      // Añadir la categoría al post antes de devolverlo
+      const finalPost = {
+        ...updatedPost,
+        categories: [categoryData]
+      };
+      
+      // Registrar acción administrativa
+      await logAdminAction(
+        userId,
+        'BLOG_UPDATE_POST',
+        `Post actualizado: ${title} (ID: ${id})`
+      );
+
+      return NextResponse.json(finalPost);
+    }
+    
+    // Si no tenemos los datos de la categoría pero tenemos un categoryId en el post actualizado
+    // obtenemos la categoría
+    type CategoryType = { id: string; name: string; slug: string };
+    let postCategories: CategoryType[] = [];
+    if (updatedPost.categoryId) {
+      try {
+        const category = await prisma.category.findUnique({
+          where: { id: updatedPost.categoryId },
+          select: { id: true, name: true, slug: true }
+        });
+        
+        if (category) {
+          console.log(`✅ Categoría obtenida para respuesta: ${category.name}`);
+          postCategories = [category];
+        }
+      } catch (error) {
+        console.error(`Error fetching category for updated post ${id}:`, error);
+        postCategories = [];
+      }
+    }
+    
+    // Construir el post final con las categorías
+    const finalPost = {
       ...updatedPost,
-      categories,
+      categories: postCategories
     };
 
     // Registrar acción administrativa
     await logAdminAction(
       userId,
       'BLOG_UPDATE_POST',
-      `Post actualizado: ${updatedPost.title} (ID: ${id})`
+      `Post actualizado: ${title} (ID: ${id})`
     );
 
-    return NextResponse.json(postWithCategories);
+    return NextResponse.json(finalPost);
   } catch (error) {
     console.error(`Error updating post ${id}:`, error);
     return NextResponse.json({ message: 'Error al actualizar el post' }, { status: 500 });
@@ -191,31 +277,32 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(request: Request, { params }: RouteParams) {
   const { id } = params;
   const session = await auth();
-  // const userRole = getUserRole(session);
 
-  if (!session?.user?.id) { // Verificar ID de usuario
+  if (!session?.user?.id) {
     return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   }
-  const userId = session.user.id; // Guardar userId
+  const userId = session.user.id;
 
   try {
-    const postToDelete = await prisma.post.findUnique({ where: { id, deleted: false } });
+    // Verificar si el post existe usando SQL directo
+    const postResult = await prisma.$queryRaw`
+      SELECT * FROM Post WHERE id = ${id} AND deleted = FALSE
+    `;
+    
+    const postToDelete = Array.isArray(postResult) && postResult.length > 0 
+      ? postResult[0] 
+      : null;
 
     if (!postToDelete) {
       return NextResponse.json({ message: 'Post no encontrado o ya eliminado' }, { status: 404 });
     }
 
-    // TODO: Implementar lógica de autorización estricta por rol
-    // const canDelete = session.user.id === postToDelete.authorId || ['EDITOR', 'ADMIN', 'MASTER'].includes(userRole);
-    // if (!canDelete) {
-    //   return NextResponse.json({ message: 'No autorizado para eliminar este post' }, { status: 403 });
-    // }
-
-    // Borrado lógico en lugar de físico
-    await prisma.post.update({
-      where: { id },
-      data: { deleted: true, status: 'ARCHIVED' }, // Marcar como borrado y archivado
-    });
+    // Borrado lógico usando SQL directo
+    await prisma.$executeRaw`
+      UPDATE Post
+      SET deleted = TRUE, status = 'ARCHIVED', updatedAt = CURRENT_TIMESTAMP()
+      WHERE id = ${id}
+    `;
 
     // Registrar acción administrativa
     await logAdminAction(
@@ -224,7 +311,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       `Post eliminado (lógicamente): ${postToDelete.title} (ID: ${id})`
     );
 
-    return NextResponse.json({ message: 'Post eliminado correctamente' }, { status: 200 });
+    return NextResponse.json({ message: 'Post eliminado correctamente' });
   } catch (error) {
     console.error(`Error deleting post ${id}:`, error);
     return NextResponse.json({ message: 'Error al eliminar el post' }, { status: 500 });

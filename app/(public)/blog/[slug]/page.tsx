@@ -10,11 +10,37 @@ import { translations } from '@/app/translations';
 import RelatedPosts from '@/components/public/RelatedPosts';
 import BlogSidebar from '@/components/public/BlogSidebar';
 import LoadingSpinner from '@/components/core/LoadingSpinner';
-// Definir tipo completo del post para esta página
-type FullPost = NonNullable<Awaited<ReturnType<typeof getPostData>>>;
+// Definir tipos necesarios
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+// Tipo para el post con categorías
+type PostWithCategories = {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string | null;
+  coverImage: string | null;
+  publishedAt: Date | null;
+  status: string;
+  author: { id: string; name: string | null } | null;
+  authorId: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deleted: boolean;
+  featured: boolean;
+  authorDisplayName: string | null;
+  categoryIds?: string;
+  categories: Category[];
+};
 
 // Función para obtener los datos del post
-async function getPostData(slug: string) {
+async function getPostData(slug: string): Promise<PostWithCategories | null> {
+  // Obtener el post básico primero
   const post = await prisma.post.findUnique({
     where: {
       slug: slug,
@@ -22,12 +48,34 @@ async function getPostData(slug: string) {
       deleted: false,
     },
     include: {
-      author: { select: { name: true } },
-      categories: { select: { id: true, name: true, slug: true } }, // Añadir id
-      tags: { select: { id: true, name: true, slug: true } },       // Añadir id
+      author: { select: { id: true, name: true } },
     },
-  });
-  return post;
+  }) as any; // Forzar tipo para acceder a categoryIds
+  
+  if (!post) return null;
+  
+  // Procesar categorías si el post existe
+  let categories: Category[] = [];
+  try {
+    // Si hay categoryIds, obtener los detalles de las categorías
+    if (post.categoryIds) {
+      const categoryIds = JSON.parse(post.categoryIds as string);
+      if (categoryIds.length > 0) {
+        categories = await prisma.category.findMany({
+          where: { id: { in: categoryIds } },
+          select: { id: true, name: true, slug: true }
+        });
+      }
+    }
+  } catch (error) {
+    console.error(`Error parsing categories for post ${post.id}:`, error);
+  }
+  
+  // Añadir las categorías como propiedad al post
+  return {
+    ...post,
+    categories
+  };
 }
 
 interface BlogPostPageProps {
@@ -89,18 +137,13 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                   <span className="font-medium">{post.author.name}</span>
                 </span>
               )}
-          {/* Mostrar Categorías */}
+          {/* Mostrar Categoría - ACTUALIZADO PARA CATEGORÍA ÚNICA */}
           {post.categories && post.categories.length > 0 && (
              <span className="ml-2">
                 {translations.public.in}{' '}
-                {post.categories.map((cat, index) => (
-                    <React.Fragment key={cat.id}>
-                        <Link href={`/blog/category/${cat.slug}`} className="hover:text-primary hover:underline">
-                            {cat.name}
-                        </Link>
-                        {index < post.categories.length - 1 && ', '}
-                    </React.Fragment>
-                ))}
+                <Link href={`/blog/category/${post.categories[0].slug}`} className="hover:text-primary hover:underline">
+                    {post.categories[0].name}
+                </Link>
              </span>
           )}
         </div>
@@ -127,19 +170,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 
-         {/* Mostrar Etiquetas */}
-         {post.tags && post.tags.length > 0 && (
-             <div className="mt-8 pt-4 border-t">
-                <span className="font-semibold mr-2">{translations.public.tags}:</span>
-                {post.tags.map((tag, index) => (
-                    <React.Fragment key={tag.id}>
-                        <Link href={`/blog/tag/${tag.slug}`} className="inline-block bg-muted text-muted-foreground px-2 py-1 rounded text-sm mr-2 mb-2 hover:bg-primary hover:text-primary-foreground transition-colors">
-                            {tag.name}
-                        </Link>
-                    </React.Fragment>
-                ))}
-             </div>
-          )}
+        {/* Nota: Sección de etiquetas eliminada porque hemos migrado a un modelo sin etiquetas */}
 
         {/* Posts Relacionados (Opcional) */}
         {blogConfig.relatedPostsEnabled && (

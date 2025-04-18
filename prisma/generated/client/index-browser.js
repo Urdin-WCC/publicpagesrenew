@@ -265,7 +265,7 @@ exports.Prisma.PostScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   authorDisplayName: 'authorDisplayName',
-  categoryIds: 'categoryIds'
+  categoryId: 'categoryId'
 };
 
 exports.Prisma.CategoryScalarFieldEnum = {
@@ -302,7 +302,7 @@ exports.Prisma.ProjectScalarFieldEnum = {
   authorId: 'authorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  categoryIds: 'categoryIds'
+  categoryId: 'categoryId'
 };
 
 exports.Prisma.SortOrder = {
@@ -424,7 +424,7 @@ exports.Prisma.PostOrderByRelevanceFieldEnum = {
   coverImage: 'coverImage',
   authorId: 'authorId',
   authorDisplayName: 'authorDisplayName',
-  categoryIds: 'categoryIds'
+  categoryId: 'categoryId'
 };
 
 exports.Prisma.CategoryOrderByRelevanceFieldEnum = {
@@ -450,7 +450,7 @@ exports.Prisma.ProjectOrderByRelevanceFieldEnum = {
   additionalImageUrls: 'additionalImageUrls',
   authorDisplayName: 'authorDisplayName',
   authorId: 'authorId',
-  categoryIds: 'categoryIds'
+  categoryId: 'categoryId'
 };
 exports.Role = exports.$Enums.Role = {
   MASTER: 'MASTER',

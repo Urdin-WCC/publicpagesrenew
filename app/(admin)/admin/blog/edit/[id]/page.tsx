@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import useSWR from 'swr'; // Importar useSWR
+import useSWR from 'swr';
 import { useRouter, useParams } from 'next/navigation';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
@@ -18,19 +18,21 @@ import HtmlEditor from '@/components/core/HtmlEditor';
 import ImageUploader from '@/components/core/ImageUploader';
 import { useSession } from 'next-auth/react';
 import { hasPermission } from '@/lib/auth-utils';
-import { PostStatus, Role, Category, Tag } from '@prisma/client'; // Importar tipos reales
+import { PostStatus, Role, Category } from '@prisma/client';
+import { toast } from 'sonner';
+
+// Tipos para el formulario
 interface PostAuthor {
   id: string;
   name: string | null;
 }
+
 interface PostCategory {
   id: string;
   name: string;
+  slug: string;
 }
-interface PostTag {
-  id: string;
-  name: string;
-}
+
 interface ExistingPostData {
   id: string;
   title: string;
@@ -39,60 +41,57 @@ interface ExistingPostData {
   status: PostStatus;
   author: PostAuthor | null;
   categories: PostCategory[];
-  tags: PostTag[];
   coverImage?: string | null;
   excerpt?: string;
   featured: boolean;
-  authorDisplayName?: string | null; // Añadir campo faltante al tipo
+  authorDisplayName?: string | null;
   createdAt: string;
   updatedAt: string;
 }
+
+// Tipo para el formulario - usando el mismo esquema que el formulario de portfolio
 interface BlogPostFormData {
   title: string;
   slug: string;
-  content: string; // Este campo no se usa directamente, se usa contentValue
+  content: string;
   status: PostStatus;
-  categoryIds: string[];
-  tagIds: string[];
+  categories: string[]; // Lista de IDs de categorías
   coverImage?: string | null;
   excerpt?: string;
   featured: boolean;
-  authorDisplayName?: string | null; // Añadir campo faltante al tipo del formulario
+  authorDisplayName?: string | null;
 }
 
 const AdminEditBlogPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
-  const postId = params?.id as string; // Obtener ID del post de la URL
+  const postId = params?.id as string;
   const { data: session } = useSession();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingPost, setIsFetchingPost] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // Quitar useState para categories y tags
-  const [contentValue, setContentValue] = useState(''); // Estado para HtmlEditor
+  const [contentValue, setContentValue] = useState('');
   const [originalPostData, setOriginalPostData] = useState<ExistingPostData | null>(null);
 
+  // Configurar formulario
   const {
     register,
     handleSubmit,
     control,
     watch,
     setValue,
-    reset, // Para resetear el form con datos cargados
+    reset,
     formState: { errors },
   } = useForm<BlogPostFormData>({
     defaultValues: {
       title: '',
       slug: '',
-      content: '', // No se usa directamente
+      content: '',
       status: PostStatus.DRAFT,
-      categoryIds: [],
-      tagIds: [],
+      categories: [],
       coverImage: null,
       excerpt: '',
       featured: false,
-      authorDisplayName: null, // Añadir valor por defecto
+      authorDisplayName: '',
     },
   });
 
@@ -102,149 +101,186 @@ const AdminEditBlogPage: React.FC = () => {
       return res.json();
   });
 
-  // Cargar categorías y etiquetas reales con SWR (fuera de fetchData)
-  const { data: categories, error: categoriesError, isLoading: isLoadingCategories } = useSWR<Category[]>('/api/blog/categories', fetcher);
-  const { data: tags, error: tagsError, isLoading: isLoadingTags } = useSWR<Tag[]>('/api/blog/tags', fetcher);
+  // Cargar post y categorías con SWR
+  const { data: post, error: postError } = useSWR<ExistingPostData>(
+    `/api/blog/${postId}`,
+    fetcher
+  );
+  
+  const { data: categories, error: categoriesError, isLoading: isLoadingCategories } = useSWR<Category[]>(
+    '/api/blog/categories',
+    fetcher
+  );
 
-
-  // Cargar datos del post
-  const fetchData = useCallback(async () => {
-    if (!postId) return;
-    setIsFetchingPost(true);
-    setError(null);
-    try {
-      // Cargar post
-      const postRes = await fetch(`/api/blog/${postId}`);
-      if (!postRes.ok) {
-        if (postRes.status === 404) throw new Error('Post no encontrado');
-        if (postRes.status === 403) throw new Error(translations.auth.unauthorized);
-        throw new Error('Error al cargar el post');
-      }
-      const postData: ExistingPostData = await postRes.json();
-      setOriginalPostData(postData);
-
-      // Poblar formulario
-      reset({
-        title: postData.title,
-        slug: postData.slug,
-        status: postData.status,
-        categoryIds: postData.categories.map(cat => cat.id),
-        tagIds: postData.tags.map(tag => tag.id),
-        coverImage: postData.coverImage,
-        excerpt: postData.excerpt || '',
-        featured: postData.featured,
-        authorDisplayName: postData.authorDisplayName, // Poblar pseudónimo
-        content: '', // No poblar content directamente
-      });
-      setContentValue(postData.content); // Poblar estado del editor
-
-      // Ya no se cargan taxonomías aquí
-
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsFetchingPost(false);
-    }
-  }, [postId, reset]);
-
+  // Inicializar formulario cuando los datos estén disponibles
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (post) {
+      setOriginalPostData(post);
+      setContentValue(post.content);
 
-  const watchedTitle = watch('title');
-  const currentSlug = watch('slug');
+      reset({
+        title: post.title,
+        slug: post.slug,
+        content: post.content,
+        status: post.status,
+        categories: post.categories.map(cat => cat.id),
+        coverImage: post.coverImage || '',
+        excerpt: post.excerpt || '',
+        featured: post.featured,
+        authorDisplayName: post.authorDisplayName || '',
+      });
+    }
+  }, [post, reset]);
 
   // Generar slug si el título cambia y el slug no ha sido modificado manualmente
-   useEffect(() => {
+  const watchedTitle = watch('title');
+  const currentSlug = watch('slug');
+  
+  useEffect(() => {
     if (watchedTitle && originalPostData && currentSlug === generateSlug(originalPostData.title)) {
       setValue('slug', generateSlug(watchedTitle), { shouldValidate: true });
     }
   }, [watchedTitle, setValue, originalPostData, currentSlug]);
 
-
   // Verificar permisos
-  const canEditPost = hasPermission(session?.user?.role, 'edit_post'); // Permiso general
-  // Lógica más específica: ¿puede editar ESTE post? (autor o rol superior)
-  const roleHierarchyLevels: Record<Role, number> = { // Definir niveles localmente
-      [Role.COLLABORATOR]: 1,
-      [Role.EDITOR]: 2,
-      [Role.ADMIN]: 3,
-      [Role.MASTER]: 4,
-  };
-  const userLevel = session?.user?.role ? roleHierarchyLevels[session.user.role] : 0;
-  const editorLevel = roleHierarchyLevels[Role.EDITOR];
-
-  const canEditThisPost = canEditPost && (
-    session?.user?.id === originalPostData?.author?.id ||
-    hasPermission(session?.user?.role, 'edit_any_post') // Asumiendo un permiso más granular
-    || userLevel >= editorLevel // Comprobar si el nivel es EDITOR o superior
-  );
+  const canEditPost = hasPermission(session?.user?.role, 'edit_post');
   const canPublish = hasPermission(session?.user?.role, 'publish_post');
 
+  // Lógica específica: ¿puede editar ESTE post?
+  const isAuthor = originalPostData?.author?.id === session?.user?.id;
+  const canEditAny = hasPermission(session?.user?.role, 'edit_any_post');
+  const canEditThisPost = isAuthor || canEditAny;
+
+  // Manejar envío del formulario - similar al portfolio
   const onSubmit: SubmitHandler<BlogPostFormData> = async (data) => {
-     if (!canEditThisPost) {
-      setError(translations.auth.unauthorized);
-      return;
-    }
-     // Asegurarse de que un colaborador no pueda publicar directamente
-    if (!canPublish && data.status === PostStatus.PUBLISHED) {
-        data.status = originalPostData?.status ?? PostStatus.DRAFT; // Revertir al estado original si no puede publicar
-    }
+    toast.custom((t) => (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-md mx-auto">
+        <h3 className="font-medium text-lg mb-2">Confirmar cambios</h3>
+        <p className="mb-4">¿Estás seguro de que deseas guardar los cambios en este post?</p>
+        <div className="flex justify-end gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => toast.dismiss(t)} 
+            className="px-3"
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={async () => {
+              toast.dismiss(t);
+              
+              if (!canEditThisPost) {
+                toast.error(translations.errorPages.accessDeniedDescription);
+                return;
+              }
+              
+              setIsLoading(true);
+              
+              try {
+                // Actualizar contenido desde el editor
+                const payload = {
+                  ...data,
+                  content: contentValue,
+                };
 
-    setIsLoading(true);
-    setError(null);
+                // Si el usuario no puede publicar, mantener el estado original
+                if (payload.status === 'PUBLISHED' && !canPublish && originalPostData?.status !== 'PUBLISHED') {
+                  payload.status = originalPostData?.status || 'DRAFT';
+                }
 
-    try {
-      const response = await fetch(`/api/blog/${postId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, content: contentValue }), // Enviar contenido del editor
-      });
+                console.log("Enviando datos a la API:", payload);
+                
+                const response = await fetch(`/api/blog/${postId}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || translations.notifications.updateError || 'Error al actualizar el post');
-      }
-
-      alert(translations.notifications.updateSuccess);
-      router.push('/admin/blog'); // Redirigir a la lista
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+                if (response.ok) {
+                  toast.success(translations.notifications.updateSuccess || 'Post actualizado correctamente');
+                  router.push('/admin/blog');
+                } else {
+                  const errorData = await response.json();
+                  toast.error(errorData.message || 'Error al actualizar el post');
+                }
+              } catch (error) {
+                console.error('Error updating post:', error);
+                toast.error('Error al actualizar el post');
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            className="px-3"
+          >
+            Guardar
+          </Button>
+        </div>
+      </div>
+    ), {
+      duration: 10000,
+    });
   };
 
-  if (isFetchingPost) return <p>{translations.common.loading}...</p>;
-  if (error && (error === 'Post no encontrado' || error === translations.auth.unauthorized)) {
-      return <p className="text-red-500">{error}</p>;
+  // Mostrar error si no se puede cargar el post
+  if (postError) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          Error al cargar el post. Por favor, inténtalo de nuevo.
+        </div>
+        <Button className="mt-4" onClick={() => router.push('/admin/blog')}>
+          {translations.common.back}
+        </Button>
+      </div>
+    );
   }
-  if (!originalPostData) return <p>Error al cargar datos del post.</p>; // Estado inesperado
 
-   // Renderizar solo si tiene permiso para editar este post específico
-   if (!canEditThisPost && !isFetchingPost) {
-     return <p className="text-red-500">{translations.auth.unauthorized}</p>;
-   }
+  // Mostrar carga mientras se obtienen los datos
+  if (!post) {
+    return (
+      <div className="container mx-auto p-4 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+        <p className="mt-4">{translations.common.loading}</p>
+      </div>
+    );
+  }
+
+  // Redireccionar si no tiene permisos
+  if (!canEditPost || !canEditThisPost) {
+    return (
+      <div className="container mx-auto p-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {translations.errorPages.accessDeniedDescription}
+        </div>
+        <Button className="mt-4" onClick={() => router.push('/admin/blog')}>
+          {translations.common.back}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4 md:p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Editar Post: {originalPostData.title}</CardTitle>
+          <CardTitle>Editar Post: {post.title}</CardTitle>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-6">
             {/* Título */}
             <div>
-              <Label htmlFor="title">{translations.admin.blogList.tableTitle}</Label>
+              <Label htmlFor="title">Título</Label>
               <Input
                 id="title"
                 {...register('title', { required: 'El título es obligatorio' })}
                 className={errors.title ? 'border-red-500' : ''}
               />
-              {/* Mensaje si SWR aún no ha cargado las categorías */}
-              {!categories && !categoriesError && <p className="text-xs text-muted-foreground mt-1">{translations.common.loading}...</p>}
-              {errors.title && <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>}
+              {errors.title && (
+                <p className="text-red-500 text-xs mt-1">{errors.title.message}</p>
+              )}
             </div>
 
             {/* Slug */}
@@ -252,20 +288,22 @@ const AdminEditBlogPage: React.FC = () => {
               <Label htmlFor="slug">Slug (URL)</Label>
               <Input
                 id="slug"
-                {...register('slug', {
+                {...register('slug', { 
                   required: 'El slug es obligatorio',
                   pattern: {
                     value: /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-                    message: 'Slug inválido (solo letras minúsculas, números y guiones)',
-                  },
+                    message: 'Slug inválido (solo letras minúsculas, números y guiones)'
+                  }
                 })}
-                 className={errors.slug ? 'border-red-500' : ''}
+                className={errors.slug ? 'border-red-500' : ''}
               />
-               {errors.slug && <p className="text-red-500 text-xs mt-1">{errors.slug.message}</p>}
-               <p className="text-xs text-muted-foreground mt-1">Ajusta con cuidado si el post ya está publicado.</p>
+              {errors.slug && (
+                <p className="text-red-500 text-xs mt-1">{errors.slug.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">Ajusta con cuidado si el post ya está publicado.</p>
             </div>
 
-             {/* Imagen de Portada */}
+            {/* Imagen de Portada */}
             <div>
               <Label>Imagen de Portada</Label>
               <Controller
@@ -274,12 +312,10 @@ const AdminEditBlogPage: React.FC = () => {
                 render={({ field }) => (
                   <ImageUploader
                     onChange={(url: string) => field.onChange(url)}
-                    value={field.value || undefined} // Usar 'value' en lugar de 'initialUrl'
-                    buttonText="Cambiar o subir imagen" // Añadir texto botón
+                    value={field.value || undefined}
                   />
                 )}
               />
-              {/* Eliminar comentario erróneo de etiquetas aquí */}
             </div>
 
             {/* Contenido */}
@@ -289,7 +325,6 @@ const AdminEditBlogPage: React.FC = () => {
                   value={contentValue}
                   onChange={setContentValue}
                 />
-               {/* TODO: Añadir validación para el contenido si es necesario */}
             </div>
 
              {/* Extracto */}
@@ -305,7 +340,7 @@ const AdminEditBlogPage: React.FC = () => {
 
             {/* Estado */}
             <div>
-              <Label htmlFor="status">{translations.admin.blogList.tableStatus}</Label>
+              <Label htmlFor="status">Estado</Label>
               <Controller
                 name="status"
                 control={control}
@@ -319,9 +354,9 @@ const AdminEditBlogPage: React.FC = () => {
                       <SelectValue placeholder="Selecciona un estado" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={PostStatus.DRAFT}>{translations.admin.blogList.statusDraft}</SelectItem>
-                      {canPublish && <SelectItem value={PostStatus.PUBLISHED}>{translations.admin.blogList.statusPublished}</SelectItem>}
-                      <SelectItem value={PostStatus.ARCHIVED}>{translations.admin.blogList.statusArchived}</SelectItem>
+                      <SelectItem value={PostStatus.DRAFT}>Borrador</SelectItem>
+                      {canPublish && <SelectItem value={PostStatus.PUBLISHED}>Publicado</SelectItem>}
+                      <SelectItem value={PostStatus.ARCHIVED}>Archivado</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -329,9 +364,9 @@ const AdminEditBlogPage: React.FC = () => {
                {!canPublish && <p className="text-xs text-muted-foreground mt-1">No tienes permiso para publicar directamente.</p>}
             </div>
 
-            {/* Categorías */}
+            {/* Categoría - ACTUALIZADO PARA CATEGORÍA ÚNICA */}
             <div>
-              <Label>{translations.admin.blogList.tableCategories}</Label>
+              <Label>Categoría</Label>
               {/* Lógica mejorada para mostrar estado de carga/error/vacío */}
               {isLoadingCategories ? (
                 <p className="text-sm text-muted-foreground mt-1">{translations.common.loading}...</p>
@@ -339,74 +374,38 @@ const AdminEditBlogPage: React.FC = () => {
                 <p className="text-sm text-red-500 mt-1">Error al cargar categorías.</p>
               ) : categories && categories.length > 0 ? (
                 <Controller
-                  name="categoryIds"
+                  name="categories" /* Mantener el nombre "categories" para compatibilidad con API */
                   control={control}
                   render={({ field }) => (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 border p-2 rounded-md max-h-40 overflow-y-auto mt-1">
-                      {categories.map((cat) => (
-                        <div key={cat.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`cat-${cat.id}`}
-                            checked={field.value?.includes(cat.id)}
-                            onCheckedChange={(checked) => {
-                              const newValue = checked
-                                ? [...(field.value || []), cat.id]
-                                : (field.value || []).filter(id => id !== cat.id);
-                              field.onChange(newValue);
-                            }}
-                          />
-                          <Label htmlFor={`cat-${cat.id}`} className="font-normal">{cat.name}</Label>
-                        </div>
-                      ))}
-                    </div>
+                    <Select
+                      onValueChange={(value) => {
+                        // Cuando selecciona una categoría, lo convertimos a array con un elemento
+                        // Si es "none", lo convertimos a array vacío
+                        field.onChange(value !== "none" ? [value] : []);
+                      }}
+                      value={field.value?.length > 0 ? field.value[0] : "none"}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona una categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin categoría</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   )}
                 />
               ) : (
                  <p className="text-xs text-muted-foreground mt-1">No hay categorías disponibles. Créalas <Link href="/admin/blog/taxonomies" className="underline">aquí</Link>.</p>
               )}
+              <p className="text-xs text-muted-foreground mt-1">Ahora puedes seleccionar una sola categoría para cada post.</p>
             </div>
 
-
-
-             {/* Etiquetas */}
-            <div>
-              <Label>{translations.admin.blogList.tableTags}</Label>
-              {/* Lógica mejorada para mostrar estado de carga/error/vacío */}
-              {isLoadingTags ? (
-                 <p className="text-sm text-muted-foreground mt-1">{translations.common.loading}...</p>
-              ) : tagsError ? (
-                 <p className="text-sm text-red-500 mt-1">Error al cargar etiquetas.</p>
-              ) : tags && tags.length > 0 ? (
-                 <Controller
-                    name="tagIds"
-                    control={control}
-                    render={({ field }) => (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 border p-2 rounded-md max-h-40 overflow-y-auto mt-1">
-                            {tags.map(tag => (
-                                <div key={tag.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={`tag-${tag.id}`}
-                                        checked={field.value?.includes(tag.id)}
-                                        onCheckedChange={(checked) => {
-                                            const newValue = checked
-                                                ? [...(field.value || []), tag.id]
-                                                : (field.value || []).filter(id => id !== tag.id);
-                                            field.onChange(newValue);
-                                        }}
-                                    />
-                                    <Label htmlFor={`tag-${tag.id}`} className="font-normal">{tag.name}</Label>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                />
-               ) : (
-                 <p className="text-xs text-muted-foreground mt-1">No hay etiquetas disponibles. Créalas <Link href="/admin/blog/taxonomies" className="underline">aquí</Link>.</p>
-              )}
-            </div>
-
-
-             {/* Destacado */}
+            {/* Destacado */}
              <div className="flex items-center space-x-2">
                <Controller
                   name="featured"
@@ -433,8 +432,8 @@ const AdminEditBlogPage: React.FC = () => {
               <p className="text-xs text-muted-foreground mt-1">Si se deja vacío, se usará el nombre de usuario real ({originalPostData?.author?.name || 'desconocido'}).</p>
             </div>
 
-            {/* Mensaje de Error General del Fetch inicial */}
-            {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
+            {/* Mensaje de Error si existe */}
+            {errors.root?.message && <p className="text-red-500 text-sm mt-4">{errors.root?.message}</p>}
 
           </CardContent>
           <CardFooter className="flex justify-end gap-2">

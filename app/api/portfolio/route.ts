@@ -139,49 +139,67 @@ export async function GET(request: Request) {
       ? Number(totalResult[0].total) 
       : totalResult[0].total;
     
-    // Cargar categorías para cada proyecto usando el campo categoryIds (JSON)
-    try {
-      // Para cada proyecto, obtener sus categorías asociadas desde el campo JSON
-      for (const project of projects as any[]) {
-        // Inicializar categories como array vacío por defecto
-        project.categories = [];
-        
-        // Parsear categoryIds si existe
-        let categoryIds = [];
-        try {
-          if (project.categoryIds) {
-            categoryIds = JSON.parse(project.categoryIds);
-          }
-        } catch (parseError) {
-          console.error(`Error parsing categoryIds for project ${project.id}:`, parseError);
-          categoryIds = [];
-        }
-        
-        // Si hay categorías, obtener sus detalles
-        if (categoryIds.length > 0) {
-          // Construir placeholders para la consulta IN
-          const placeholders = categoryIds.map(() => '?').join(',');
+    // Cargar categorías para cada proyecto directamente
+    console.log(`🔍 Obteniendo categorías para ${projects.length} proyectos`);
+    
+    // Enfoque mejorado: una sola consulta para obtener categorías para todos los proyectos
+    // MySQL no admite arrays directamente en consultas, así que construimos una consulta segura
+    let projectCategories: any[] = [];
+    
+    // Solo ejecutar la consulta si hay proyectos
+    if (projects.length > 0) {
+      // Construir una lista de proyecto IDs como una cadena de formato '1','2','3'
+      const projectIds = projects.map(p => `'${p.id}'`).join(',');
+      
+      // Usar esa cadena en la consulta SQL
+      const categoriesQuery = `
+        SELECT 
+          p.id as projectId,
+          c.id as categoryId,
+          c.name as categoryName,
+          c.slug as categorySlug
+        FROM 
+          Project p
+        LEFT JOIN Category c ON p.categoryId = c.id
+        WHERE 
+          p.id IN (${projectIds})
+          AND p.deleted = FALSE
+      `;
+      
+      // Ejecutar la consulta construida
+      projectCategories = await prisma.$queryRawUnsafe(categoriesQuery);
+      console.log(`🔍 Obtenidas categorías para ${projects.length} proyectos`);
+    }
+    
+    // Crear un mapa de proyectos a categorías
+    const projectCategoriesMap = new Map();
+    
+    // Inicializar cada proyecto con un array vacío de categorías
+    for (const project of projects) {
+      projectCategoriesMap.set(project.id, []);
+    }
+    
+    // Agregar categorías a sus proyectos correspondientes
+    if (Array.isArray(projectCategories)) {
+      for (const row of projectCategories) {
+        if (row.categoryId) {
+          const categoryEntry = {
+            id: row.categoryId,
+            name: row.categoryName,
+            slug: row.categorySlug
+          };
           
-          // Obtener detalles de las categorías
-          try {
-            const categoriesResult = await prisma.$queryRawUnsafe(`
-              SELECT id, name, slug
-              FROM Category
-              WHERE id IN (${placeholders})
-            `, ...categoryIds);
-            
-            project.categories = Array.isArray(categoriesResult) ? categoriesResult : [];
-          } catch (fetchError) {
-            console.error(`Error fetching categories for project ${project.id}:`, fetchError);
-          }
+          // Añadir categoría al proyecto correspondiente
+          const categories = projectCategoriesMap.get(row.projectId) || [];
+          categories.push(categoryEntry);
+          projectCategoriesMap.set(row.projectId, categories);
         }
       }
-    } catch (error) {
-      console.error("Error loading project categories from JSON:", error);
-      // Si hay error, inicializar como arreglo vacío para evitar errores
-      for (const project of projects as any[]) {
-        if (!project.categories) project.categories = [];
-      }
+    }
+    
+    // Asignar las categorías a cada proyecto
+    for (const project of projects) {
+      project.categories = projectCategoriesMap.get(project.id) || [];
     }
 
     // Obtener la configuración del portfolio
@@ -325,76 +343,116 @@ export async function POST(request: Request) {
       RETURNING *
     `;
     
-    // Procesar las categorías para guardarlas como JSON
-    const categoryIdsJson = Array.isArray(categories) 
-      ? JSON.stringify(categories.filter(Boolean))  // Filtrar valores nulos o vacíos
-      : JSON.stringify([]);
-      
-    // Actualizar el proyecto con las categorías en formato JSON
+    // Nueva implementación para categoría única
+    let categoryId = null;
+    let categoryData = null;
+    
     if (Array.isArray(categories) && categories.length > 0) {
+      categoryId = categories[0]; // Tomamos sólo la primera categoría
+      console.log(`🏷️ Usando la primera categoría del array: ${categoryId}`);
+    } else if (typeof categories === 'string') {
+      categoryId = categories; // Si ya es un string, lo usamos directamente
+      console.log(`🏷️ Usando categoría: ${categoryId}`);
+    }
+    
+    // Si se proporciona el valor "none", guardamos un NULL
+    if (categoryId === "none") {
+      categoryId = null;
+      console.log(`ℹ️ Se seleccionó "Sin categoría"`);
+    }
+    
+    // Actualizar el proyecto con la categoría
+    if (categoryId) {
+      await prisma.$executeRaw`
+        UPDATE Project
+        SET categoryId = ${categoryId}
+        WHERE id = ${projectId}
+      `;
+      console.log(`✅ Actualizado proyecto con categoryId: ${categoryId}`);
+      
+      // Obtener detalles de la categoría para respuesta
       try {
-        await prisma.$executeRaw`
-          UPDATE Project
-          SET categoryIds = ${categoryIdsJson}
-          WHERE id = ${projectId}
-        `;
-        console.log(`Stored ${categories.length} categories in project ${projectId} as JSON: ${categoryIdsJson}`);
+        const category = await prisma.category.findUnique({
+          where: { id: categoryId },
+          select: { id: true, name: true, slug: true }
+        });
+        
+        if (category) {
+          categoryData = category;
+          console.log(`✅ Categoría obtenida: ${category.name} (${category.id})`);
+        }
       } catch (error) {
-        console.error('Error storing categories as JSON:', error);
-        // No detener la ejecución, sólo registrar el error
+        console.error(`❌ Error obteniendo categoría ${categoryId}:`, error);
       }
     }
     
-    // Obtener el proyecto completo con relaciones
-    const projectWithRelations = await prisma.$queryRaw<any[]>`
-      SELECT p.*, u.name as authorName 
-      FROM Project p 
-      LEFT JOIN User u ON p.authorId = u.id 
+    // Obtener proyecto actualizado con relaciones
+    const projectWithRelations = await prisma.$queryRaw`
+      SELECT 
+        p.*, 
+        u.name as authorName,
+        u.email as authorEmail,
+        c.id as categoryId,
+        c.name as categoryName,
+        c.slug as categorySlug
+      FROM 
+        Project p
+      LEFT JOIN User u ON p.authorId = u.id
+      LEFT JOIN Category c ON p.categoryId = c.id
       WHERE p.id = ${newProject[0].id}
     `;
     
-    // Obtener las categorías del proyecto que acabamos de crear (desde el campo JSON)
-    let projectCategories = [];
+    // Construir la respuesta final
+    const project = Array.isArray(projectWithRelations) && projectWithRelations.length > 0 
+      ? projectWithRelations[0] 
+      : null;
+    
+    if (!project) {
+      return NextResponse.json({ message: 'Error al crear el proyecto' }, { status: 500 });
+    }
+    
+    // Obtener categoría del proyecto
+    const projectCategories = project.categoryId ? [{
+      id: project.categoryId,
+      name: project.categoryName,
+      slug: project.categorySlug
+    }] : [];
+    
+    // Parsear additionalImageUrls
+    const projectAdditionalImages = [];
     try {
-      // Obtener el proyecto actualizado con su campo categoryIds
-      const projectWithCategories = await prisma.$queryRaw`
-        SELECT categoryIds FROM Project WHERE id = ${projectId}
-      `;
-      
-      // Parsear el campo categoryIds
-      let categoryIds = [];
-      if (projectWithCategories[0].categoryIds) {
-        try {
-          categoryIds = JSON.parse(projectWithCategories[0].categoryIds);
-        } catch (parseError) {
-          console.error('Error parsing categoryIds:', parseError);
+      if (project.additionalImageUrls) {
+        // @ts-ignore - we know project.additionalImageUrls is a string
+        const parsedImages = JSON.parse(project.additionalImageUrls);
+        if (Array.isArray(parsedImages)) {
+          // @ts-ignore - assigning to projectAdditionalImages
+          projectAdditionalImages.push(...parsedImages);
         }
       }
-      
-      // Si hay IDs de categorías, obtener sus detalles
-      if (categoryIds.length > 0) {
-        // Construir placeholders para la consulta IN
-        const placeholders = categoryIds.map(() => '?').join(',');
-        
-        // Obtener detalles de las categorías
-        const categoriesResult = await prisma.$queryRawUnsafe(`
-          SELECT id, name, slug
-          FROM Category
-          WHERE id IN (${placeholders})
-        `, ...categoryIds);
-        
-        projectCategories = Array.isArray(categoriesResult) ? categoriesResult : [];
-      }
-      
-      console.log('Categories attached to new project (from JSON):', projectCategories);
     } catch (error) {
-      console.error('Error fetching project categories from JSON:', error);
-      projectCategories = [];
+      console.error("Error parsing additionalImageUrls:", error);
     }
     
     const finalProject = {
-      ...projectWithRelations[0],
-      categories: projectCategories
+      id: project.id,
+      title: project.title,
+      slug: project.slug,
+      content: project.content,
+      excerpt: project.excerpt,
+      coverImage: project.coverImage,
+      additionalImageUrls: projectAdditionalImages,
+      displayType: project.displayType,
+      status: project.status,
+      featured: project.featured === 1 || project.featured === true,
+      authorDisplayName: project.authorDisplayName,
+      author: {
+        id: project.authorId,
+        name: project.authorName,
+        email: project.authorEmail
+      },
+      categories: projectCategories,
+      createdAt: project.createdAt,
+      updatedAt: project.updatedAt
     };
 
     // Registrar la acción administrativa

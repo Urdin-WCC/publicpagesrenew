@@ -263,18 +263,15 @@ export default async function ProjectPage({ params }: PageProps) {
                 )}
               </div>
 
-              {/* Categorías */}
-              {project.categories.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {project.categories.map((category: any) => (
-                    <Link
-                      key={category.id}
-                      href={`/portfolio/category/${category.slug}`}
-                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm"
-                    >
-                      {category.name}
-                    </Link>
-                  ))}
+              {/* Categoría - ACTUALIZADO PARA CATEGORÍA ÚNICA */}
+              {project.categories && project.categories.length > 0 && (
+                <div className="mb-6">
+                  <Link
+                    href={`/portfolio/category/${project.categories[0].slug}`}
+                    className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm"
+                  >
+                    {project.categories[0].name}
+                  </Link>
                 </div>
               )}
 

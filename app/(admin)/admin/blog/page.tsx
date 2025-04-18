@@ -1,287 +1,383 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import useSWR from 'swr';
 import { useSession } from 'next-auth/react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'; // Hooks de navegación
-import { Post, Category, Tag, User, PostStatus } from '@prisma/client';
+import { hasPermission } from '@/lib/auth-utils';
+import { translations } from '@/app/translations';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card } from '@/components/ui/card';
-import { translations } from '@/app/translations';
-import { PlusCircle, Edit, Trash2, Search } from 'lucide-react';
-import Link from 'next/link';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { TagIcon, PlusCircle, Edit, Trash2, Search, Eye, ArchiveIcon, SendToBack, Star } from 'lucide-react';
 import { toast } from 'sonner';
-import { hasPermission } from '@/lib/auth-utils';
-import PaginationControls from '@/components/public/PaginationControls'; // Reutilizar paginación
-import { Badge } from '@/components/ui/badge'; // Para mostrar estado
+import PaginationControls from '@/components/public/PaginationControls';
 
-// Tipo extendido para los posts en la lista
-type PostListItem = Post & {
-  author: { name: string | null } | null;
-  categories: Pick<Category, 'id' | 'name'>[];
-  tags: Pick<Tag, 'id' | 'name'>[];
-};
+// Define tipos para el post
+interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+  coverImage?: string | null;
+  createdAt: string;
+  featured: boolean;
+  author?: { name: string | null } | null;
+  authorDisplayName?: string | null;
+  categories?: { id: string; name: string }[];
+}
 
 // Tipo para la respuesta de la API
 interface ApiResponse {
-  posts: PostListItem[];
+  posts: BlogPost[];
   totalPages: number;
   currentPage: number;
   totalPosts: number;
 }
 
-// Fetcher para SWR
-const fetcher = (url: string) => fetch(url).then(async res => {
-    if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || translations.admin.blogList.fetchError);
-    }
-    return res.json();
-});
+// Función para obtener datos de la API
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
-const AdminBlogListPage: React.FC = () => {
+export default function BlogPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { data: session } = useSession();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [page, setPage] = useState(1);
 
-  // Estados para filtros y búsqueda
-  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
-  const [statusFilter, setStatusFilter] = useState<PostStatus | ''>(searchParams.get('status') as PostStatus | '' || '');
-  const currentPage = parseInt(searchParams.get('page') || '1', 10);
-  const limit = 10; // O configurable
+  // Construir URL con parámetros de búsqueda y filtro
+  const apiUrl = `/api/blog?page=${page}${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ''}${statusFilter && statusFilter !== 'ALL' ? `&status=${statusFilter}` : ''}`;
 
-  // Construir URL para SWR basada en filtros y paginación
-  const apiUrl = useMemo(() => {
-    const params = new URLSearchParams();
-    params.set('page', currentPage.toString());
-    params.set('limit', limit.toString());
-    if (searchTerm) params.set('search', searchTerm);
-    if (statusFilter) params.set('status', statusFilter);
-    return `/api/blog?${params.toString()}`;
-  }, [currentPage, searchTerm, statusFilter, limit]);
+  // Obtener datos con SWR
+  const { data, error, mutate } = useSWR<ApiResponse>(apiUrl, fetcher);
 
-  const { data: apiResponse, error, isLoading, mutate } = useSWR<ApiResponse>(apiUrl, fetcher, { keepPreviousData: true });
-
-  // Permisos
+  // Verificar permisos
   const canCreate = hasPermission(session?.user?.role, 'create_post');
-  const canEditAny = hasPermission(session?.user?.role, 'edit_any_post'); // Permiso para editar cualquier post
-  const canDeleteAny = hasPermission(session?.user?.role, 'delete_any_post'); // Permiso para eliminar cualquier post
+  const canEdit = hasPermission(session?.user?.role, 'edit_post');
+  const canDelete = hasPermission(session?.user?.role, 'delete_post');
 
-  // Función para actualizar los parámetros de búsqueda en la URL
-  const updateSearchParams = useCallback((newParams: Record<string, string>) => {
-    const current = new URLSearchParams(Array.from(searchParams.entries()));
-    Object.entries(newParams).forEach(([key, value]) => {
-        if (value) {
-            current.set(key, value);
-        } else {
-            current.delete(key); // Eliminar si el valor está vacío
-        }
-    });
-     // Resetear a página 1 cuando cambian los filtros/búsqueda
-     if (newParams.search !== undefined || newParams.status !== undefined) {
-        current.set('page', '1');
-     }
-    const search = current.toString();
-    const query = search ? `?${search}` : "";
-    router.push(`${pathname}${query}`);
-  }, [searchParams, router, pathname]);
-
-
-  // Manejadores para filtros y búsqueda
-  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
-      updateSearchParams({ search: searchTerm });
-  };
-
-  const handleStatusChange = (value: string) => {
-    const status = value === 'all' ? '' : (value as PostStatus);
-    setStatusFilter(status);
-    updateSearchParams({ status });
-  };
-
-  // Eliminar post
-  const handleDelete = (post: PostListItem) => {
-    // Verificar permiso específico para este post
-    const canDeleteThis = canDeleteAny || (hasPermission(session?.user?.role, 'delete_post') && session?.user?.id === post.authorId);
-    if (!canDeleteThis) {
-        toast.error(translations.auth.unauthorized);
-        return;
-    }
-
-    const promise = fetch(`/api/blog/${post.id}`, { method: 'DELETE' })
-      .then(async (res) => {
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || translations.admin.blogList.deleteError);
-        }
-        mutate(); // Refrescar lista
-        return { name: post.title };
+  // Manejar acciones de post (publicar, archivar, etc.)
+  const handlePostAction = async (id: string, action: string, title: string) => {
+    try {
+      const response = await fetch(`/api/blog/${id}/actions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
       });
 
-    toast.promise(promise, {
-      loading: `Eliminando post "${post.title}"...`,
-      success: (data) => `Post "${data.name}" eliminado correctamente.`,
-      error: (err) => err.message || translations.admin.blogList.deleteError,
+      if (response.ok) {
+        let successMessage = '';
+        
+        switch (action) {
+          case 'publish':
+            successMessage = 'Post publicado correctamente';
+            break;
+          case 'archive':
+            successMessage = 'Post archivado correctamente';
+            break;
+          case 'unarchive':
+            successMessage = 'Post desarchivado correctamente';
+            break;
+          case 'toggleFeatured':
+            successMessage = 'Estado destacado actualizado correctamente';
+            break;
+        }
+        
+        toast.success(successMessage);
+        mutate(); // Recargar datos
+      } else {
+        const data = await response.json();
+        toast.error(data.message || 'Error al realizar la acción');
+      }
+    } catch (error) {
+      console.error('Error performing action:', error);
+      toast.error('Error al realizar la acción en el post');
+    }
+  };
+
+  // Manejar eliminación de post
+  const handleDelete = async (id: string, title: string) => {
+    toast.custom((t) => (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 max-w-md mx-auto">
+        <h3 className="font-medium text-lg mb-2">Confirmar eliminación</h3>
+        <p className="mb-4">¿Estás seguro de que deseas eliminar el post "{title}"?</p>
+        <div className="flex justify-end gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => toast.dismiss(t)} 
+            className="px-3"
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={async () => {
+              toast.dismiss(t);
+              try {
+                const response = await fetch(`/api/blog/${id}`, {
+                  method: 'DELETE',
+                });
+
+                if (response.ok) {
+                  toast.success('Post eliminado correctamente');
+                  mutate(); // Recargar datos
+                } else {
+                  const data = await response.json();
+                  toast.error(data.message || 'Error al eliminar el post');
+                }
+              } catch (error) {
+                console.error('Error deleting post:', error);
+                toast.error('Error al eliminar el post');
+              }
+            }}
+            className="px-3"
+          >
+            Eliminar
+          </Button>
+        </div>
+      </div>
+    ), {
+      duration: 10000, // Duración más larga para dar tiempo a decidir
     });
   };
 
-  // Helper para mostrar el badge de estado
-  const StatusBadge = ({ status }: { status: PostStatus }) => {
-    let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let text = translations.common.unknown;
+  // Renderizar estado del post con color
+  const renderStatus = (status: string) => {
     switch (status) {
-        case PostStatus.PUBLISHED:
-            variant = "default"; // Verde o color primario
-            text = translations.admin.blogList.statusPublished;
-            break;
-        case PostStatus.DRAFT:
-            variant = "outline"; // Gris
-            text = translations.admin.blogList.statusDraft;
-            break;
-        case PostStatus.ARCHIVED:
-            variant = "destructive"; // Rojo o naranja
-            text = translations.admin.blogList.statusArchived;
-            break;
+      case 'PUBLISHED':
+        return <Badge className="bg-green-500">{translations.admin.blogList.statusPublished || 'Publicado'}</Badge>;
+      case 'DRAFT':
+        return <Badge className="bg-yellow-500">{translations.admin.blogList.statusDraft || 'Borrador'}</Badge>;
+      case 'ARCHIVED':
+        return <Badge className="bg-gray-500">{translations.admin.blogList.statusArchived || 'Archivado'}</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
     }
-     // Ajustar estilos si se usa Shadcn/ui Badge
-     const colorClasses = {
-        default: "bg-green-100 text-green-800 border-green-200",
-        outline: "bg-gray-100 text-gray-800 border-gray-200",
-        destructive: "bg-red-100 text-red-800 border-red-200",
-        secondary: "bg-yellow-100 text-yellow-800 border-yellow-200" // Para estados desconocidos o pendientes
-     }
-
-    return <Badge variant={variant} className={colorClasses[variant]}>{text}</Badge>;
   };
-
-
-  return (
-    <div className="container mx-auto p-4 md:p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{translations.admin.blogList.title}</h1>
-        {canCreate && (
-          <Link href="/admin/blog/new" passHref>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> {translations.admin.blogList.newPostButton}
+return (
+    <div className="container mx-auto p-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{translations.admin.blogList.title || 'Gestión del Blog'}</CardTitle>
+          {canCreate && (
+            <Button onClick={() => router.push('/admin/blog/new')}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              {translations.admin.blogList.newPostButton || 'Nuevo post'}
             </Button>
-          </Link>
-        )}
-      </div>
+          )}
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1 md:flex md:justify-between md:items-center gap-2">
+              {/* Búsqueda */}
+              <form onSubmit={(e) => { e.preventDefault(); }} className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={translations.admin.blogList.searchPlaceholder || "Buscar posts..."}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </form>
+              
+              {/* Enlace a Categorías */}
+              <Link href="/admin/blog/taxonomies" className="hidden md:flex items-center text-sm text-primary hover:underline mb-2 md:mb-0">
+                <TagIcon className="w-4 h-4 mr-1" />
+                Gestionar categorías
+              </Link>
+            </div>
 
-      {/* Filtros y Búsqueda */}
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-         <form onSubmit={handleSearchSubmit} className="flex-grow flex">
-            <Input
-                type="search"
-                placeholder={translations.admin.blogList.searchPlaceholder}
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="rounded-r-none"
-            />
-            <Button type="submit" variant="outline" className="rounded-l-none border-l-0">
-                <Search className="h-4 w-4" />
-            </Button>
-         </form>
-        <Select value={statusFilter} onValueChange={handleStatusChange}>
-          <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder={translations.admin.blogList.statusFilterPlaceholder} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{translations.admin.blogList.statusAll}</SelectItem>
-            <SelectItem value={PostStatus.DRAFT}>{translations.admin.blogList.statusDraft}</SelectItem>
-            <SelectItem value={PostStatus.PUBLISHED}>{translations.admin.blogList.statusPublished}</SelectItem>
-            <SelectItem value={PostStatus.ARCHIVED}>{translations.admin.blogList.statusArchived}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+            {/* Filtro de estado */}
+            <Select 
+              value={statusFilter} 
+              onValueChange={(value) => setStatusFilter(value)}
+            >
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue placeholder={translations.admin.blogList.statusFilterPlaceholder || "Filtrar por estado"} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">{translations.admin.blogList.statusAll || "Todos"}</SelectItem>
+                <SelectItem value="PUBLISHED">{translations.admin.blogList.statusPublished || "Publicados"}</SelectItem>
+                <SelectItem value="DRAFT">{translations.admin.blogList.statusDraft || "Borradores"}</SelectItem>
+                <SelectItem value="ARCHIVED">{translations.admin.blogList.statusArchived || "Archivados"}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-      {/* Tabla de Posts */}
-      {isLoading && <p>{translations.common.loading}...</p>}
-      {error && <p className="text-red-500">{error.message}</p>}
-      {!isLoading && !error && apiResponse && (
-        <>
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{translations.admin.blogList.tableTitle}</TableHead>
-                  <TableHead>{translations.admin.blogList.tableAuthor}</TableHead>
-                  <TableHead>{translations.admin.blogList.tableStatus}</TableHead>
-                  <TableHead>{translations.admin.blogList.tableCategories}</TableHead>
-                  <TableHead>{translations.admin.blogList.tableTags}</TableHead>
-                  <TableHead>{translations.admin.blogList.tableDate}</TableHead>
-                  <TableHead className="text-right">{translations.common.actions}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {apiResponse.posts.length > 0 ? (
-                  apiResponse.posts.map((post) => {
-                    const canEditThis = canEditAny || (hasPermission(session?.user?.role, 'edit_post') && session?.user?.id === post.authorId);
-                    const canDeleteThis = canDeleteAny || (hasPermission(session?.user?.role, 'delete_post') && session?.user?.id === post.authorId);
-                    return (
-                      <TableRow key={post.id}>
-                        <TableCell className="font-medium">{post.title}</TableCell>
-                        <TableCell>{post.author?.name || 'N/A'}</TableCell>
-                        <TableCell><StatusBadge status={post.status} /></TableCell>
-                        <TableCell className="text-xs">
-                          {post.categories.map(c => c.name).join(', ')}
-                        </TableCell>
-                        <TableCell className="text-xs">
-                           {post.tags.map(t => t.name).join(', ')}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(post.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
-                        </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          {canEditThis && (
-                            <Link href={`/admin/blog/edit/${post.id}`} passHref>
-                              <Button variant="outline" size="icon" title={translations.admin.blogList.editAction}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
+          {/* Tabla de Posts */}
+          {!data ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-500">{translations.common.loading}</p>
+            </div>
+          ) : !data.posts || data.posts.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              {translations.admin.blogList.noPostsFound || "No se encontraron posts"}
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Título</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead>Categorías</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {data.posts.map((post) => (
+                    <TableRow key={post.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {post.coverImage && (
+                            <img
+                              src={post.coverImage}
+                              alt={post.title}
+                              className="w-10 h-10 object-cover rounded"
+                            />
                           )}
-                          {canDeleteThis && (
-                            <Button variant="destructive" size="icon" onClick={() => handleDelete(post)} title={translations.admin.blogList.deleteAction}>
-                              <Trash2 className="h-4 w-4" />
+                          <div>
+                            <div>{post.title}</div>
+                            <div className="text-xs text-gray-500">
+                              {post.authorDisplayName || post.author?.name || translations.common.unknown || 'Desconocido'}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>{renderStatus(post.status)}</TableCell>
+                      <TableCell>
+                        {/* Usar Array.isArray para garantizar que es un array antes de verificar length */}
+                        {Array.isArray(post.categories) && post.categories.length > 0 ? (
+                          <Badge variant="outline">
+                            {post.categories[0].name}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-gray-500">Sin categoría</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {post.createdAt && new Date(post.createdAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {/* Ver post */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => window.open(`/blog/${post.slug}`, '_blank')}
+                            title="Ver post"
+                          >
+                            <Eye className="h-4 w-4 text-blue-500" />
+                          </Button>
+                          
+                          {/* Editar post */}
+                          {canEdit && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => router.push(`/admin/blog/edit/${post.id}`)}
+                              title="Editar post"
+                            >
+                              <Edit className="h-4 w-4" />
                             </Button>
                           )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center">
-                      {translations.admin.blogList.noPostsFound}
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Card>
-
-          {/* Paginación */}
-          {apiResponse.totalPages > 1 && (
+                          
+                          {/* Publicar (solo para borradores) */}
+                          {canEdit && post.status === 'DRAFT' && hasPermission(session?.user?.role, 'publish_post') && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-green-500"
+                              onClick={() => handlePostAction(post.id, 'publish', post.title)}
+                              title="Publicar post"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* Archivar (para posts publicados o borradores) */}
+                          {canEdit && (post.status === 'PUBLISHED' || post.status === 'DRAFT') && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-gray-500"
+                              onClick={() => handlePostAction(post.id, 'archive', post.title)}
+                              title="Archivar post"
+                            >
+                              <ArchiveIcon className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* Desarchivar (solo para archivados) */}
+                          {canEdit && post.status === 'ARCHIVED' && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-blue-500"
+                              onClick={() => handlePostAction(post.id, 'unarchive', post.title)}
+                              title="Desarchivar post"
+                            >
+                              <SendToBack className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* Destacar/No destacar */}
+                          {canEdit && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className={`${post.featured ? 'text-yellow-500' : 'text-gray-400'}`}
+                              onClick={() => handlePostAction(post.id, 'toggleFeatured', post.title)}
+                              title={post.featured ? "Quitar destacado" : "Destacar post"}
+                            >
+                              <Star className="h-4 w-4" />
+                            </Button>
+                          )}
+                          
+                          {/* Eliminar post */}
+                          {canDelete && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(post.id, post.title)}
+                              title="Eliminar post"
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          
+          {/* Pagination */}
+          {data && data.totalPages > 1 && (
             <div className="mt-6 flex justify-center">
               <PaginationControls
-                currentPage={apiResponse.currentPage}
-                totalPages={apiResponse.totalPages}
-                basePath={pathname} // Usa el pathname actual para mantener filtros
+                currentPage={data.currentPage}
+                totalPages={data.totalPages}
+                basePath="/admin/blog"
               />
             </div>
           )}
-        </>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default AdminBlogListPage;
+}

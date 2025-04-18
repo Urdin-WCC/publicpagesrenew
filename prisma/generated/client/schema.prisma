@@ -180,19 +180,23 @@ model Post {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   authorDisplayName String?
-  categoryIds       String?    @db.Text // Almacenado como JSON string de IDs de categorías
+  categoryId        String? // Una sola categoría por post
   author            User?      @relation(fields: [authorId], references: [id])
+  category          Category?  @relation(fields: [categoryId], references: [id])
 
   @@index([authorId], map: "Post_authorId_fkey")
+  @@index([categoryId], map: "Post_categoryId_fkey")
 }
 
 model Category {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
-  slug        String   @unique
-  description String?  @db.Text
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  slug        String    @unique
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  posts       Post[] // Relación con posts
+  projects    Project[] // Relación con projects
 }
 
 model Tag {
@@ -220,10 +224,12 @@ model Project {
   authorId            String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
-  categoryIds         String?            @db.Text // Campo JSON para almacenar IDs de categorías
+  categoryId          String? // Una sola categoría por proyecto
   author              User?              @relation(fields: [authorId], references: [id])
+  category            Category?          @relation(fields: [categoryId], references: [id])
 
   @@index([authorId], map: "Project_authorId_fkey")
+  @@index([categoryId], map: "Project_categoryId_fkey")
 }
 
 enum Role {

@@ -391,11 +391,11 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
               />
             </div>
 
-            {/* Categorías */}
+            {/* Categoría - ACTUALIZADO PARA CATEGORÍA ÚNICA */}
             <div>
               <Label>{translations.admin.portfolioForm.categoriesLabel}</Label>
               <div className="flex justify-between items-center mb-2">
-                <span>{translations.admin.portfolioForm.categoriesLabel}</span>
+                <span>Categoría</span>
                 <Button
                   type="button"
                   variant="outline"
@@ -405,48 +405,44 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                   {'Gestionar categorías'}
                 </Button>
               </div>
-              <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-2 border p-2 rounded-md max-h-40 overflow-y-auto">
-                {categoriesError ? (
-                  <p className="text-red-500 text-sm">Error al cargar categorías</p>
-                ) : !categories ? (
-                  <p className="text-sm text-muted-foreground">{translations.common.loading}</p>
-                ) : (categories || []).length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No hay categorías disponibles. <Link href="/admin/blog/categories" className="underline">Crea algunas categorías</Link> primero.
-                  </p>
-                ) : Array.isArray(categories) ? (
-                  categories.map((category) => (
-                    <div key={category.id} className="flex items-center space-x-2">
-                      <Controller
-                        name="categories"
-                        control={control}
-                        render={({ field }) => (
-                          <Checkbox
-                            id={`category-${category.id}`}
-                            checked={field.value?.includes?.(category.id)}
-                            onCheckedChange={(checked) => {
-                              const updatedCategories = checked
-                                ? [...field.value, category.id]
-                                : field.value.filter((id) => id !== category.id);
-                              field.onChange(updatedCategories);
-                            }}
-                          />
-                        )}
-                      />
-                      <Label
-                        htmlFor={`category-${category.id}`}
-                        className="text-sm font-normal cursor-pointer"
-                      >
-                        {category.name}
-                      </Label>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Error: Las categorías no son un array válido. Por favor, recarga la página.
-                  </p>
-                )}
-              </div>
+
+              {categoriesError ? (
+                <p className="text-red-500 text-sm">Error al cargar categorías</p>
+              ) : !categories ? (
+                <p className="text-sm text-muted-foreground">{translations.common.loading}</p>
+              ) : categories.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No hay categorías disponibles. <Link href="/admin/blog/taxonomies" className="underline">Crea algunas categorías</Link> primero.
+                </p>
+              ) : (
+                <Controller
+                  name="categories" /* Mantener el nombre "categories" para compatibilidad con API */
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(value) => {
+                        // Cuando selecciona una categoría, lo convertimos a array con un elemento
+                        // Si es "none", lo convertimos a array vacío
+                        field.onChange(value !== "none" ? [value] : []);
+                      }}
+                      value={field.value?.length > 0 ? field.value[0] : "none"}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona una categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin categoría</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              )}
+              <p className="text-xs text-muted-foreground mt-1">Ahora puedes seleccionar una sola categoría para cada proyecto.</p>
             </div>
 
             {/* Estado */}

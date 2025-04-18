@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma'; // Asegurar que se importa la instancia correcta
+import prisma from '@/lib/prisma'; // Asegurar que se importa la instancia correcta
 import { auth } from '@/auth'; // Importar auth para obtener sesión
 import { logAdminAction } from '@/lib/stats'; // Importar logAdminAction desde lib/stats.ts
 import { hasPermission } from '@/lib/auth-utils'; // Importar hasPermission
@@ -20,98 +20,153 @@ export async function GET(request: Request) {
   const skip = (page - 1) * limit;
 
   try {
-    // Preparar la cláusula where básica
-    const whereClause: any = {
-      deleted: false, // No mostrar posts borrados lógicamente
-      OR: searchTerm
-        ? [
-            { title: { contains: searchTerm } },
-            { content: { contains: searchTerm } },
-          ]
-        : undefined,
-      status: status ? status : undefined, // Aplicar filtro de estado si se proporciona
-    };
-
-    // TODO: Ajustar whereClause según el rol del usuario si es necesario
-
-    // Obtener los posts básicos primero
-    const posts = await prisma.post.findMany({
-      where: whereClause,
-      orderBy: { createdAt: 'desc' },
-      skip: skip,
-      take: limit,
-      include: {
-        author: {
-          select: { id: true, name: true, email: true }, // Incluir datos del autor
-        },
-      },
-    });
-
-    // Contar el total para la paginación
-    const totalPosts = await prisma.post.count({ where: whereClause });
+    console.log(`🔍 Obteniendo listado de posts (página: ${page}, límite: ${limit})`);
     
-    // Si se busca por categoría, debemos filtrar los posts después de obtenerlos
-    let filteredPosts = [...posts];
+    // Construir la consulta SQL base
+    let sqlQuery = `
+      SELECT 
+        p.*,
+        u.id as authorId,
+        u.name as authorName,
+        u.email as authorEmail,
+        c.id as categoryId,
+        c.name as categoryName,
+        c.slug as categorySlug
+      FROM 
+        Post p
+      LEFT JOIN User u ON p.authorId = u.id
+      LEFT JOIN Category c ON p.categoryId = c.id
+      WHERE 
+        p.deleted = FALSE
+    `;
     
+    // Preparar parámetros para la consulta
+    let sqlParams: any[] = [];
+    let whereConditions = [];
+    
+    // Filtrar por estado si se proporciona
+    if (status) {
+      whereConditions.push(`p.status = ?`);
+      sqlParams.push(status);
+      console.log(`🏷️ Filtrando por estado: ${status}`);
+    }
+    
+    // Filtrar por término de búsqueda si se proporciona
+    if (searchTerm) {
+      whereConditions.push(`(p.title LIKE ? OR p.content LIKE ?)`);
+      const termWithWildcards = `%${searchTerm}%`;
+      sqlParams.push(termWithWildcards, termWithWildcards);
+      console.log(`🔎 Buscando: "${searchTerm}"`);
+    }
+    
+    // Filtrar por categoría si se proporciona
     if (categorySlug) {
-      // Obtener el ID de la categoría por su slug
-      const category = await prisma.category.findUnique({
-        where: { slug: categorySlug },
-        select: { id: true }
-      });
+      // Obtenemos primeiro el ID de la categoría por su slug
+      console.log(`🏷️ Buscando categoría con slug: ${categorySlug}`);
       
-      if (category) {
-        // Filtrar los posts que contienen this categoría por ID
-        filteredPosts = posts.filter(post => {
-          try {
-            // @ts-ignore - El campo categoryIds existe en la base de datos
-            const categoryIds: string[] = post.categoryIds ? JSON.parse(post.categoryIds as string) : [];
-            return categoryIds.includes(category.id);
-          } catch {
-            return false;
-          }
-        });
+      const categoryResult = await prisma.$queryRaw`
+        SELECT id FROM Category WHERE slug = ${categorySlug}
+      `;
+      
+      if (Array.isArray(categoryResult) && categoryResult.length > 0) {
+        const categoryId = categoryResult[0].id;
+        whereConditions.push(`p.categoryId = ?`);
+        sqlParams.push(categoryId);
+        console.log(`✅ Categoría encontrada. Filtrando por categoryId: ${categoryId}`);
       } else {
-        // Si no se encuentra la categoría, no hay posts para mostrar
-        filteredPosts = [];
+        console.log(`❌ Categoría no encontrada: ${categorySlug}`);
+        
+        // Si no se encuentra la categoría, devolver directamente respuesta vacía
+        return NextResponse.json({
+          posts: [],
+          totalPages: 0,
+          currentPage: page,
+          totalPosts: 0,
+          blogConfig: await getBlogConfig()
+        });
       }
     }
     
-    // Obtener las categorías para cada post
+    // Añadir condiciones WHERE si hay alguna
+    if (whereConditions.length > 0) {
+      sqlQuery += ` AND ${whereConditions.join(' AND ')}`;
+    }
+    
+    // Añadir ordenamiento y paginación
+    sqlQuery += ` ORDER BY p.createdAt DESC LIMIT ? OFFSET ?`;
+    sqlParams.push(limit, skip);
+    
+    // Ejecutar consulta para obtener posts
+    console.log(`🔄 Ejecutando consulta SQL para obtener posts...`);
+    const postsResult = await prisma.$queryRawUnsafe(sqlQuery, ...sqlParams);
+    const posts = Array.isArray(postsResult) ? postsResult : [];
+    
+    console.log(`✅ Obtenidos ${posts.length} posts`);
+    
+    // Construir consulta para contar el total de posts
+    let countQuery = `
+      SELECT COUNT(*) as total 
+      FROM Post p 
+      WHERE p.deleted = FALSE
+    `;
+    
+    // Preparar parámetros para la consulta de conteo
+    let countParams: any[] = [];
+    
+    // Duplicar las condiciones WHERE para la consulta de conteo
+    if (whereConditions.length > 0) {
+      countQuery += ` AND ${whereConditions.join(' AND ')}`;
+      countParams = [...sqlParams.slice(0, sqlParams.length - 2)]; // Excluir limit y offset
+    }
+    
+    // Ejecutar consulta para obtener total de posts
+    const totalResult = await prisma.$queryRawUnsafe<{ total: number | bigint }[]>(countQuery, ...countParams);
+    const totalPosts = typeof totalResult[0].total === 'bigint' ? Number(totalResult[0].total) : totalResult[0].total;
+    
+    console.log(`📊 Total posts: ${totalPosts}`);
+    
+    // Procesar y formatear los posts
     type CategoryType = { id: string; name: string; slug: string };
     
-    const enhancedPosts = await Promise.all(filteredPosts.map(async (post) => {
-      try {
-        // Parsear categoryIds si existe
-        // @ts-ignore - El campo categoryIds existe en la base de datos
-        const categoryIds: string[] = post.categoryIds ? JSON.parse(post.categoryIds as string) : [];
-        
-        // Obtener detalles de categorías
-        let categories: CategoryType[] = [];
-        if (categoryIds.length > 0) {
-          categories = await prisma.category.findMany({
-            where: { id: { in: categoryIds } },
-            select: { id: true, name: true, slug: true }
-          });
-        }
-        
-        // Añadir categorías al post
-        return {
-          ...post,
-          categories
-        };
-      } catch (error) {
-        console.error(`Error parsing categories for post ${post.id}:`, error);
-        return {
-          ...post,
-          categories: []
-        };
-      }
-    }));
+    const enhancedPosts = posts.map((post: any) => {
+      // Construir objeto de autor
+      const author = post.authorId ? {
+        id: post.authorId,
+        name: post.authorName,
+        email: post.authorEmail
+      } : null;
+      
+      // Construir array de categorías
+      const categories: CategoryType[] = post.categoryId ? [{
+        id: post.categoryId,
+        name: post.categoryName,
+        slug: post.categorySlug
+      }] : [];
+      
+      // Limpiar y formatear post para devolución
+      return {
+        id: post.id,
+        title: post.title,
+        slug: post.slug,
+        content: post.content,
+        excerpt: post.excerpt,
+        coverImage: post.coverImage,
+        status: post.status,
+        featured: post.featured === 1 || post.featured === true, // Convertir a boolean
+        authorDisplayName: post.authorDisplayName,
+        author,
+        categories, // Array de categorías (0 o 1)
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt
+      };
+    });
     
     // Obtener la configuración del blog
+    console.log(`🔄 Obteniendo configuración del blog...`);
     const blogConfig = await getBlogConfig();
-
+    
+    console.log(`📤 Devolviendo ${enhancedPosts.length} posts`);
+    
     return NextResponse.json({
       posts: enhancedPosts,
       totalPages: Math.ceil(totalPosts / limit),
@@ -125,7 +180,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: 'Error al obtener los posts' }, { status: 500 });
   }
 }
-
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -142,12 +196,12 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     // Asegurarse de que status sea del tipo PostStatus o undefined 
-    let { title, content, slug, status, categoryIds, coverImage, excerpt, featured, authorDisplayName } = body as {
+    let { title, content, slug, status, categories, coverImage, excerpt, featured, authorDisplayName } = body as {
         title: string;
         content: string;
         slug: string;
         status?: PostStatus;
-        categoryIds?: string[];
+        categories?: string[];
         coverImage?: string;
         excerpt?: string;
         featured?: boolean;
@@ -167,71 +221,127 @@ export async function POST(request: Request) {
         status = PostStatus.DRAFT; // Forzar a borrador si no tiene permiso
     }
 
-    // Verificar si el slug ya existe (opcional, la BD ya lo hace pero esto da mejor feedback)
-    const existingSlug = await prisma.post.findUnique({ where: { slug } });
-    if (existingSlug) {
-      return NextResponse.json({ message: 'El slug ya existe. Elige un título diferente o modifica el slug.' }, { status: 409 });
-    }
-
-    // Preparar datos para la creación
-    const postData: any = {
-      title,
-      slug,
-      content,
-      status,
-      excerpt,
-      coverImage,
-      featured: featured || false,
-      authorDisplayName: authorDisplayName || undefined,
-      author: {
-        connect: { id: userId }
-      }
-    };
-    
-    // Si hay categorías, convertirlas a JSON
-    if (categoryIds && categoryIds.length > 0) {
-      postData.categoryIds = JSON.stringify(categoryIds.filter(Boolean));
-    }
-
-    // Crear el post
-    const newPost = await prisma.post.create({
-      data: postData,
-      include: { 
-        author: { select: { id: true, name: true } }
-      }
-    });
-    
-    // Obtener categorías para el nuevo post
-    type CategoryType = { id: string; name: string; slug: string };
-    let categories: CategoryType[] = [];
-    
+    // Verificar si el slug ya existe usando SQL directo
     try {
-      if (categoryIds && categoryIds.length > 0) {
-        // Consultar las categorías por sus IDs
-        categories = await prisma.category.findMany({
-          where: { id: { in: categoryIds } },
+      const result = await prisma.$queryRaw`SELECT id FROM Post WHERE slug = ${slug}`;
+      const existingSlug = Array.isArray(result) && result.length > 0 ? result[0] : null;
+
+      if (existingSlug) {
+        return NextResponse.json(
+          { message: 'El slug ya existe. Elige un título diferente o modifica el slug.' },
+          { status: 409 }
+        );
+      }
+    } catch (err) {
+      console.error('Error checking slug:', err);
+      // Continuar con la creación del post aunque no se pueda verificar el slug
+    }
+
+    console.log('Creating post using direct SQL');
+    
+    // Generate a CUID-like ID for the post
+    const postId = `cuid${Math.floor(Math.random() * 1000000)}`;
+    
+    // Crear el post usando SQL directo (sin incluir categoryIds todavía)
+    const newPost = await prisma.$queryRaw<any[]>`
+      INSERT INTO Post (
+        id,
+        title, 
+        slug, 
+        content, 
+        excerpt, 
+        coverImage, 
+        status, 
+        featured, 
+        authorDisplayName, 
+        authorId,
+        createdAt,
+        updatedAt,
+        deleted
+      ) 
+      VALUES (
+        ${postId},
+        ${title}, 
+        ${slug}, 
+        ${content}, 
+        ${excerpt || null}, 
+        ${coverImage || null}, 
+        ${status}, 
+        ${featured || false}, 
+        ${authorDisplayName || null}, 
+        ${userId},
+        CURRENT_TIMESTAMP(),
+        CURRENT_TIMESTAMP(),
+        FALSE
+      )
+    `;
+    
+    console.log(`✅ Post created successfully with ID: ${postId}`);
+    
+    // Nueva implementación para una sola categoría
+    let categoryData = null;
+    
+    // Si se proporciona una categoría, tomamos sólo la primera (en caso de que el frontend
+    // no se haya actualizado todavía y envíe un array)
+    let categoryId = null;
+    if (Array.isArray(categories) && categories.length > 0) {
+      categoryId = categories[0]; // Tomamos sólo la primera categoría
+      console.log(`Usando la primera categoría del array: ${categoryId}`);
+    } else if (typeof categories === 'string') {
+      categoryId = categories; // Si ya es un string, lo usamos directamente
+      console.log(`Usando categoría: ${categoryId}`);
+    }
+    
+    // Si tenemos un ID de categoría, obtener sus detalles
+    if (categoryId) {
+      try {
+        // Actualizar el post con la referencia a la categoría seleccionada
+        await prisma.$executeRaw`
+          UPDATE Post
+          SET categoryId = ${categoryId}
+          WHERE id = ${postId}
+        `;
+        
+        // Obtener detalles de la categoría para la respuesta
+        const category = await prisma.category.findUnique({
+          where: { id: categoryId },
           select: { id: true, name: true, slug: true }
         });
+        
+        if (category) {
+          console.log(`✅ Asignada categoría: ${category.name} (${category.id})`);
+          categoryData = category;
+        }
+      } catch (error) {
+        console.error(`❌ Error al asignar categoría ${categoryId}:`, error);
       }
-    } catch (error) {
-      console.error(`Error fetching categories for new post ${newPost.id}:`, error);
-      categories = [];
     }
     
-    // Añadir las categorías al post antes de devolverlo
-    const postWithCategories = {
-      ...newPost,
-      categories,
+    // Obtener el post completo con relaciones
+    const postWithRelations = await prisma.$queryRaw<any[]>`
+      SELECT p.*, u.name as authorName 
+      FROM Post p 
+      LEFT JOIN User u ON p.authorId = u.id 
+      WHERE p.id = ${postId}
+    `;
+    
+    // La categoría ya se ha obtenido anteriormente en categoryData
+    console.log(`✅ Post created with ${categoryData ? 'category: ' + categoryData.name : 'no category'}`);
+    
+    // Usar la categoría individual en formato compatible con la respuesta anterior
+    const finalPost = {
+      ...postWithRelations[0],
+      categories: categoryData ? [categoryData] : []
     };
 
-    // Registrar la acción administrativa ANTES de devolver la respuesta
+    // Registrar la acción administrativa
     await logAdminAction(
       userId,
-      'BLOG_CREATE_POST', // Usar prefijo para claridad
-      `Post creado: ${newPost.title} (ID: ${newPost.id})`
+      'BLOG_CREATE_POST',
+      `Post creado: ${finalPost.title} (ID: ${finalPost.id})`
     );
 
-    return NextResponse.json(postWithCategories, { status: 201 });
+    return NextResponse.json(finalPost, { status: 201 });
 
   } catch (error: any) {
     console.error("Error creating post:", error);

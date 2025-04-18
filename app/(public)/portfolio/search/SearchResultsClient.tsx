@@ -177,19 +177,16 @@ export default function SearchResultsClient({ searchQuery }: SearchResultsClient
                     {project.excerpt && (
                       <p className="text-gray-600 mt-2 line-clamp-3">{project.excerpt}</p>
                     )}
-                    {project.categories.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-3">
-                        {project.categories.map((category) => (
-                          <Link
-                            key={category.id}
-                            href={`/portfolio/category/${category.slug}`}
-                            className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
-                          >
-                            {category.name}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
+                {project.categories && project.categories.length > 0 && (
+                  <div className="mt-3">
+                    <Link
+                      href={`/portfolio/category/${project.categories[0].slug}`}
+                      className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded"
+                    >
+                      {project.categories[0].name}
+                    </Link>
+                  </div>
+                )}
                   </CardContent>
                   <CardFooter className="p-0 mt-4">
                     <Link href={`/portfolio/${project.slug}`}>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -17,10 +17,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { toast } from 'sonner';
-import HtmlEditor from '@/components/core/HtmlEditor'; // Asumiendo componente
-import ImageUploader from '@/components/core/ImageUploader'; // Asumiendo componente
+import HtmlEditor from '@/components/core/HtmlEditor';
+import ImageUploader from '@/components/core/ImageUploader';
 import { PostStatus } from '@prisma/client';
-import type { TaxonomyItem } from '@/app/(admin)/admin/blog/taxonomies/page'; // Reutilizar tipo
+import type { TaxonomyItem } from '@/app/(admin)/admin/blog/taxonomies/page';
 
 // Interfaz para los datos del formulario
 interface PostFormData {
@@ -28,12 +28,11 @@ interface PostFormData {
   slug: string;
   content: string;
   status: PostStatus;
-  categoryIds: string[];
-  tagIds: string[];
+  categories: string[]; // Cambiado de categoryIds a categories para coincidir con el formulario de portfolio
   coverImage?: string | null;
   excerpt?: string | null;
   featured?: boolean;
-  authorDisplayName?: string | null; // Opcional: Pseudónimo
+  authorDisplayName?: string | null;
 }
 
 // Fetcher para SWR
@@ -47,9 +46,8 @@ const NewPostPage: React.FC = () => {
   const { data: session, status: sessionStatus } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Cargar categorías y etiquetas para los selectores
+  // Cargar categorías para los selectores
   const { data: categories, error: categoriesError } = useSWR<TaxonomyItem[]>('/api/blog/categories', fetcher);
-  const { data: tags, error: tagsError } = useSWR<TaxonomyItem[]>('/api/blog/tags', fetcher);
 
   const {
     register,
@@ -60,11 +58,10 @@ const NewPostPage: React.FC = () => {
     formState: { errors },
   } = useForm<PostFormData>({
     defaultValues: {
-      status: PostStatus.DRAFT, // Por defecto es borrador
-      categoryIds: [],
-      tagIds: [],
+      status: PostStatus.DRAFT,
+      categories: [],
       featured: false,
-      content: '', // Inicializar editor vacío
+      content: '',
     },
   });
 
@@ -73,7 +70,7 @@ const NewPostPage: React.FC = () => {
   const slugValue = watch('slug');
 
   const generateAndSetSlug = useCallback(() => {
-    if (titleValue && !slugValue) { // Solo generar si hay título y el slug está vacío
+    if (titleValue && !slugValue) {
       setValue('slug', generateSlug(titleValue), { shouldValidate: true });
     }
   }, [titleValue, slugValue, setValue]);
@@ -98,7 +95,7 @@ const NewPostPage: React.FC = () => {
 
       const newPost = await response.json();
       toast.success(`Post "${newPost.title}" creado correctamente.`);
-      router.push('/admin/blog'); // Redirigir a la lista de posts
+      router.push('/admin/blog');
 
     } catch (err: any) {
       console.error('Error creating post:', err);
@@ -110,7 +107,7 @@ const NewPostPage: React.FC = () => {
 
   if (sessionStatus === 'loading') return <p>{translations.common.loading}...</p>;
   if (!canCreate) return <p className="text-red-500 p-4">{translations.auth.unauthorized}</p>;
-  if (categoriesError || tagsError) return <p className="text-red-500 p-4">Error al cargar categorías o etiquetas.</p>;
+  if (categoriesError) return <p className="text-red-500 p-4">Error al cargar categorías.</p>;
 
   return (
     <div className="container mx-auto p-4 md:p-6">
@@ -154,21 +151,19 @@ const NewPostPage: React.FC = () => {
               <p className="text-xs text-muted-foreground mt-1">Resumen corto que puede mostrarse en listados.</p>
             </div>
 
-             {/* Imagen de Portada */}
-             <div>
-                <Label htmlFor="coverImage">Imagen de Portada (Opcional)</Label>
-                <Controller
-                    name="coverImage"
-                    control={control}
-                    render={({ field }) => (
-                        <ImageUploader
-                            onChange={(url: string) => field.onChange(url)} // Asume que devuelve la URL
-                            value={field.value}
-                            buttonText="Seleccionar o subir imagen"
-                        />
-                    )}
-                />
-                {/* No hay error de 'required' aquí */}
+            {/* Imagen de Portada */}
+            <div>
+              <Label htmlFor="coverImage">Imagen de Portada (Opcional)</Label>
+              <Controller
+                name="coverImage"
+                control={control}
+                render={({ field }) => (
+                  <ImageUploader
+                    onChange={(url: string) => field.onChange(url)}
+                    value={field.value || ''}
+                  />
+                )}
+              />
             </div>
 
             {/* Estado */}
@@ -195,84 +190,70 @@ const NewPostPage: React.FC = () => {
                </p>
             </div>
 
-            {/* Categorías */}
+            {/* Categoría - ACTUALIZADO PARA CATEGORÍA ÚNICA */}
             <div>
-                <Label>Categorías</Label>
+              <Label>Categoría</Label>
+              {!categories ? (
+                <p className="text-sm text-muted-foreground mt-1">{translations.common.loading}...</p>
+              ) : categories.length === 0 ? (
+                <p className="text-xs text-muted-foreground mt-1">
+                  No hay categorías disponibles. Créalas <Link href="/admin/blog/taxonomies" className="underline">aquí</Link>.
+                </p>
+              ) : (
                 <Controller
-                    name="categoryIds"
-                    control={control}
-                    render={({ field }) => (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 border p-2 rounded-md max-h-40 overflow-y-auto">
-                            {categories?.map(cat => (
-                                <div key={cat.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={`cat-${cat.id}`}
-                                        checked={field.value?.includes(cat.id)}
-                                        onCheckedChange={(checked) => {
-                                            const newValue = checked
-                                                ? [...(field.value || []), cat.id]
-                                                : (field.value || []).filter(id => id !== cat.id);
-                                            field.onChange(newValue);
-                                        }}
-                                    />
-                                    <Label htmlFor={`cat-${cat.id}`} className="font-normal">{cat.name}</Label>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+                  name="categories" /* Mantener el nombre "categories" para compatibilidad con API */
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      onValueChange={(value) => {
+                        // Cuando selecciona una categoría, lo convertimos a array con un elemento
+                        // Si es "none", lo convertimos a array vacío
+                        field.onChange(value !== "none" ? [value] : []);
+                      }}
+                      value={field.value?.length > 0 ? field.value[0] : "none"}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona una categoría" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin categoría</SelectItem>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
-                 {categories?.length === 0 && <p className="text-xs text-muted-foreground mt-1">No hay categorías disponibles. Créalas <Link href="/admin/blog/taxonomies" className="underline">aquí</Link>.</p>}
-            </div>
-
-             {/* Etiquetas */}
-             <div>
-                <Label>Etiquetas</Label>
-                 <Controller
-                    name="tagIds"
-                    control={control}
-                    render={({ field }) => (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 border p-2 rounded-md max-h-40 overflow-y-auto">
-                            {tags?.map(tag => (
-                                <div key={tag.id} className="flex items-center space-x-2">
-                                    <Checkbox
-                                        id={`tag-${tag.id}`}
-                                        checked={field.value?.includes(tag.id)}
-                                        onCheckedChange={(checked) => {
-                                            const newValue = checked
-                                                ? [...(field.value || []), tag.id]
-                                                : (field.value || []).filter(id => id !== tag.id);
-                                            field.onChange(newValue);
-                                        }}
-                                    />
-                                    <Label htmlFor={`tag-${tag.id}`} className="font-normal">{tag.name}</Label>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                />
-                 {tags?.length === 0 && <p className="text-xs text-muted-foreground mt-1">No hay etiquetas disponibles. Créalas <Link href="/admin/blog/taxonomies" className="underline">aquí</Link>.</p>}
+              )}
+              <p className="text-xs text-muted-foreground mt-1">Puedes seleccionar una categoría para cada post.</p>
             </div>
 
             {/* Destacado */}
             <div className="flex items-center space-x-2">
-                 <Controller
-                    name="featured"
-                    control={control}
-                    render={({ field }) => (
-                        <Checkbox
-                            id="featured"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                        />
-                    )}
-                />
+              <Controller
+                name="featured"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="featured"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                )}
+              />
               <Label htmlFor="featured" className="font-normal">Marcar como destacado</Label>
             </div>
 
-             {/* Pseudónimo Autor (Opcional) */}
-             <div>
+            {/* Pseudónimo Autor (Opcional) */}
+            <div>
               <Label htmlFor="authorDisplayName">Mostrar nombre de autor como (Opcional)</Label>
-              <Input id="authorDisplayName" {...register('authorDisplayName')} placeholder={session?.user?.name || 'Nombre de usuario actual'} />
+              <Input 
+                id="authorDisplayName" 
+                {...register('authorDisplayName')} 
+                placeholder={session?.user?.name || 'Nombre de usuario actual'} 
+              />
               <p className="text-xs text-muted-foreground mt-1">Si se deja vacío, se usará el nombre de usuario.</p>
             </div>
 

@@ -18,51 +18,29 @@ type RelatedPostItem = {
   coverImage: string | null;
 };
 
-// Función para obtener posts relacionados (se ejecuta en el servidor)
+// Función para obtener posts recientes (excepto el actual)
 async function getRelatedPosts(currentPostId: string, count: number): Promise<RelatedPostItem[]> {
   try {
-    // 1. Obtener categorías y etiquetas del post actual
-    const currentPost = await prisma.post.findUnique({
-      where: { id: currentPostId },
-      select: {
-        categories: { select: { id: true } },
-        tags: { select: { id: true } },
-      },
-    });
-
-    if (!currentPost) return [];
-
-    const categoryIds = currentPost.categories.map(cat => cat.id);
-    const tagIds = currentPost.tags.map(tag => tag.id);
-
-    // 2. Buscar otros posts que compartan al menos una categoría o etiqueta
-    const relatedPosts = await prisma.post.findMany({
+    // Simple: obtener posts recientes excluyendo el actual
+    const recentPosts = await prisma.post.findMany({
       where: {
-        id: { not: currentPostId }, // Excluir el post actual
+        id: { not: currentPostId },
         status: PostStatus.PUBLISHED,
-        deleted: false,
-        OR: [
-          { categories: { some: { id: { in: categoryIds } } } },
-          { tags: { some: { id: { in: tagIds } } } },
-        ],
+        deleted: false
       },
-      select: { // Seleccionar solo campos necesarios
+      select: {
         id: true,
         title: true,
         slug: true,
-        coverImage: true,
-        // Podríamos incluir _count para ordenar por relevancia, pero es más complejo
-        categories: { select: { id: true } }, // Necesario para posible ordenación futura
-        tags: { select: { id: true } },       // Necesario para posible ordenación futura
+        coverImage: true
       },
-      // TODO: Mejorar ordenación por relevancia (ej. contar taxonomías compartidas)
-      orderBy: {
-        publishedAt: 'desc', // Orden simple por fecha por ahora
+      orderBy: { 
+        publishedAt: 'desc' 
       },
-      take: count, // Limitar número de resultados
+      take: count
     });
 
-    return relatedPosts;
+    return recentPosts;
 
   } catch (error) {
     console.error("Error fetching related posts:", error);
