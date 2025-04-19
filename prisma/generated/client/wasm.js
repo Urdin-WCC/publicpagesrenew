@@ -171,10 +171,15 @@ exports.Prisma.GlobalConfigScalarFieldEnum = {
   sharing: 'sharing',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
-  activeThemeId: 'activeThemeId',
   maintenanceMode: 'maintenanceMode',
   blogConfig: 'blogConfig',
-  portfolioConfig: 'portfolioConfig'
+  portfolioConfig: 'portfolioConfig',
+  defaultLightThemePresetId: 'defaultLightThemePresetId',
+  defaultDarkThemePresetId: 'defaultDarkThemePresetId',
+  themeAssignments: 'themeAssignments',
+  loadingSpinnerConfig: 'loadingSpinnerConfig',
+  themeSwitcherConfig: 'themeSwitcherConfig',
+  stickyElementsConfig: 'stickyElementsConfig'
 };
 
 exports.Prisma.AdminActionScalarFieldEnum = {
@@ -189,11 +194,7 @@ exports.Prisma.AdminActionScalarFieldEnum = {
 exports.Prisma.ThemePresetScalarFieldEnum = {
   id: 'id',
   name: 'name',
-  description: 'description',
-  isActive: 'isActive',
-  cssVariables: 'cssVariables',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  config: 'config'
 };
 
 exports.Prisma.WidgetScalarFieldEnum = {
@@ -310,6 +311,10 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
@@ -348,6 +353,17 @@ exports.Prisma.VerificationTokenOrderByRelevanceFieldEnum = {
   token: 'token'
 };
 
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
 exports.Prisma.GlobalConfigOrderByRelevanceFieldEnum = {
   id: 'id',
   siteName: 'siteName',
@@ -360,7 +376,6 @@ exports.Prisma.GlobalConfigOrderByRelevanceFieldEnum = {
   sidebar: 'sidebar',
   social: 'social',
   sharing: 'sharing',
-  activeThemeId: 'activeThemeId',
   blogConfig: 'blogConfig',
   portfolioConfig: 'portfolioConfig'
 };
@@ -374,10 +389,7 @@ exports.Prisma.AdminActionOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.ThemePresetOrderByRelevanceFieldEnum = {
-  id: 'id',
-  name: 'name',
-  description: 'description',
-  cssVariables: 'cssVariables'
+  name: 'name'
 };
 
 exports.Prisma.WidgetOrderByRelevanceFieldEnum = {

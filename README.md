@@ -54,6 +54,23 @@ Este módulo implementa toda la funcionalidad relacionada con el blog de la apli
 - `app/api/settings/blog/`: Ruta API de configuración del blog.
 - `prisma/schema.prisma`: Modelos `Post`, `Category`, `Tag`, `PostStatus`.
 
+## Tema Multi-Ruta (Anexo B)
+
+Se ha implementado un sistema de temas flexible que permite:
+
+- Configuración separada de temas para modos claro y oscuro
+- Asignación de diferentes temas según la ruta/contexto
+- Control detallado de elementos UI como LoadingSpinner y ThemeSwitcher
+- Configuración de posicionamiento sticky para elementos de interfaz
+
+La refactorización incluyó:
+- Nuevos modelos de datos para ThemePreset y campos en GlobalConfig
+- Funciones de utilidad en `lib/themeUtils.ts`
+- Actualización del layout público para usar el nuevo sistema
+- Base para la futura interfaz administrativa de temas (Módulo 7)
+
+Para más detalles, consulta la [documentación completa del sistema de temas](./docs/theme-system-refactoring.md).
+
 ## Primeros Pasos
 
 ### Requisitos Previos

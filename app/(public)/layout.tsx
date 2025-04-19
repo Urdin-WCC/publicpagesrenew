@@ -3,78 +3,89 @@ import Header from "@/components/public/Header";
 import Footer from "@/components/public/Footer";
 import ThemeSwitcher from "@/components/public/ThemeSwitcher";
 import LoadingSpinner from "@/components/core/LoadingSpinner";
-// No importar AuthProvider aquí
 import { translations } from "@/app/translations";
 import MaintenanceMode from "@/components/public/MaintenanceMode";
-import { getGlobalConfig, getActiveTheme, getSectionWithItems } from "@/lib/config";
-import { SectionType, ThemePreset } from "@prisma/client";
-// No importar auth aquí
-
-const generateThemeCss = (theme: ThemePreset | null): string => {
-  if (!theme?.cssVariables || typeof theme.cssVariables !== 'object') {
-    return ':root { /* Default fallback theme */ --primary: #000000; }';
-  }
-  const variables = theme.cssVariables as Record<string, string>;
-  let lightVars = '';
-  let darkVars = '';
-  for (const key in variables) {
-    if (key.startsWith('--dark-')) {
-      darkVars += `${key.replace('--dark-', '--')}: ${variables[key]};\n`;
-    } else if (!key.startsWith('--dark-')) {
-      lightVars += `${key}: ${variables[key]};\n`;
-    }
-  }
-  return `
-    :root {\n${lightVars}}
-    .dark {\n${darkVars}}
-  `;
-};
+import { getGlobalConfig, getSectionWithItems } from "@/lib/config";
+import { SectionType } from "@prisma/client";
+import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from "@/lib/themeUtils";
+import { headers } from "next/headers";
 
 export default async function PublicLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  // No obtener sesión aquí
-  const [config, activeTheme, headerSection, footerSection] = await Promise.all([
+  // Get current pathname from headers
+  const headersList = headers();
+  const pathname = headersList.get('x-pathname') || '/';
+
+  // Fetch required data
+  const [globalConfig, headerSection, footerSection] = await Promise.all([
     getGlobalConfig(),
-    getActiveTheme(),
     getSectionWithItems(SectionType.HEADER),
     getSectionWithItems(SectionType.FOOTER)
   ]);
 
-  const themeCss = generateThemeCss(activeTheme);
-  const siteName = config?.siteName ?? translations.common.appName;
-  const showLoadingSpinner = false; // O leer de config
+  // Determine theme configs based on route/context
+  const { lightConfig, darkConfig } = await getThemeConfigsForRoute(pathname, globalConfig);
+  
+  // Generate CSS from theme configs
+  const themeCss = generateCssFromThemeConfigs(lightConfig, darkConfig);
+  
+  // Get site configuration
+  const siteName = globalConfig?.siteName ?? translations.common.appName;
+  
+  // Parse JSON configuration fields
+  const loadingSpinnerConfig = typeof globalConfig?.loadingSpinnerConfig === 'string'
+    ? JSON.parse(globalConfig?.loadingSpinnerConfig || '{}')
+    : globalConfig?.loadingSpinnerConfig || { enabled: false };
+    
+  const themeSwitcherConfig = typeof globalConfig?.themeSwitcherConfig === 'string'
+    ? JSON.parse(globalConfig?.themeSwitcherConfig || '{}')
+    : globalConfig?.themeSwitcherConfig || { enabled: true, position: 'bottom-right' };
+    
+  const stickyElementsConfig = typeof globalConfig?.stickyElementsConfig === 'string'
+    ? JSON.parse(globalConfig?.stickyElementsConfig || '{}')
+    : globalConfig?.stickyElementsConfig || { header: false, footer: false, sidebar: false, themeSwitcher: false };
 
-  if (config?.maintenanceMode) {
-    // El MaintenanceMode ahora se renderizará dentro del RootLayout
+  // Check for maintenance mode
+  if (globalConfig?.maintenanceMode) {
     return <MaintenanceMode />;
   }
 
-  // Devolver solo el contenido, sin <html> o <body>
-  // Aplicar clases estructurales a un div contenedor
+  // Determine CSS classes for sticky elements
+  const headerClasses = `${stickyElementsConfig.header ? 'sticky top-0 z-50' : ''}`;
+  const footerClasses = `${stickyElementsConfig.footer ? 'sticky bottom-0 z-40' : ''}`;
+  const themeSwitcherClasses = `${stickyElementsConfig.themeSwitcher ? 'fixed' : 'absolute'} ${themeSwitcherConfig.position || 'bottom-right'}`;
+
+  // Return the layout
   return (
     <>
-      {/* Inyectar estilos del tema aquí temporalmente. Idealmente irían en RootLayout o de otra forma */}
       <head>
-         <style dangerouslySetInnerHTML={{ __html: themeCss }} />
-         {/* El <title> y <meta> description podrían ir en RootLayout o ser específicos de página */}
+         <style id="dynamic-theme-styles" dangerouslySetInnerHTML={{ __html: themeCss }} />
          <title>{siteName}</title>
          <meta name="description" content={`Sitio web ${siteName}`} />
       </head>
       <div className="flex flex-col min-h-screen">
-        {showLoadingSpinner && <LoadingSpinner />}
+        {loadingSpinnerConfig.enabled && 
+          <LoadingSpinner overlayColor={loadingSpinnerConfig.overlayColor} />
+        }
         <Header
           menuItems={(headerSection?.menuItems ?? []).map(item => ({ label: item.label, url: item.url }))}
           siteName={siteName}
+          className={headerClasses}
         />
         <main className="flex-grow container mx-auto px-4 py-8">
           <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
         </main>
-        <Footer text={`© ${new Date().getFullYear()} ${siteName}. Todos los derechos reservados.`} widgets={footerSection?.widgets ?? []} />
-        <ThemeSwitcher />
-        {/* No envolver en AuthProvider aquí */}
+        <Footer 
+          text={`© ${new Date().getFullYear()} ${siteName}. Todos los derechos reservados.`} 
+          widgets={footerSection?.widgets ?? []} 
+          className={footerClasses}
+        />
+        {themeSwitcherConfig.enabled && (
+          <ThemeSwitcher className={themeSwitcherClasses} />
+        )}
       </div>
     </>
   );

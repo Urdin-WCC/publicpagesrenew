@@ -62,14 +62,15 @@ async function backupToGithub() {
   // 4. Crear un commit con un mensaje descriptivo
   console.log('\n4. Creando commit con los cambios...');
   
-  const commitMessage = 'Actualización: Implementación de enfoque JSON para categorías en Blog y Portfolio';
+  const commitMessage = 'Actualización: Refactorización del sistema de temas multi-ruta';
   const commitDescription = [
     'Cambios implementados:',
-    '- Eliminadas relaciones muchos a muchos para categorías',
-    '- Añadidos campos categoryIds para almacenamiento JSON',
-    '- Actualizadas APIs para usar el nuevo enfoque',
-    '- Añadidos scripts de migración y pruebas',
-    '- Actualizada documentación'
+    '- Actualizado modelo ThemePreset para soportar configuraciones light/dark',
+    '- Modificado GlobalConfig con nuevos campos para temas y configuraciones UI',
+    '- Creado archivo lib/themeUtils.ts con utilidades para el sistema de temas',
+    '- Actualizado layout público para usar el nuevo sistema',
+    '- Añadida documentación completa en docs/theme-system-refactoring.md',
+    '- Actualizado README.md con información sobre el nuevo sistema'
   ].join('\n');
   
   const commitCommand = `git commit -m "${commitMessage}" -m "${commitDescription}"`;

@@ -6355,8 +6355,20 @@ export namespace Prisma {
 
   export type AggregateGlobalConfig = {
     _count: GlobalConfigCountAggregateOutputType | null
+    _avg: GlobalConfigAvgAggregateOutputType | null
+    _sum: GlobalConfigSumAggregateOutputType | null
     _min: GlobalConfigMinAggregateOutputType | null
     _max: GlobalConfigMaxAggregateOutputType | null
+  }
+
+  export type GlobalConfigAvgAggregateOutputType = {
+    defaultLightThemePresetId: number | null
+    defaultDarkThemePresetId: number | null
+  }
+
+  export type GlobalConfigSumAggregateOutputType = {
+    defaultLightThemePresetId: number | null
+    defaultDarkThemePresetId: number | null
   }
 
   export type GlobalConfigMinAggregateOutputType = {
@@ -6373,10 +6385,11 @@ export namespace Prisma {
     sharing: string | null
     createdAt: Date | null
     updatedAt: Date | null
-    activeThemeId: string | null
     maintenanceMode: boolean | null
     blogConfig: string | null
     portfolioConfig: string | null
+    defaultLightThemePresetId: number | null
+    defaultDarkThemePresetId: number | null
   }
 
   export type GlobalConfigMaxAggregateOutputType = {
@@ -6393,10 +6406,11 @@ export namespace Prisma {
     sharing: string | null
     createdAt: Date | null
     updatedAt: Date | null
-    activeThemeId: string | null
     maintenanceMode: boolean | null
     blogConfig: string | null
     portfolioConfig: string | null
+    defaultLightThemePresetId: number | null
+    defaultDarkThemePresetId: number | null
   }
 
   export type GlobalConfigCountAggregateOutputType = {
@@ -6413,13 +6427,28 @@ export namespace Prisma {
     sharing: number
     createdAt: number
     updatedAt: number
-    activeThemeId: number
     maintenanceMode: number
     blogConfig: number
     portfolioConfig: number
+    defaultLightThemePresetId: number
+    defaultDarkThemePresetId: number
+    themeAssignments: number
+    loadingSpinnerConfig: number
+    themeSwitcherConfig: number
+    stickyElementsConfig: number
     _all: number
   }
 
+
+  export type GlobalConfigAvgAggregateInputType = {
+    defaultLightThemePresetId?: true
+    defaultDarkThemePresetId?: true
+  }
+
+  export type GlobalConfigSumAggregateInputType = {
+    defaultLightThemePresetId?: true
+    defaultDarkThemePresetId?: true
+  }
 
   export type GlobalConfigMinAggregateInputType = {
     id?: true
@@ -6435,10 +6464,11 @@ export namespace Prisma {
     sharing?: true
     createdAt?: true
     updatedAt?: true
-    activeThemeId?: true
     maintenanceMode?: true
     blogConfig?: true
     portfolioConfig?: true
+    defaultLightThemePresetId?: true
+    defaultDarkThemePresetId?: true
   }
 
   export type GlobalConfigMaxAggregateInputType = {
@@ -6455,10 +6485,11 @@ export namespace Prisma {
     sharing?: true
     createdAt?: true
     updatedAt?: true
-    activeThemeId?: true
     maintenanceMode?: true
     blogConfig?: true
     portfolioConfig?: true
+    defaultLightThemePresetId?: true
+    defaultDarkThemePresetId?: true
   }
 
   export type GlobalConfigCountAggregateInputType = {
@@ -6475,10 +6506,15 @@ export namespace Prisma {
     sharing?: true
     createdAt?: true
     updatedAt?: true
-    activeThemeId?: true
     maintenanceMode?: true
     blogConfig?: true
     portfolioConfig?: true
+    defaultLightThemePresetId?: true
+    defaultDarkThemePresetId?: true
+    themeAssignments?: true
+    loadingSpinnerConfig?: true
+    themeSwitcherConfig?: true
+    stickyElementsConfig?: true
     _all?: true
   }
 
@@ -6520,6 +6556,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: GlobalConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GlobalConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: GlobalConfigMinAggregateInputType
@@ -6550,6 +6598,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: GlobalConfigCountAggregateInputType | true
+    _avg?: GlobalConfigAvgAggregateInputType
+    _sum?: GlobalConfigSumAggregateInputType
     _min?: GlobalConfigMinAggregateInputType
     _max?: GlobalConfigMaxAggregateInputType
   }
@@ -6568,11 +6618,18 @@ export namespace Prisma {
     sharing: string | null
     createdAt: Date
     updatedAt: Date
-    activeThemeId: string | null
     maintenanceMode: boolean
     blogConfig: string | null
     portfolioConfig: string | null
+    defaultLightThemePresetId: number | null
+    defaultDarkThemePresetId: number | null
+    themeAssignments: JsonValue
+    loadingSpinnerConfig: JsonValue
+    themeSwitcherConfig: JsonValue
+    stickyElementsConfig: JsonValue
     _count: GlobalConfigCountAggregateOutputType | null
+    _avg: GlobalConfigAvgAggregateOutputType | null
+    _sum: GlobalConfigSumAggregateOutputType | null
     _min: GlobalConfigMinAggregateOutputType | null
     _max: GlobalConfigMaxAggregateOutputType | null
   }
@@ -6605,10 +6662,15 @@ export namespace Prisma {
     sharing?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    activeThemeId?: boolean
     maintenanceMode?: boolean
     blogConfig?: boolean
     portfolioConfig?: boolean
+    defaultLightThemePresetId?: boolean
+    defaultDarkThemePresetId?: boolean
+    themeAssignments?: boolean
+    loadingSpinnerConfig?: boolean
+    themeSwitcherConfig?: boolean
+    stickyElementsConfig?: boolean
   }, ExtArgs["result"]["globalConfig"]>
 
 
@@ -6627,13 +6689,18 @@ export namespace Prisma {
     sharing?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    activeThemeId?: boolean
     maintenanceMode?: boolean
     blogConfig?: boolean
     portfolioConfig?: boolean
+    defaultLightThemePresetId?: boolean
+    defaultDarkThemePresetId?: boolean
+    themeAssignments?: boolean
+    loadingSpinnerConfig?: boolean
+    themeSwitcherConfig?: boolean
+    stickyElementsConfig?: boolean
   }
 
-  export type GlobalConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "siteName" | "siteUrl" | "logoUrl" | "faviconUrl" | "themeColor" | "header" | "footer" | "sidebar" | "social" | "sharing" | "createdAt" | "updatedAt" | "activeThemeId" | "maintenanceMode" | "blogConfig" | "portfolioConfig", ExtArgs["result"]["globalConfig"]>
+  export type GlobalConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "siteName" | "siteUrl" | "logoUrl" | "faviconUrl" | "themeColor" | "header" | "footer" | "sidebar" | "social" | "sharing" | "createdAt" | "updatedAt" | "maintenanceMode" | "blogConfig" | "portfolioConfig" | "defaultLightThemePresetId" | "defaultDarkThemePresetId" | "themeAssignments" | "loadingSpinnerConfig" | "themeSwitcherConfig" | "stickyElementsConfig", ExtArgs["result"]["globalConfig"]>
 
   export type $GlobalConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "GlobalConfig"
@@ -6652,10 +6719,15 @@ export namespace Prisma {
       sharing: string | null
       createdAt: Date
       updatedAt: Date
-      activeThemeId: string | null
       maintenanceMode: boolean
       blogConfig: string | null
       portfolioConfig: string | null
+      defaultLightThemePresetId: number | null
+      defaultDarkThemePresetId: number | null
+      themeAssignments: Prisma.JsonValue
+      loadingSpinnerConfig: Prisma.JsonValue
+      themeSwitcherConfig: Prisma.JsonValue
+      stickyElementsConfig: Prisma.JsonValue
     }, ExtArgs["result"]["globalConfig"]>
     composites: {}
   }
@@ -7038,10 +7110,15 @@ export namespace Prisma {
     readonly sharing: FieldRef<"GlobalConfig", 'String'>
     readonly createdAt: FieldRef<"GlobalConfig", 'DateTime'>
     readonly updatedAt: FieldRef<"GlobalConfig", 'DateTime'>
-    readonly activeThemeId: FieldRef<"GlobalConfig", 'String'>
     readonly maintenanceMode: FieldRef<"GlobalConfig", 'Boolean'>
     readonly blogConfig: FieldRef<"GlobalConfig", 'String'>
     readonly portfolioConfig: FieldRef<"GlobalConfig", 'String'>
+    readonly defaultLightThemePresetId: FieldRef<"GlobalConfig", 'Int'>
+    readonly defaultDarkThemePresetId: FieldRef<"GlobalConfig", 'Int'>
+    readonly themeAssignments: FieldRef<"GlobalConfig", 'Json'>
+    readonly loadingSpinnerConfig: FieldRef<"GlobalConfig", 'Json'>
+    readonly themeSwitcherConfig: FieldRef<"GlobalConfig", 'Json'>
+    readonly stickyElementsConfig: FieldRef<"GlobalConfig", 'Json'>
   }
     
 
@@ -8262,70 +8339,60 @@ export namespace Prisma {
 
   export type AggregateThemePreset = {
     _count: ThemePresetCountAggregateOutputType | null
+    _avg: ThemePresetAvgAggregateOutputType | null
+    _sum: ThemePresetSumAggregateOutputType | null
     _min: ThemePresetMinAggregateOutputType | null
     _max: ThemePresetMaxAggregateOutputType | null
   }
 
+  export type ThemePresetAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type ThemePresetSumAggregateOutputType = {
+    id: number | null
+  }
+
   export type ThemePresetMinAggregateOutputType = {
-    id: string | null
+    id: number | null
     name: string | null
-    description: string | null
-    isActive: boolean | null
-    cssVariables: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type ThemePresetMaxAggregateOutputType = {
-    id: string | null
+    id: number | null
     name: string | null
-    description: string | null
-    isActive: boolean | null
-    cssVariables: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type ThemePresetCountAggregateOutputType = {
     id: number
     name: number
-    description: number
-    isActive: number
-    cssVariables: number
-    createdAt: number
-    updatedAt: number
+    config: number
     _all: number
   }
 
 
+  export type ThemePresetAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type ThemePresetSumAggregateInputType = {
+    id?: true
+  }
+
   export type ThemePresetMinAggregateInputType = {
     id?: true
     name?: true
-    description?: true
-    isActive?: true
-    cssVariables?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type ThemePresetMaxAggregateInputType = {
     id?: true
     name?: true
-    description?: true
-    isActive?: true
-    cssVariables?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type ThemePresetCountAggregateInputType = {
     id?: true
     name?: true
-    description?: true
-    isActive?: true
-    cssVariables?: true
-    createdAt?: true
-    updatedAt?: true
+    config?: true
     _all?: true
   }
 
@@ -8367,6 +8434,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: ThemePresetAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ThemePresetSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: ThemePresetMinAggregateInputType
@@ -8397,19 +8476,19 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: ThemePresetCountAggregateInputType | true
+    _avg?: ThemePresetAvgAggregateInputType
+    _sum?: ThemePresetSumAggregateInputType
     _min?: ThemePresetMinAggregateInputType
     _max?: ThemePresetMaxAggregateInputType
   }
 
   export type ThemePresetGroupByOutputType = {
-    id: string
+    id: number
     name: string
-    description: string | null
-    isActive: boolean
-    cssVariables: string
-    createdAt: Date
-    updatedAt: Date
+    config: JsonValue
     _count: ThemePresetCountAggregateOutputType | null
+    _avg: ThemePresetAvgAggregateOutputType | null
+    _sum: ThemePresetSumAggregateOutputType | null
     _min: ThemePresetMinAggregateOutputType | null
     _max: ThemePresetMaxAggregateOutputType | null
   }
@@ -8431,11 +8510,7 @@ export namespace Prisma {
   export type ThemePresetSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
-    description?: boolean
-    isActive?: boolean
-    cssVariables?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
+    config?: boolean
   }, ExtArgs["result"]["themePreset"]>
 
 
@@ -8443,26 +8518,18 @@ export namespace Prisma {
   export type ThemePresetSelectScalar = {
     id?: boolean
     name?: boolean
-    description?: boolean
-    isActive?: boolean
-    cssVariables?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
+    config?: boolean
   }
 
-  export type ThemePresetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "isActive" | "cssVariables" | "createdAt" | "updatedAt", ExtArgs["result"]["themePreset"]>
+  export type ThemePresetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "config", ExtArgs["result"]["themePreset"]>
 
   export type $ThemePresetPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ThemePreset"
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
-      id: string
+      id: number
       name: string
-      description: string | null
-      isActive: boolean
-      cssVariables: string
-      createdAt: Date
-      updatedAt: Date
+      config: Prisma.JsonValue
     }, ExtArgs["result"]["themePreset"]>
     composites: {}
   }
@@ -8832,13 +8899,9 @@ export namespace Prisma {
    * Fields of the ThemePreset model
    */
   interface ThemePresetFieldRefs {
-    readonly id: FieldRef<"ThemePreset", 'String'>
+    readonly id: FieldRef<"ThemePreset", 'Int'>
     readonly name: FieldRef<"ThemePreset", 'String'>
-    readonly description: FieldRef<"ThemePreset", 'String'>
-    readonly isActive: FieldRef<"ThemePreset", 'Boolean'>
-    readonly cssVariables: FieldRef<"ThemePreset", 'String'>
-    readonly createdAt: FieldRef<"ThemePreset", 'DateTime'>
-    readonly updatedAt: FieldRef<"ThemePreset", 'DateTime'>
+    readonly config: FieldRef<"ThemePreset", 'Json'>
   }
     
 
@@ -19076,10 +19139,15 @@ export namespace Prisma {
     sharing: 'sharing',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    activeThemeId: 'activeThemeId',
     maintenanceMode: 'maintenanceMode',
     blogConfig: 'blogConfig',
-    portfolioConfig: 'portfolioConfig'
+    portfolioConfig: 'portfolioConfig',
+    defaultLightThemePresetId: 'defaultLightThemePresetId',
+    defaultDarkThemePresetId: 'defaultDarkThemePresetId',
+    themeAssignments: 'themeAssignments',
+    loadingSpinnerConfig: 'loadingSpinnerConfig',
+    themeSwitcherConfig: 'themeSwitcherConfig',
+    stickyElementsConfig: 'stickyElementsConfig'
   };
 
   export type GlobalConfigScalarFieldEnum = (typeof GlobalConfigScalarFieldEnum)[keyof typeof GlobalConfigScalarFieldEnum]
@@ -19100,11 +19168,7 @@ export namespace Prisma {
   export const ThemePresetScalarFieldEnum: {
     id: 'id',
     name: 'name',
-    description: 'description',
-    isActive: 'isActive',
-    cssVariables: 'cssVariables',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    config: 'config'
   };
 
   export type ThemePresetScalarFieldEnum = (typeof ThemePresetScalarFieldEnum)[keyof typeof ThemePresetScalarFieldEnum]
@@ -19257,6 +19321,13 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
   export const NullsOrder: {
     first: 'first',
     last: 'last'
@@ -19310,6 +19381,23 @@ export namespace Prisma {
   export type VerificationTokenOrderByRelevanceFieldEnum = (typeof VerificationTokenOrderByRelevanceFieldEnum)[keyof typeof VerificationTokenOrderByRelevanceFieldEnum]
 
 
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+  export const QueryMode: {
+    default: 'default',
+    insensitive: 'insensitive'
+  };
+
+  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
   export const GlobalConfigOrderByRelevanceFieldEnum: {
     id: 'id',
     siteName: 'siteName',
@@ -19322,7 +19410,6 @@ export namespace Prisma {
     sidebar: 'sidebar',
     social: 'social',
     sharing: 'sharing',
-    activeThemeId: 'activeThemeId',
     blogConfig: 'blogConfig',
     portfolioConfig: 'portfolioConfig'
   };
@@ -19342,10 +19429,7 @@ export namespace Prisma {
 
 
   export const ThemePresetOrderByRelevanceFieldEnum: {
-    id: 'id',
-    name: 'name',
-    description: 'description',
-    cssVariables: 'cssVariables'
+    name: 'name'
   };
 
   export type ThemePresetOrderByRelevanceFieldEnum = (typeof ThemePresetOrderByRelevanceFieldEnum)[keyof typeof ThemePresetOrderByRelevanceFieldEnum]
@@ -19491,6 +19575,20 @@ export namespace Prisma {
    * Reference to a field of type 'Boolean'
    */
   export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'QueryMode'
+   */
+  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -19830,10 +19928,15 @@ export namespace Prisma {
     sharing?: StringNullableFilter<"GlobalConfig"> | string | null
     createdAt?: DateTimeFilter<"GlobalConfig"> | Date | string
     updatedAt?: DateTimeFilter<"GlobalConfig"> | Date | string
-    activeThemeId?: StringNullableFilter<"GlobalConfig"> | string | null
     maintenanceMode?: BoolFilter<"GlobalConfig"> | boolean
     blogConfig?: StringNullableFilter<"GlobalConfig"> | string | null
     portfolioConfig?: StringNullableFilter<"GlobalConfig"> | string | null
+    defaultLightThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
+    defaultDarkThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
+    themeAssignments?: JsonFilter<"GlobalConfig">
+    loadingSpinnerConfig?: JsonFilter<"GlobalConfig">
+    themeSwitcherConfig?: JsonFilter<"GlobalConfig">
+    stickyElementsConfig?: JsonFilter<"GlobalConfig">
   }
 
   export type GlobalConfigOrderByWithRelationInput = {
@@ -19850,10 +19953,15 @@ export namespace Prisma {
     sharing?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    activeThemeId?: SortOrderInput | SortOrder
     maintenanceMode?: SortOrder
     blogConfig?: SortOrderInput | SortOrder
     portfolioConfig?: SortOrderInput | SortOrder
+    defaultLightThemePresetId?: SortOrderInput | SortOrder
+    defaultDarkThemePresetId?: SortOrderInput | SortOrder
+    themeAssignments?: SortOrder
+    loadingSpinnerConfig?: SortOrder
+    themeSwitcherConfig?: SortOrder
+    stickyElementsConfig?: SortOrder
     _relevance?: GlobalConfigOrderByRelevanceInput
   }
 
@@ -19874,10 +19982,15 @@ export namespace Prisma {
     sharing?: StringNullableFilter<"GlobalConfig"> | string | null
     createdAt?: DateTimeFilter<"GlobalConfig"> | Date | string
     updatedAt?: DateTimeFilter<"GlobalConfig"> | Date | string
-    activeThemeId?: StringNullableFilter<"GlobalConfig"> | string | null
     maintenanceMode?: BoolFilter<"GlobalConfig"> | boolean
     blogConfig?: StringNullableFilter<"GlobalConfig"> | string | null
     portfolioConfig?: StringNullableFilter<"GlobalConfig"> | string | null
+    defaultLightThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
+    defaultDarkThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
+    themeAssignments?: JsonFilter<"GlobalConfig">
+    loadingSpinnerConfig?: JsonFilter<"GlobalConfig">
+    themeSwitcherConfig?: JsonFilter<"GlobalConfig">
+    stickyElementsConfig?: JsonFilter<"GlobalConfig">
   }, "id">
 
   export type GlobalConfigOrderByWithAggregationInput = {
@@ -19894,13 +20007,20 @@ export namespace Prisma {
     sharing?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    activeThemeId?: SortOrderInput | SortOrder
     maintenanceMode?: SortOrder
     blogConfig?: SortOrderInput | SortOrder
     portfolioConfig?: SortOrderInput | SortOrder
+    defaultLightThemePresetId?: SortOrderInput | SortOrder
+    defaultDarkThemePresetId?: SortOrderInput | SortOrder
+    themeAssignments?: SortOrder
+    loadingSpinnerConfig?: SortOrder
+    themeSwitcherConfig?: SortOrder
+    stickyElementsConfig?: SortOrder
     _count?: GlobalConfigCountOrderByAggregateInput
+    _avg?: GlobalConfigAvgOrderByAggregateInput
     _max?: GlobalConfigMaxOrderByAggregateInput
     _min?: GlobalConfigMinOrderByAggregateInput
+    _sum?: GlobalConfigSumOrderByAggregateInput
   }
 
   export type GlobalConfigScalarWhereWithAggregatesInput = {
@@ -19920,10 +20040,15 @@ export namespace Prisma {
     sharing?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"GlobalConfig"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"GlobalConfig"> | Date | string
-    activeThemeId?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
     maintenanceMode?: BoolWithAggregatesFilter<"GlobalConfig"> | boolean
     blogConfig?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
     portfolioConfig?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    defaultLightThemePresetId?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
+    defaultDarkThemePresetId?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
+    themeAssignments?: JsonWithAggregatesFilter<"GlobalConfig">
+    loadingSpinnerConfig?: JsonWithAggregatesFilter<"GlobalConfig">
+    themeSwitcherConfig?: JsonWithAggregatesFilter<"GlobalConfig">
+    stickyElementsConfig?: JsonWithAggregatesFilter<"GlobalConfig">
   }
 
   export type AdminActionWhereInput = {
@@ -19988,63 +20113,45 @@ export namespace Prisma {
     AND?: ThemePresetWhereInput | ThemePresetWhereInput[]
     OR?: ThemePresetWhereInput[]
     NOT?: ThemePresetWhereInput | ThemePresetWhereInput[]
-    id?: StringFilter<"ThemePreset"> | string
+    id?: IntFilter<"ThemePreset"> | number
     name?: StringFilter<"ThemePreset"> | string
-    description?: StringNullableFilter<"ThemePreset"> | string | null
-    isActive?: BoolFilter<"ThemePreset"> | boolean
-    cssVariables?: StringFilter<"ThemePreset"> | string
-    createdAt?: DateTimeFilter<"ThemePreset"> | Date | string
-    updatedAt?: DateTimeFilter<"ThemePreset"> | Date | string
+    config?: JsonFilter<"ThemePreset">
   }
 
   export type ThemePresetOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
-    description?: SortOrderInput | SortOrder
-    isActive?: SortOrder
-    cssVariables?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
+    config?: SortOrder
     _relevance?: ThemePresetOrderByRelevanceInput
   }
 
   export type ThemePresetWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
+    id?: number
+    name?: string
     AND?: ThemePresetWhereInput | ThemePresetWhereInput[]
     OR?: ThemePresetWhereInput[]
     NOT?: ThemePresetWhereInput | ThemePresetWhereInput[]
-    name?: StringFilter<"ThemePreset"> | string
-    description?: StringNullableFilter<"ThemePreset"> | string | null
-    isActive?: BoolFilter<"ThemePreset"> | boolean
-    cssVariables?: StringFilter<"ThemePreset"> | string
-    createdAt?: DateTimeFilter<"ThemePreset"> | Date | string
-    updatedAt?: DateTimeFilter<"ThemePreset"> | Date | string
-  }, "id">
+    config?: JsonFilter<"ThemePreset">
+  }, "id" | "name">
 
   export type ThemePresetOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
-    description?: SortOrderInput | SortOrder
-    isActive?: SortOrder
-    cssVariables?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
+    config?: SortOrder
     _count?: ThemePresetCountOrderByAggregateInput
+    _avg?: ThemePresetAvgOrderByAggregateInput
     _max?: ThemePresetMaxOrderByAggregateInput
     _min?: ThemePresetMinOrderByAggregateInput
+    _sum?: ThemePresetSumOrderByAggregateInput
   }
 
   export type ThemePresetScalarWhereWithAggregatesInput = {
     AND?: ThemePresetScalarWhereWithAggregatesInput | ThemePresetScalarWhereWithAggregatesInput[]
     OR?: ThemePresetScalarWhereWithAggregatesInput[]
     NOT?: ThemePresetScalarWhereWithAggregatesInput | ThemePresetScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"ThemePreset"> | string
+    id?: IntWithAggregatesFilter<"ThemePreset"> | number
     name?: StringWithAggregatesFilter<"ThemePreset"> | string
-    description?: StringNullableWithAggregatesFilter<"ThemePreset"> | string | null
-    isActive?: BoolWithAggregatesFilter<"ThemePreset"> | boolean
-    cssVariables?: StringWithAggregatesFilter<"ThemePreset"> | string
-    createdAt?: DateTimeWithAggregatesFilter<"ThemePreset"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"ThemePreset"> | Date | string
+    config?: JsonWithAggregatesFilter<"ThemePreset">
   }
 
   export type WidgetWhereInput = {
@@ -21076,10 +21183,15 @@ export namespace Prisma {
     sharing?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    activeThemeId?: string | null
     maintenanceMode?: boolean
     blogConfig?: string | null
     portfolioConfig?: string | null
+    defaultLightThemePresetId?: number | null
+    defaultDarkThemePresetId?: number | null
+    themeAssignments?: JsonNullValueInput | InputJsonValue
+    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
+    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
+    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
   }
 
   export type GlobalConfigUncheckedCreateInput = {
@@ -21096,10 +21208,15 @@ export namespace Prisma {
     sharing?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    activeThemeId?: string | null
     maintenanceMode?: boolean
     blogConfig?: string | null
     portfolioConfig?: string | null
+    defaultLightThemePresetId?: number | null
+    defaultDarkThemePresetId?: number | null
+    themeAssignments?: JsonNullValueInput | InputJsonValue
+    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
+    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
+    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
   }
 
   export type GlobalConfigUpdateInput = {
@@ -21116,10 +21233,15 @@ export namespace Prisma {
     sharing?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
     maintenanceMode?: BoolFieldUpdateOperationsInput | boolean
     blogConfig?: NullableStringFieldUpdateOperationsInput | string | null
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    themeAssignments?: JsonNullValueInput | InputJsonValue
+    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
+    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
+    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
   }
 
   export type GlobalConfigUncheckedUpdateInput = {
@@ -21136,10 +21258,15 @@ export namespace Prisma {
     sharing?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
     maintenanceMode?: BoolFieldUpdateOperationsInput | boolean
     blogConfig?: NullableStringFieldUpdateOperationsInput | string | null
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    themeAssignments?: JsonNullValueInput | InputJsonValue
+    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
+    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
+    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
   }
 
   export type GlobalConfigCreateManyInput = {
@@ -21156,10 +21283,15 @@ export namespace Prisma {
     sharing?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
-    activeThemeId?: string | null
     maintenanceMode?: boolean
     blogConfig?: string | null
     portfolioConfig?: string | null
+    defaultLightThemePresetId?: number | null
+    defaultDarkThemePresetId?: number | null
+    themeAssignments?: JsonNullValueInput | InputJsonValue
+    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
+    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
+    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
   }
 
   export type GlobalConfigUpdateManyMutationInput = {
@@ -21176,10 +21308,15 @@ export namespace Prisma {
     sharing?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
     maintenanceMode?: BoolFieldUpdateOperationsInput | boolean
     blogConfig?: NullableStringFieldUpdateOperationsInput | string | null
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    themeAssignments?: JsonNullValueInput | InputJsonValue
+    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
+    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
+    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
   }
 
   export type GlobalConfigUncheckedUpdateManyInput = {
@@ -21196,10 +21333,15 @@ export namespace Prisma {
     sharing?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
     maintenanceMode?: BoolFieldUpdateOperationsInput | boolean
     blogConfig?: NullableStringFieldUpdateOperationsInput | string | null
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
+    themeAssignments?: JsonNullValueInput | InputJsonValue
+    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
+    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
+    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
   }
 
   export type AdminActionCreateInput = {
@@ -21266,73 +21408,42 @@ export namespace Prisma {
   }
 
   export type ThemePresetCreateInput = {
-    id?: string
     name: string
-    description?: string | null
-    isActive?: boolean
-    cssVariables: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
+    config: JsonNullValueInput | InputJsonValue
   }
 
   export type ThemePresetUncheckedCreateInput = {
-    id?: string
+    id?: number
     name: string
-    description?: string | null
-    isActive?: boolean
-    cssVariables: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
+    config: JsonNullValueInput | InputJsonValue
   }
 
   export type ThemePresetUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    cssVariables?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    config?: JsonNullValueInput | InputJsonValue
   }
 
   export type ThemePresetUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
+    id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    cssVariables?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    config?: JsonNullValueInput | InputJsonValue
   }
 
   export type ThemePresetCreateManyInput = {
-    id?: string
+    id?: number
     name: string
-    description?: string | null
-    isActive?: boolean
-    cssVariables: string
-    createdAt?: Date | string
-    updatedAt?: Date | string
+    config: JsonNullValueInput | InputJsonValue
   }
 
   export type ThemePresetUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    cssVariables?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    config?: JsonNullValueInput | InputJsonValue
   }
 
   export type ThemePresetUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
+    id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    isActive?: BoolFieldUpdateOperationsInput | boolean
-    cssVariables?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    config?: JsonNullValueInput | InputJsonValue
   }
 
   export type WidgetCreateInput = {
@@ -22487,6 +22598,29 @@ export namespace Prisma {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
+  export type JsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type GlobalConfigOrderByRelevanceInput = {
     fields: GlobalConfigOrderByRelevanceFieldEnum | GlobalConfigOrderByRelevanceFieldEnum[]
@@ -22508,10 +22642,20 @@ export namespace Prisma {
     sharing?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    activeThemeId?: SortOrder
     maintenanceMode?: SortOrder
     blogConfig?: SortOrder
     portfolioConfig?: SortOrder
+    defaultLightThemePresetId?: SortOrder
+    defaultDarkThemePresetId?: SortOrder
+    themeAssignments?: SortOrder
+    loadingSpinnerConfig?: SortOrder
+    themeSwitcherConfig?: SortOrder
+    stickyElementsConfig?: SortOrder
+  }
+
+  export type GlobalConfigAvgOrderByAggregateInput = {
+    defaultLightThemePresetId?: SortOrder
+    defaultDarkThemePresetId?: SortOrder
   }
 
   export type GlobalConfigMaxOrderByAggregateInput = {
@@ -22528,10 +22672,11 @@ export namespace Prisma {
     sharing?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    activeThemeId?: SortOrder
     maintenanceMode?: SortOrder
     blogConfig?: SortOrder
     portfolioConfig?: SortOrder
+    defaultLightThemePresetId?: SortOrder
+    defaultDarkThemePresetId?: SortOrder
   }
 
   export type GlobalConfigMinOrderByAggregateInput = {
@@ -22548,10 +22693,16 @@ export namespace Prisma {
     sharing?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-    activeThemeId?: SortOrder
     maintenanceMode?: SortOrder
     blogConfig?: SortOrder
     portfolioConfig?: SortOrder
+    defaultLightThemePresetId?: SortOrder
+    defaultDarkThemePresetId?: SortOrder
+  }
+
+  export type GlobalConfigSumOrderByAggregateInput = {
+    defaultLightThemePresetId?: SortOrder
+    defaultDarkThemePresetId?: SortOrder
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -22560,6 +22711,32 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type AdminActionOrderByRelevanceInput = {
@@ -22595,49 +22772,6 @@ export namespace Prisma {
     createdAt?: SortOrder
   }
 
-  export type ThemePresetOrderByRelevanceInput = {
-    fields: ThemePresetOrderByRelevanceFieldEnum | ThemePresetOrderByRelevanceFieldEnum[]
-    sort: SortOrder
-    search: string
-  }
-
-  export type ThemePresetCountOrderByAggregateInput = {
-    id?: SortOrder
-    name?: SortOrder
-    description?: SortOrder
-    isActive?: SortOrder
-    cssVariables?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type ThemePresetMaxOrderByAggregateInput = {
-    id?: SortOrder
-    name?: SortOrder
-    description?: SortOrder
-    isActive?: SortOrder
-    cssVariables?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type ThemePresetMinOrderByAggregateInput = {
-    id?: SortOrder
-    name?: SortOrder
-    description?: SortOrder
-    isActive?: SortOrder
-    cssVariables?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type EnumWidgetTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.WidgetType | EnumWidgetTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.WidgetType[]
-    notIn?: $Enums.WidgetType[]
-    not?: NestedEnumWidgetTypeFilter<$PrismaModel> | $Enums.WidgetType
-  }
-
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[]
@@ -22647,6 +22781,59 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
+  }
+
+  export type ThemePresetOrderByRelevanceInput = {
+    fields: ThemePresetOrderByRelevanceFieldEnum | ThemePresetOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type ThemePresetCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    config?: SortOrder
+  }
+
+  export type ThemePresetAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type ThemePresetMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type ThemePresetMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+  }
+
+  export type ThemePresetSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[]
+    notIn?: number[]
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
+  export type EnumWidgetTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.WidgetType | EnumWidgetTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.WidgetType[]
+    notIn?: $Enums.WidgetType[]
+    not?: NestedEnumWidgetTypeFilter<$PrismaModel> | $Enums.WidgetType
   }
 
   export type SiteSectionScalarRelationFilter = {
@@ -22715,22 +22902,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumWidgetTypeFilter<$PrismaModel>
     _max?: NestedEnumWidgetTypeFilter<$PrismaModel>
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[]
-    notIn?: number[]
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type EnumSectionTypeFilter<$PrismaModel = never> = {
@@ -23438,6 +23609,14 @@ export namespace Prisma {
     set?: boolean
   }
 
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type SiteSectionCreateNestedOneWithoutWidgetsInput = {
     create?: XOR<SiteSectionCreateWithoutWidgetsInput, SiteSectionUncheckedCreateWithoutWidgetsInput>
     connectOrCreate?: SiteSectionCreateOrConnectWithoutWidgetsInput
@@ -23446,14 +23625,6 @@ export namespace Prisma {
 
   export type EnumWidgetTypeFieldUpdateOperationsInput = {
     set?: $Enums.WidgetType
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type SiteSectionUpdateOneRequiredWithoutWidgetsNestedInput = {
@@ -23978,22 +24149,28 @@ export namespace Prisma {
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
   }
+  export type NestedJsonFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
 
-  export type NestedEnumWidgetTypeFilter<$PrismaModel = never> = {
-    equals?: $Enums.WidgetType | EnumWidgetTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.WidgetType[]
-    notIn?: $Enums.WidgetType[]
-    not?: NestedEnumWidgetTypeFilter<$PrismaModel> | $Enums.WidgetType
-  }
-
-  export type NestedEnumWidgetTypeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.WidgetType | EnumWidgetTypeFieldRefInput<$PrismaModel>
-    in?: $Enums.WidgetType[]
-    notIn?: $Enums.WidgetType[]
-    not?: NestedEnumWidgetTypeWithAggregatesFilter<$PrismaModel> | $Enums.WidgetType
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumWidgetTypeFilter<$PrismaModel>
-    _max?: NestedEnumWidgetTypeFilter<$PrismaModel>
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -24021,6 +24198,23 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type NestedEnumWidgetTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.WidgetType | EnumWidgetTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.WidgetType[]
+    notIn?: $Enums.WidgetType[]
+    not?: NestedEnumWidgetTypeFilter<$PrismaModel> | $Enums.WidgetType
+  }
+
+  export type NestedEnumWidgetTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.WidgetType | EnumWidgetTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.WidgetType[]
+    notIn?: $Enums.WidgetType[]
+    not?: NestedEnumWidgetTypeWithAggregatesFilter<$PrismaModel> | $Enums.WidgetType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumWidgetTypeFilter<$PrismaModel>
+    _max?: NestedEnumWidgetTypeFilter<$PrismaModel>
   }
 
   export type NestedEnumSectionTypeFilter<$PrismaModel = never> = {

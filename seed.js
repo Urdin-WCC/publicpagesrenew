@@ -1,11 +1,11 @@
-import { PrismaClient, Role } from '@prisma/client';
-import { hash } from 'bcrypt';
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
 async function main() {
   // Create default users with hashed passwords
-  const password = await hash('12345.Abcd', 10);
+  const password = await bcrypt.hash('12345.Abcd', 10);
 
   // Create master user
   await prisma.user.upsert({
@@ -15,7 +15,7 @@ async function main() {
       email: 'master@app.com',
       name: 'master',
       password,
-      role: Role.MASTER,
+      role: 'MASTER',
     },
   });
 
@@ -27,7 +27,7 @@ async function main() {
       email: 'admin@app.com',
       name: 'admin',
       password,
-      role: Role.ADMIN,
+      role: 'ADMIN',
     },
   });
 
@@ -39,7 +39,7 @@ async function main() {
       email: 'editor@app.com',
       name: 'editor',
       password,
-      role: Role.EDITOR,
+      role: 'EDITOR',
     },
   });
 
@@ -51,7 +51,7 @@ async function main() {
       email: 'collaborator@app.com',
       name: 'collaborator',
       password,
-      role: Role.COLLABORATOR,
+      role: 'COLLABORATOR',
     },
   });
 
@@ -59,6 +59,7 @@ async function main() {
   const defaultLight = await prisma.themePreset.create({
     data: {
       name: 'Default Light',
+      // the config field is a String (@db.LongText), not Json
       config: JSON.stringify({
         // Light theme variables
         '--background': '#ffffff',
@@ -83,6 +84,7 @@ async function main() {
   const defaultDark = await prisma.themePreset.create({
     data: {
       name: 'Default Dark',
+      // the config field is a String (@db.LongText), not Json
       config: JSON.stringify({
         // Dark theme variables
         '--background': '#1a1a1a',

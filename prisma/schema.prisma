@@ -62,23 +62,28 @@ model VerificationToken {
 }
 
 model GlobalConfig {
-  id              String   @id @default("global")
-  siteName        String   @default("Neurowitch")
-  siteUrl         String   @default("http://localhost:3000")
-  logoUrl         String?
-  faviconUrl      String?
-  themeColor      String?
-  header          String?  @db.LongText
-  footer          String?  @db.LongText
-  sidebar         String?  @db.LongText
-  social          String?  @db.LongText
-  sharing         String?  @db.LongText
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  activeThemeId   String?  @default("default")
-  maintenanceMode Boolean  @default(false)
-  blogConfig      String?  @db.LongText
-  portfolioConfig String?  @db.LongText
+  id                        String   @id @default("global")
+  siteName                  String   @default("Neurowitch")
+  siteUrl                   String   @default("http://localhost:3000")
+  logoUrl                   String?
+  faviconUrl                String?
+  themeColor                String?
+  header                    String?  @db.LongText
+  footer                    String?  @db.LongText
+  sidebar                   String?  @db.LongText
+  social                    String?  @db.LongText
+  sharing                   String?  @db.LongText
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  maintenanceMode           Boolean  @default(false)
+  blogConfig                String?  @db.LongText
+  portfolioConfig           String?  @db.LongText
+  defaultLightThemePresetId Int?
+  defaultDarkThemePresetId  Int?
+  themeAssignments          String   @db.LongText
+  loadingSpinnerConfig      String   @db.LongText
+  themeSwitcherConfig       String   @db.LongText
+  stickyElementsConfig      String   @db.LongText
 }
 
 model AdminAction {
@@ -91,13 +96,9 @@ model AdminAction {
 }
 
 model ThemePreset {
-  id           String   @id @default(cuid())
-  name         String
-  description  String?
-  isActive     Boolean  @default(false)
-  cssVariables String   @db.LongText
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  config String @db.LongText
 }
 
 model Widget {
@@ -180,7 +181,7 @@ model Post {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   authorDisplayName String?
-  categoryId        String?    // Una sola categoría por post
+  categoryId        String?
   author            User?      @relation(fields: [authorId], references: [id])
   category          Category?  @relation(fields: [categoryId], references: [id])
 
@@ -195,8 +196,8 @@ model Category {
   description String?   @db.Text
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  posts       Post[]    // Relación con posts
-  projects    Project[] // Relación con projects
+  posts       Post[]
+  projects    Project[]
 }
 
 model Tag {
@@ -224,15 +225,13 @@ model Project {
   authorId            String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
-  categoryId          String?            // Una sola categoría por proyecto
+  categoryId          String?
   author              User?              @relation(fields: [authorId], references: [id])
   category            Category?          @relation(fields: [categoryId], references: [id])
 
   @@index([authorId], map: "Project_authorId_fkey")
   @@index([categoryId], map: "Project_categoryId_fkey")
 }
-
-
 
 enum Role {
   MASTER
