@@ -117,23 +117,23 @@ export const authOptions: NextAuthConfig = {
 // --- Server-Side Helper Functions ---
 
 import { redirect } from "next/navigation";
-import { auth as nextAuthGetServerSession } from "@/auth"; // Assuming this is the server-side auth export
+import { auth as nextAuth } from "@/auth"; // Import NextAuth v5 auth export
 import { checkUserRole } from "./auth"; // Import client-safe checkUserRole
 
 /**
  * Server function to get the current session
  */
 export async function getServerSession() {
-  // Pass the server-side authOptions to the underlying function
-  return await nextAuthGetServerSession(authOptions);
+  // Use the NextAuth v5 auth function directly
+  return await nextAuth();
 }
 
 /**
  * Auth function for Next.js App Router (Server Components, Middleware)
  */
 export async function auth() {
-  // Pass the server-side authOptions to the underlying function
-  return await nextAuthGetServerSession(authOptions);
+  // Use the NextAuth v5 auth function directly
+  return await nextAuth();
 }
 
 /**
@@ -156,7 +156,8 @@ export function withRoleProtection(requiredRole: Role) {
     }
 
     // Use the imported checkUserRole function
-    const hasRequiredRole = checkUserRole(session.user.role, requiredRole);
+    // Ensure we pass Role | null to checkUserRole (not Role | undefined)
+    const hasRequiredRole = checkUserRole(session.user.role || null, requiredRole);
 
     if (!hasRequiredRole) {
       redirect("/unauthorized"); // Ensure this route exists

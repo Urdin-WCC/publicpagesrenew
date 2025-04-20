@@ -20,32 +20,28 @@ export async function getGlobalConfig(): Promise<GlobalConfig | null> {
 
 /**
  * Fetches the currently active theme preset from the database.
- * It first tries to find a theme marked as isActive: true.
- * If none is found, it fetches the theme specified by activeThemeId in GlobalConfig.
- * If that also fails, it attempts to fetch the theme with id 'default'.
+ * It tries to fetch the theme specified by defaultLightThemePresetId in GlobalConfig.
+ * If that fails, it attempts to fetch the first theme available.
  * @returns Promise<ThemePreset | null>
  */
 export async function getActiveTheme(): Promise<ThemePreset | null> {
   try {
-    // 1. Try to find explicitly active theme
-    let theme = await prisma.themePreset.findFirst({
-      where: { isActive: true },
-    });
-
-    // 2. If no active theme, try fetching based on GlobalConfig
-    if (!theme) {
-      const config = await getGlobalConfig();
-      if (config?.activeThemeId) {
-        theme = await prisma.themePreset.findUnique({
-          where: { id: config.activeThemeId },
-        });
-      }
+    // 1. Try fetching based on GlobalConfig
+    const config = await getGlobalConfig();
+    let theme = null;
+    
+    // 2. If config exists and has defaultLightThemePresetId
+    // Usar type assertion para evitar el error de TypeScript
+    if (config && (config as any).defaultLightThemePresetId) {
+      theme = await prisma.themePreset.findUnique({
+        where: { id: (config as any).defaultLightThemePresetId },
+      });
     }
 
-    // 3. If still no theme, try fetching the 'default' theme
+    // 3. If still no theme, try fetching any theme
     if (!theme) {
-      theme = await prisma.themePreset.findUnique({
-        where: { id: 'default' },
+      theme = await prisma.themePreset.findFirst({
+        orderBy: { id: 'asc' },
       });
     }
 

@@ -45,7 +45,12 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [] },
+    // Explícitamente aceptamos GIF y WebP además del wildcard image/*
+    accept: { 
+      "image/*": [],
+      "image/gif": [],
+      "image/webp": []
+    },
     multiple,
   });
 

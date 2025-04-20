@@ -1,0 +1,260 @@
+#############################################################################
+# Neurowitch - Complete Modular Development Guide                           #
+# ASSIGNED TASK: Chapter 9 - SEO_Module                                     #
+#                (Search Engine Optimization Management)                    #
+#############################################################################
+
+# NOTE: This document contains instructions for a specific module.
+# You MUST FIRST READ AND ADHERE TO "Chapter 0" provided below,
+# which contains essential common information, project principles,
+# and the mandatory tech stack for the entire Neurowitch project.
+# It assumes the codebase reflects the completion of previous modules,
+# including the necessary refactoring and theme system setup.
+
+#############################################################################
+# Chapter 0: Common Information & Project Principles                        #
+#############################################################################
+
+# 0.1 Introduction
+# Welcome to the development guide for the "Neurowitch" project. This document
+# details the modular architecture and technical specifications for building the
+# application. The goal of this modular structure is to enable parallel and efficient
+# development, where each developer or AI agent can focus on a specific module with
+# self-contained instructions.
+#
+# This Chapter 0 contains all the fundamental and common information that all
+# developers must know before starting work on any module. The subsequent chapters
+# describe the specific modules. To work on your assigned module (Chapter 9),
+# you will need to read this Chapter 0 thoroughly AND the specific instructions
+# in the Chapter 9 section below.
+
+# 0.2 Project Overview
+# Neurowitch is a complete, responsive, and accessible web application featuring an
+# administration panel for managing content (blog, portfolio, static pages), SEO,
+# appearance (theming), and site statistics. It consists of a publicly accessible front-
+# end and an administration panel protected by role-based authentication.
+
+# 0.3 Mandatory Tech Stack
+# All development must exclusively use the following technology stack to ensure
+# compatibility:
+#
+# - Primary Framework: Next.js (version 14+ with App Router, including Metadata API)
+# - Language: TypeScript
+# - UI Library: React (version 18+)
+# - Database: MySQL (version 5.7+)
+# - ORM: Prisma (using the Core_Module provided client: `lib/prisma.ts`)
+# - CSS Styling: Tailwind CSS
+# - Authentication: Next-Auth.js (v5+) (using Core_Module setup: `lib/auth.ts`)
+# - Form Handling: React Hook Form
+# - UI Components (Recommended): Shadcn/ui (installed and configured in the base project)
+# - State Management (Client-side): Zustand (preferred) or React Context API
+# - HTML Editor: React Quill or Tiptap (Use the Core_Module provided `HtmlEditor` component: `components/core/HtmlEditor.tsx`)
+# - File Upload (UI): React Dropzone (Use the Core_Module provided `ImageUploader` component: `components/core/ImageUploader.tsx`)
+# - Sitemap Generation: next-sitemap (optional, alternative is manual generation)
+# - Charts: Recharts
+# - Package Manager: npm or yarn
+
+# 0.4 Credentials & Initial Setup (Reference for Core Module - You interact via code)
+# - Database (MySQL): Connection URL is configured in `.env` as DATABASE_URL for Prisma (Managed by Core_Module).
+# - Default Users: Created by Core_Module's seed script (master, admin, editor, collaborator) with hashed passwords (bcrypt).
+# - Role Hierarchy (Strict): master > admin > editor > collaborator
+#   - A user can only view/manage users and content at their level or lower, as specified in each module. Access to admin panel sections/features must be strictly restricted by role. Use Core_Module helpers/hooks for role checks (e.g., `useCurrentUserRole`, `checkUserRole`).
+
+# 0.5 General Principles & Mandatory Requirements
+# All modules must adhere to the following principles:
+#
+# - Responsiveness & Accessibility: All interfaces (public and admin) must be fully responsive and follow accessibility best practices (WCAG 2.1 AA). Use Tailwind CSS for this. Use semantic HTML.
+# - No Public Signup: The application does not allow public user registration. Users are created from the admin panel (Module 10).
+# - NO Browser Local Storage: Under no circumstances should localStorage or sessionStorage be used for storing sensitive information or application state. Use secure cookies (managed by Next-Auth for session) or server/URL state.
+# - Clean & Commented Code: Write clear, well-structured, and maintainable TypeScript code. Comment complex logic, public functions, and data types (use TSDoc).
+# - Documentation: Maintain necessary documentation (TSDoc, comments) to understand the module's functionality.
+# - Robustness & Reliability: Use the tech stack tools appropriately. Implement error handling (try/catch, UI error states). Do not simulate, remove, hide, or simplify described features without authorization.
+# - Security: Implement basic security measures: input validation in API routes, CSRF protection (Next-Auth helps), XSS protection (React helps, be careful with dangerouslySetInnerHTML), security header configuration, route/API protection by role. Prevent Path Traversal in file handling. Hash passwords (bcrypt handled by Core_Module).
+# - Performance: Optimize public page load times (Next.js SSR/SSG), image loading (use `next/image` component), and DB queries (Prisma - be mindful of query efficiency).
+# - Consistency: Follow the naming and structure conventions defined in this chapter. Use components and utilities from the Core_Module whenever possible (e.g., `ImageUploader`, `HtmlEditor`, `prisma` client, `logAdminAction`).
+# - Error Handling: Display clear and user-friendly error messages when something fails (both client-side and server-side validations). Use UI components (like Shadcn/ui's Alert/Toast) for feedback.
+# - Backups: (Responsibility of the project manager) Regular database backups are performed.
+# - **Application Language: IMPORTANT:** While these development instructions are in English, the final application's **user-facing interface** (UI text, labels, messages, content displayed to the end-user in both the public site and the admin panel) **MUST be in Spanish.** Ensure all user-visible text implemented in the components is in Spanish.
+
+# 0.6 Recommended Folder Structure (Next.js App Router)
+# The project should follow a structure similar to this (adapt as needed for your module):
+# ```
+# neurowitch-app/
+# |- app/
+# |  |- (admin)/              # Admin panel routes (grouped by layout)
+# |  |  |- admin/
+# |  |  |  |- ...
+# |  |  |  |- seo/           # <<< Your admin UI page goes here (Module 9)
+# |  |  |  |- ...
+# |  |  |  |- layout.tsx     # Admin base layout (Provided by UI_Framework_Module)
+# |  |- (public)/             # Public routes (grouped by layout)
+# |  |  |- ...               # Public pages use Metadata API (Module 9)
+# |  |  |- layout.tsx     # Public base layout (Uses Metadata API - Module 9)
+# |  |- api/                  # API Routes
+# |  |  |- ...
+# |  |  |- seo/              # <<< Your API routes go here (Module 9)
+# |  |  |  |- settings/route.ts
+# |  |  |  |- robots/route.ts # (Alternative to app/robots.ts)
+# |  |  |  |- sitemap/route.ts # (Alternative to app/sitemap.ts)
+# |  |  |- ...
+# |  |- layout.tsx          # Root layout (Core)
+# |  |- globals.css         # Global styles (Tailwind)
+# |  |- robots.ts           # <<< Your robots.txt generation file (Module 9)
+# |  |- sitemap.ts          # <<< Your sitemap.xml generation file (Module 9)
+# |  |- ...
+# |- components/
+# |  |- core/               # Core reusable components (HtmlEditor, ImageUploader - Provided by Core)
+# |  |- admin/              # Admin specific components (AdminLayout, Sidebar - Provided by UI_Framework)
+# |  |  |- seo/             # <<< Your specific components (if any)
+# |  |- public/             # Public site specific components (PublicLayout, Header, Footer - Provided by UI_Framework)
+# |  |- ui/                 # Shadcn/ui components (Base project)
+# |- lib/                    # Shared logic, utilities, config
+# |  |- prisma.ts           # Prisma client instance (Provided by Core)
+# |  |- auth.ts             # Next-Auth config & helpers (Provided by Core)
+# |  |- utils.ts            # Utility functions (e.g., generateSlug - Provided by Core)
+# |  |- stats.ts            # Statistics logging function `logAdminAction` (Provided by Core)
+# |  |- hooks/              # Custom React hooks (e.g., role checks - Provided by Core)
+# |  |- seoUtils.ts         # <<< Optional: Helpers for generating metadata/JSON-LD
+# |- prisma/                 # Prisma schema and migrations (Managed by Core, modified by modules)
+# |  |- schema.prisma       # <<< Ensure GlobalConfig model is suitable
+# |  |- migrations/
+# |- public/                 # Static assets
+# |  |- uploads/            # Folder for user uploads (Managed by Core)
+# |  |- favicon.ico         # <<< Often managed via Metadata API now
+# |- .env                    # Environment variables (Managed by Core)
+# |- next.config.mjs
+# |- tailwind.config.ts
+# |- tsconfig.json
+# |- package.json
+# |- next-sitemap.config.js  # <<< Config file if using next-sitemap
+# ```
+
+# 0.7 Core Module Interface Summary (Module 1 Exports - What you can use)
+# The Core_Module (Chapter 1, potentially modified by Appendix B) established the foundation and provides the following key tools and functionalities that other modules must use:
+# - Database Access: Via the singleton Prisma client exported from `lib/prisma.ts`. Used to fetch data for sitemap/metadata.
+# - Authentication & Session (Next-Auth.js): Use helpers/hooks from Core for role checks [admin].
+# - ImageUploader Component (`components/core/ImageUploader.tsx`): For favicon/social share image uploads.
+# - `logAdminAction(...)` Function (`lib/stats.ts`): MUST be called when saving SEO settings via API.
+# - Global Configuration: Functions `getGlobalConfig()` and `updateGlobalConfig()` from `lib/config.ts` (or similar) to read/write SEO-related fields in the `GlobalConfig` model.
+
+# 0.8 Basic Workflow
+# - Version Control: Use Git.
+# - Install Dependencies: `npm install next-sitemap` if you choose to use it.
+# - Migrations: Not expected unless you add specific SEO fields to `GlobalConfig` (check schema first).
+# - Prisma Client: `npx prisma generate` if needed.
+# - Dev Server: `npm run dev`.
+# - Testing: Verify admin form saves data, robots.txt and sitemap.xml are generated correctly, and public pages have correct meta tags.
+
+# ---------------------------------------------------------------------------
+# End of Chapter 0
+# ---------------------------------------------------------------------------
+
+
+# ############################################################################
+# Chapter 9: SEO_Module (Search Engine Optimization Management)             #
+# ############################################################################
+
+# **Objective:** Centralize global SEO settings, generate essential SEO files (`robots.txt`, `sitemap.xml`), and leverage Next.js Metadata API to dynamically generate relevant `<head>` tags for public pages.
+
+# **Specific Technology:** Next.js (App Router, Metadata API, Route Handlers/File Conventions), React, TypeScript, Prisma (via Core), Tailwind CSS, React Hook Form, `next-sitemap` (optional).
+
+# **Detailed Responsibilities:**
+
+# 1.  **Data Model (Prisma Schema):**
+#     - Ensure the `GlobalConfig` model (single row) contains fields suitable for storing global SEO settings. Review the existing schema (`prisma/schema.prisma`). Required fields might include:
+#       - `siteName`: String
+#       - `baseUrl`: String (Your application's public base URL, e.g., "https://www.neurowitch.com")
+#       - `globalMetaTitle`: String (Default title)
+#       - `globalMetaDescription`: String (Default description)
+#       - `globalKeywords`: String (Comma-separated keywords, optional)
+#       - `defaultSocialShareImage`: String (URL from ImageUploader)
+#       - `robotsTxtContent`: String (Allow custom robots.txt rules, large text)
+#       - `googleAnalyticsId`: String? (Optional GA tracking ID)
+#       - `googleTagManagerId`: String? (Optional GTM tracking ID)
+#       - `faviconUrl`: String? (URL from ImageUploader, often handled by Metadata API's `icons` field now)
+#     - If these fields are missing or insufficient, modify `GlobalConfig` in `schema.prisma`, run `npx prisma migrate dev --name update-globalconfig-seo` and `npx prisma generate`, and update the `GlobalConfig` seeding/access functions in Core accordingly (or document this need clearly).
+
+# 2.  **Admin Panel SEO Management [admin]:**
+#     - **SEO Settings Page:** Create `app/(admin)/admin/seo/page.tsx`.
+#       - Use `AdminLayout`. Protect access [admin]. **UI text must be in Spanish.** (e.g., Title: "Configuración SEO Global").
+#     - **Settings Form:** Implement a form using `react-hook-form`.
+#       - Load initial data from `GlobalConfig` using the Core `getGlobalConfig` function.
+#       - Include input fields for all the global SEO settings defined in step 1 (`siteName`, `baseUrl`, `globalMetaTitle`, `globalMetaDescription`, `globalKeywords`, `robotsTxtContent`, `googleAnalyticsId`, `googleTagManagerId`).
+#       - Use `Core_Module.ImageUploader` for `defaultSocialShareImage` and optionally `faviconUrl`.
+#     - **Submit Action:** On submit, call API route `PUT /api/seo/settings` with the form data.
+#     - **Sitemap Button:** Add a button "Regenerar Sitemap" (Regenerate Sitemap). If using manual generation (`app/sitemap.ts` or API), clicking this could trigger the regeneration process (e.g., call a specific API route `POST /api/seo/sitemap/regenerate`). If using `next-sitemap`, this button might not be necessary as generation happens at build time or on demand. **Button text in Spanish.**
+#     - **All form labels, helper texts, button texts must be in Spanish.**
+
+# 3.  **`robots.txt` Generation:**
+#     - **Method 1 (Recommended: File Convention):** Create `app/robots.ts`.
+#       - Export a default function that returns a `Robots` object (from `next/dist/lib/metadata/types/metadata-types`).
+#       - Inside the function, fetch `GlobalConfig` (specifically `robotsTxtContent` and `baseUrl`).
+#       - Construct the `Robots` object, potentially combining default rules (like allowing `/`) with the custom content from `robotsTxtContent`. Ensure the `sitemap` directive points to the correct sitemap URL (e.g., `${baseUrl}/sitemap.xml`).
+#     - **Method 2 (API Route):** Create `app/api/seo/robots.txt/route.ts`.
+#       - Implement a `GET` handler.
+#       - Fetch `GlobalConfig` data (`robotsTxtContent`).
+#       - Return a `Response` object with the content of `robotsTxtContent` (or generated rules) and `Content-Type: text/plain`.
+
+# 4.  **`sitemap.xml` Generation:**
+#     - **Method 1 (Recommended: File Convention):** Create `app/sitemap.ts`.
+#       - Export a default async function `sitemap()`.
+#       - Inside the function:
+#         - Fetch `GlobalConfig` to get the `baseUrl`.
+#         - Fetch all publicly accessible URLs from relevant Prisma models (e.g., `StaticPage` where `isVisible: true`, published `Post`s, published `Project`s). Select necessary fields like `slug` and `updatedAt`.
+#         - Map the fetched data into an array of sitemap entry objects: `{ url: string, lastModified?: string | Date, changeFrequency?: 'always' | 'hourly' | ..., priority?: number }`. Construct full URLs using `baseUrl` and slugs.
+#       - Return the array of sitemap entries. Next.js will generate the XML file.
+#     - **Method 2 (Using `next-sitemap`):**
+#       - Install `next-sitemap`.
+#       - Configure `next-sitemap.config.js` in the project root. Define `siteUrl`, `generateRobotsTxt`, `robotsTxtOptions`, and potentially `transform` function to fetch dynamic routes from your database at build time.
+#       - Add post-build script to `package.json`: `"postbuild": "next-sitemap"`. Generation happens after `npm run build`.
+#     - **Method 3 (API Route):** Create `app/api/seo/sitemap.xml/route.ts`.
+#       - Implement a `GET` handler.
+#       - Perform the data fetching and mapping logic described in Method 1.
+#       - Manually construct the XML string.
+#       - Return a `Response` with the XML string and `Content-Type: application/xml`.
+
+# 5.  **HTML Output (`<head>`) using Metadata API:**
+#     - **Global Defaults (`app/(public)/layout.tsx`):**
+#       - Export an async function `generateMetadata()` from the public layout file.
+#       - Fetch `GlobalConfig` data.
+#       - Return a `Metadata` object (from `next`) setting default values: `title.default`, `title.template` (e.g., `%s | ${siteName}`), `description`, `keywords`, `authors`, `metadataBase` (using `baseUrl`), `openGraph` (site_name, default image), `twitter` (card type, default image), `icons` (for favicon).
+#     - **Page-Specific Metadata (e.g., `app/(public)/[slug]/page.tsx`, `app/(public)/blog/[slug]/page.tsx`):**
+#       - In each public page component file that needs specific metadata:
+#       - Export an async function `generateMetadata({ params })`.
+#       - Fetch the specific data for that page (e.g., `StaticPage`, `Post`, `Project`) using `params.slug`.
+#       - Fetch `GlobalConfig` data if needed for fallback or combining.
+#       - Return a `Metadata` object overriding or supplementing the defaults: specific `title`, `description`, `keywords`, `authors`, `openGraph` (title, description, specific image, url), `twitter`, `alternates: { canonical: currentPageUrl }`, `robots: { index: true, follow: true }`.
+#     - **JSON-LD (Structured Data):**
+#       - Create a component (e.g., `components/core/JsonLdScript.tsx`) that takes a structured data object (conforming to Schema.org types like `WebSite`, `Article`, `BreadcrumbList`) as a prop.
+#       - This component renders a `<script type="application/ld+json">` tag with the stringified JSON data.
+#       - Include this component in the relevant layouts or pages (e.g., public layout for `WebSite`, blog post page for `Article`) passing the appropriate structured data. Generate the data dynamically based on `GlobalConfig` and page content.
+#     - **Tracking Scripts (GA/GTM):**
+#       - In `app/(public)/layout.tsx`, conditionally include the Google Analytics and/or Google Tag Manager script snippets if `googleAnalyticsId` or `googleTagManagerId` are present in `GlobalConfig`. Use Next.js `<Script>` component for optimal loading.
+
+# 6.  **API Routes:**
+#     - Create route `app/api/seo/settings/route.ts`:
+#       - `PUT`: Receives global SEO settings data. Validate. Update the `GlobalConfig` record using Prisma (via Core `updateGlobalConfig`). Protect [admin]. Call `logAdminAction`.
+#     - *(Optional)* Create `app/api/seo/sitemap/regenerate/route.ts` if using manual API generation:
+#       - `POST`: Triggers the sitemap regeneration logic. Protect [admin]. Call `logAdminAction`.
+
+# **Dependencies:**
+# - Core_Module: Auth, DB/Prisma client, ImageUploader component, logAdminAction function, GlobalConfig access functions.
+# - UI_Framework_Module: AdminLayout, PublicLayout (which needs to incorporate `generateMetadata`).
+# - Content Modules (Blog, Portfolio, StaticPages): Needed for fetching URLs for the sitemap.
+# - External Libraries: `react-hook-form`, optionally `next-sitemap`.
+
+# **Completion Criteria:**
+# - Admin user can configure global SEO settings via the `/admin/seo` page.
+# - Configuration is saved correctly to `GlobalConfig` via a protected API.
+# - `robots.txt` is generated correctly (dynamically or via config) reflecting custom rules and sitemap location.
+# - `sitemap.xml` is generated correctly (dynamically, via build, or API) including URLs from all relevant public content.
+# - Public pages dynamically generate correct and specific `<head>` meta tags (title, description, canonical, OG, Twitter) using Next.js Metadata API.
+# - Default meta tags are applied from the public layout.
+# - JSON-LD structured data is included where appropriate.
+# - GA/GTM tracking scripts are included conditionally based on configuration.
+# - All admin UI text is in Spanish.
+# - Code follows project principles.
+
+# ############################################################################
+# End of Chapter 9                                                          #
+# ############################################################################

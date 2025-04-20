@@ -181,12 +181,33 @@ export async function GET(request: Request) {
   }
 }
 export async function POST(request: Request) {
-  const session = await auth();
+  // Usar try-catch para manejar errores de autenticación
+  let session;
+  try {
+    session = await auth();
+  } catch (authError) {
+    console.error("Error in auth:", authError);
+    return NextResponse.json({ message: "Error de autenticación" }, { status: 401 });
+  }
+
   if (!session?.user?.id) {
     return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   }
+  
   const userId = session.user.id;
   const userRole = session.user.role;
+  
+  // Verificar que el usuario existe realmente en la base de datos
+  try {
+    const userExists = await prisma.$queryRaw`SELECT id FROM User WHERE id = ${userId} LIMIT 1`;
+    if (!Array.isArray(userExists) || userExists.length === 0) {
+      console.error(`Usuario no encontrado en la base de datos: ${userId}`);
+      return NextResponse.json({ message: 'Error: El usuario no existe en la base de datos' }, { status: 400 });
+    }
+  } catch (verifyError) {
+    console.error("Error verificando usuario:", verifyError);
+    return NextResponse.json({ message: 'Error al verificar el usuario' }, { status: 500 });
+  }
 
   // Verificar permiso para crear
   if (!hasPermission(userRole, 'create_post')) {
@@ -238,12 +259,14 @@ export async function POST(request: Request) {
     }
 
     console.log('Creating post using direct SQL');
+    console.log(`Author ID (from session): ${userId}`);
     
     // Generate a CUID-like ID for the post
     const postId = `cuid${Math.floor(Math.random() * 1000000)}`;
     
-    // Crear el post usando SQL directo (sin incluir categoryIds todavía)
-    const newPost = await prisma.$queryRaw<any[]>`
+    try {
+      // Crear el post usando SQL directo (sin incluir categoryIds todavía)
+      const newPost = await prisma.$queryRaw<any[]>`
       INSERT INTO Post (
         id,
         title, 
@@ -274,9 +297,18 @@ export async function POST(request: Request) {
         CURRENT_TIMESTAMP(),
         FALSE
       )
-    `;
-    
-    console.log(`✅ Post created successfully with ID: ${postId}`);
+      `;
+      
+      console.log(`✅ Post created successfully with ID: ${postId}`);
+    } catch (error) {
+      console.error("Error en la inserción SQL:", error);
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      
+      return NextResponse.json({ 
+        message: 'Error al crear el post. Problema con la inserción en la base de datos.',
+        details: errorMessage
+      }, { status: 500 });
+    }
     
     // Nueva implementación para una sola categoría
     let categoryData = null;

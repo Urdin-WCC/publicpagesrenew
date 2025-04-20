@@ -30,6 +30,18 @@ export default function AdminSidebar() {
     { name: "Estadísticas", href: "/admin/stats", icon: "📈" },
     { name: "Mantenimiento", href: "/admin/maintenance", icon: "🔧" },
   ];
+  
+  // Submenu items for settings
+  const settingsSubItems = [
+    { name: "Blog", href: "/admin/settings/blog", icon: "📝" },
+    { name: "Portfolio", href: "/admin/settings/portfolio", icon: "🖼️" },
+    { name: "Encabezado", href: "/admin/settings/header", icon: "📋" },
+    { name: "Pie de página", href: "/admin/settings/footer", icon: "📋" },
+    { name: "Barra lateral", href: "/admin/settings/sidebar", icon: "📑" },
+    { name: "Redes sociales", href: "/admin/settings/social", icon: "👥" },
+    { name: "Botones compartir", href: "/admin/settings/sharing", icon: "📤" },
+    { name: "Apariencia Global", href: "/admin/settings/appearance", icon: "🎨" },
+  ];
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 hidden md:block">
@@ -54,6 +66,29 @@ export default function AdminSidebar() {
                 <span className="mr-3">{item.icon}</span>
                 {item.name}
               </Link>
+              
+              {/* Display submenu for Settings if we're on settings page or a settings subpage */}
+              {item.name === "Configuración" && 
+               (pathname === "/admin/settings" || pathname.startsWith("/admin/settings/")) && (
+                <ul className="mt-1 ml-7 space-y-1 border-l-2 border-gray-200 pl-2">
+                  {settingsSubItems.map((subItem) => (
+                    <li key={subItem.href}>
+                      <Link
+                        href={subItem.href}
+                        className={cn(
+                          "flex items-center px-3 py-1 rounded-md text-xs transition-colors",
+                          pathname === subItem.href
+                            ? "bg-blue-100 text-blue-700"
+                            : "text-gray-600 hover:bg-gray-50"
+                        )}
+                      >
+                        <span className="mr-2">{subItem.icon}</span>
+                        {subItem.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>

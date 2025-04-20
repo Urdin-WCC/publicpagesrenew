@@ -84,6 +84,8 @@ model GlobalConfig {
   loadingSpinnerConfig      String   @db.LongText
   themeSwitcherConfig       String   @db.LongText
   stickyElementsConfig      String   @db.LongText
+  cookieBannerText          String?  @db.Text
+  cookieBannerLinkPageId    Int?
 }
 
 model AdminAction {
@@ -275,4 +277,17 @@ enum ProjectDisplayType {
   GALLERY
   SLIDER
   GRID
+}
+
+model StaticPage {
+  id            Int      @id @default(autoincrement())
+  title         String
+  slug          String   @unique
+  contentHtml   String   @db.LongText
+  menuOrder     Int      @default(0)
+  includeInMenu Boolean  @default(false)
+  isHomePage    Boolean  @default(false)
+  isVisible     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

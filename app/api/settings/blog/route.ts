@@ -5,12 +5,19 @@ import { hasPermission } from '@/lib/auth-utils';
 import { translations } from '@/app/translations';
 import { logAdminAction } from '@/lib/stats'; // Descomentar cuando esté listo
 
-// Importar la interfaz y valores por defecto desde config-server.ts
-import { BlogConfig, defaultBlogConfig } from '@/lib/config-server';
+// Importar la interfaz, valores por defecto y función getGlobalConfig desde config-server.ts
+import { BlogConfig, defaultBlogConfig, getGlobalConfig } from '@/lib/config-server';
 
 // GET - Obtener la configuración del blog
 export async function GET(request: Request) {
-  const session = await auth();
+  // Usar try-catch para manejar errores de autenticación
+  let session;
+  try {
+    session = await auth();
+  } catch (authError) {
+    console.error("Error en auth:", authError);
+    return NextResponse.json({ message: "Error de autenticación" }, { status: 401 });
+  }
 
   // Solo los admins pueden ver la configuración
   if (!session?.user || !hasPermission(session.user.role, 'manage_settings')) { // Asumiendo permiso 'manage_settings' para ADMIN+
@@ -18,10 +25,8 @@ export async function GET(request: Request) {
   }
 
   try {
-    const globalConfig = await prisma.globalConfig.findUnique({
-      where: { id: 'global' },
-      select: { blogConfig: true },
-    });
+    // Usar getGlobalConfig() corregido de config-server.ts para evitar el problema de activeThemeId
+    const globalConfig = await getGlobalConfig();
 
     // Combinar configuración guardada con valores por defecto
     const currentConfig = {
@@ -38,7 +43,14 @@ export async function GET(request: Request) {
 
 // PUT - Actualizar la configuración del blog
 export async function PUT(request: Request) {
-  const session = await auth();
+  // Usar try-catch para manejar errores de autenticación
+  let session;
+  try {
+    session = await auth();
+  } catch (authError) {
+    console.error("Error en auth:", authError);
+    return NextResponse.json({ message: "Error de autenticación" }, { status: 401 });
+  }
 
   // Solo los admins pueden guardar la configuración
   if (!session?.user?.id) { // Verificar id
@@ -66,32 +78,67 @@ export async function PUT(request: Request) {
     if (typeof body.showSidebarInList === 'boolean') newConfig.showSidebarInList = body.showSidebarInList;
     if (typeof body.showSidebarInPost === 'boolean') newConfig.showSidebarInPost = body.showSidebarInPost;
 
-    // Obtener configuración actual para merge seguro
-     const existingGlobalConfig = await prisma.globalConfig.findUnique({
-      where: { id: 'global' },
-      select: { blogConfig: true },
-    });
-     const existingBlogConfig = existingGlobalConfig?.blogConfig as Partial<BlogConfig> || {};
+    // Obtener configuración actual para merge seguro usando SQL directo para evitar problemas con campos inexistentes
+    const result = await prisma.$queryRaw`
+      SELECT blogConfig FROM GlobalConfig WHERE id = 'global' LIMIT 1
+    `;
 
-    // Usar upsert para crear el registro 'global' si no existe
-    const updatedGlobalConfig = await prisma.globalConfig.upsert({
-      where: { id: 'global' },
-      update: {
-        blogConfig: {
-            ...existingBlogConfig, // Mantener otras posibles claves no relacionadas
-            ...newConfig, // Sobrescribir con los nuevos valores validados
-        },
-      },
-      create: {
-        id: 'global', // Necesario para la creación
-        blogConfig: {
-            ...defaultBlogConfig, // Empezar con defaults si se crea
-            ...newConfig,
-        },
-        // Asegúrate de incluir otros campos requeridos por GlobalConfig si los hubiera al crear
-      },
-      select: { blogConfig: true }, // Devolver solo la config actualizada
+    // Verificar si se encontró la configuración global
+    const existingBlogConfig = result && Array.isArray(result) && result.length > 0 
+      ? (result[0].blogConfig as Partial<BlogConfig>) || {} 
+      : {};
+
+    // Preparar la nueva configuración del blog combinando las existentes con las nuevas
+    const mergedBlogConfig = JSON.stringify({
+      ...existingBlogConfig,
+      ...newConfig,
     });
+
+    // Verificar si existe el registro global
+    const globalExists = await prisma.$queryRaw`
+      SELECT 1 FROM GlobalConfig WHERE id = 'global' LIMIT 1
+    `;
+
+    // Actualizar o insertar la configuración global según corresponda
+    let updatedGlobalConfig;
+    
+    if (globalExists && Array.isArray(globalExists) && globalExists.length > 0) {
+      // Actualizar la configuración existente
+      await prisma.$executeRaw`
+        UPDATE GlobalConfig 
+        SET blogConfig = ${mergedBlogConfig} 
+        WHERE id = 'global'
+      `;
+    } else {
+      // Crear una nueva configuración con los campos requeridos y defaults
+      const defaultLoadingSpinnerConfig = JSON.stringify({});
+      const defaultThemeSwitcherConfig = JSON.stringify({});
+      const defaultStickyElementsConfig = JSON.stringify({});
+      const defaultThemeAssignments = JSON.stringify({});
+      
+      await prisma.$executeRaw`
+        INSERT INTO GlobalConfig (
+          id, siteName, siteUrl, blogConfig, 
+          maintenanceMode, themeAssignments, loadingSpinnerConfig, 
+          themeSwitcherConfig, stickyElementsConfig,
+          createdAt, updatedAt
+        ) VALUES (
+          'global', 'Neurowitch', 'http://localhost:3000', ${mergedBlogConfig},
+          0, ${defaultThemeAssignments}, ${defaultLoadingSpinnerConfig},
+          ${defaultThemeSwitcherConfig}, ${defaultStickyElementsConfig},
+          NOW(), NOW()
+        )
+      `;
+    }
+
+    // Recuperar la configuración actualizada
+    const updatedResult = await prisma.$queryRaw`
+      SELECT blogConfig FROM GlobalConfig WHERE id = 'global' LIMIT 1
+    `;
+
+    const updatedBlogConfig = updatedResult && Array.isArray(updatedResult) && updatedResult.length > 0
+      ? updatedResult[0]
+      : { blogConfig: mergedBlogConfig };
 
     // Registrar acción administrativa
     await logAdminAction(
@@ -103,7 +150,9 @@ export async function PUT(request: Request) {
     // Devolver la configuración completa actualizada (combinada con defaults)
      const finalConfig = {
       ...defaultBlogConfig,
-      ...(updatedGlobalConfig.blogConfig as Partial<BlogConfig> || {}),
+      ...(typeof updatedBlogConfig.blogConfig === 'string' 
+          ? JSON.parse(updatedBlogConfig.blogConfig) 
+          : updatedBlogConfig.blogConfig || {}),
     };
 
 

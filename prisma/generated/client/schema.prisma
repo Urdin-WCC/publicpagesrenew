@@ -62,30 +62,30 @@ model VerificationToken {
 }
 
 model GlobalConfig {
-  id              String   @id @default("global")
-  siteName        String   @default("Neurowitch")
-  siteUrl         String   @default("http://localhost:3000")
-  logoUrl         String?
-  faviconUrl      String?
-  themeColor      String?
-  header          String?  @db.LongText
-  footer          String?  @db.LongText
-  sidebar         String?  @db.LongText
-  social          String?  @db.LongText
-  sharing         String?  @db.LongText
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  maintenanceMode Boolean  @default(false)
-  blogConfig      String?  @db.LongText
-  portfolioConfig String?  @db.LongText
-
-  // New theme system fields
+  id                        String   @id @default("global")
+  siteName                  String   @default("Neurowitch")
+  siteUrl                   String   @default("http://localhost:3000")
+  logoUrl                   String?
+  faviconUrl                String?
+  themeColor                String?
+  header                    String?  @db.LongText
+  footer                    String?  @db.LongText
+  sidebar                   String?  @db.LongText
+  social                    String?  @db.LongText
+  sharing                   String?  @db.LongText
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  maintenanceMode           Boolean  @default(false)
+  blogConfig                String?  @db.LongText
+  portfolioConfig           String?  @db.LongText
   defaultLightThemePresetId Int?
   defaultDarkThemePresetId  Int?
-  themeAssignments          Json @default("{}")
-  loadingSpinnerConfig      Json @default("{\"enabled\": false, \"overlayColor\": \"rgba(255,255,255,0.8)\"}")
-  themeSwitcherConfig       Json @default("{\"enabled\": true, \"position\": \"bottom-right\"}")
-  stickyElementsConfig      Json @default("{\"header\": false, \"sidebar\": false, \"footer\": false, \"themeSwitcher\": false}")
+  themeAssignments          String   @db.LongText
+  loadingSpinnerConfig      String   @db.LongText
+  themeSwitcherConfig       String   @db.LongText
+  stickyElementsConfig      String   @db.LongText
+  cookieBannerText          String?  @db.Text
+  cookieBannerLinkPageId    Int?
 }
 
 model AdminAction {
@@ -100,7 +100,7 @@ model AdminAction {
 model ThemePreset {
   id     Int    @id @default(autoincrement())
   name   String @unique
-  config Json // Will store detailed theme configuration object
+  config String @db.LongText
 }
 
 model Widget {
@@ -183,7 +183,7 @@ model Post {
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   authorDisplayName String?
-  categoryId        String? // Una sola categoría por post
+  categoryId        String?
   author            User?      @relation(fields: [authorId], references: [id])
   category          Category?  @relation(fields: [categoryId], references: [id])
 
@@ -198,8 +198,8 @@ model Category {
   description String?   @db.Text
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  posts       Post[] // Relación con posts
-  projects    Project[] // Relación con projects
+  posts       Post[]
+  projects    Project[]
 }
 
 model Tag {
@@ -227,7 +227,7 @@ model Project {
   authorId            String?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
-  categoryId          String? // Una sola categoría por proyecto
+  categoryId          String?
   author              User?              @relation(fields: [authorId], references: [id])
   category            Category?          @relation(fields: [categoryId], references: [id])
 
@@ -277,4 +277,17 @@ enum ProjectDisplayType {
   GALLERY
   SLIDER
   GRID
+}
+
+model StaticPage {
+  id            Int      @id @default(autoincrement())
+  title         String
+  slug          String   @unique
+  contentHtml   String   @db.LongText
+  menuOrder     Int      @default(0)
+  includeInMenu Boolean  @default(false)
+  isHomePage    Boolean  @default(false)
+  isVisible     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

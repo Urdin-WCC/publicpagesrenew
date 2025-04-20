@@ -98,6 +98,11 @@ export type Tag = $Result.DefaultSelection<Prisma.$TagPayload>
  * 
  */
 export type Project = $Result.DefaultSelection<Prisma.$ProjectPayload>
+/**
+ * Model StaticPage
+ * 
+ */
+export type StaticPage = $Result.DefaultSelection<Prisma.$StaticPagePayload>
 
 /**
  * Enums
@@ -484,6 +489,16 @@ export class PrismaClient<
     * ```
     */
   get project(): Prisma.ProjectDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.staticPage`: Exposes CRUD operations for the **StaticPage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StaticPages
+    * const staticPages = await prisma.staticPage.findMany()
+    * ```
+    */
+  get staticPage(): Prisma.StaticPageDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -940,7 +955,8 @@ export namespace Prisma {
     Post: 'Post',
     Category: 'Category',
     Tag: 'Tag',
-    Project: 'Project'
+    Project: 'Project',
+    StaticPage: 'StaticPage'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -959,7 +975,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "globalConfig" | "adminAction" | "themePreset" | "widget" | "siteSection" | "menuItem" | "visit" | "pageView" | "referrer" | "post" | "category" | "tag" | "project"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "globalConfig" | "adminAction" | "themePreset" | "widget" | "siteSection" | "menuItem" | "visit" | "pageView" | "referrer" | "post" | "category" | "tag" | "project" | "staticPage"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2085,6 +2101,72 @@ export namespace Prisma {
           }
         }
       }
+      StaticPage: {
+        payload: Prisma.$StaticPagePayload<ExtArgs>
+        fields: Prisma.StaticPageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StaticPageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StaticPageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload>
+          }
+          findFirst: {
+            args: Prisma.StaticPageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StaticPageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload>
+          }
+          findMany: {
+            args: Prisma.StaticPageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload>[]
+          }
+          create: {
+            args: Prisma.StaticPageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload>
+          }
+          createMany: {
+            args: Prisma.StaticPageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.StaticPageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload>
+          }
+          update: {
+            args: Prisma.StaticPageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload>
+          }
+          deleteMany: {
+            args: Prisma.StaticPageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StaticPageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.StaticPageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StaticPagePayload>
+          }
+          aggregate: {
+            args: Prisma.StaticPageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStaticPage>
+          }
+          groupBy: {
+            args: Prisma.StaticPageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StaticPageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StaticPageCountArgs<ExtArgs>
+            result: $Utils.Optional<StaticPageCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2186,6 +2268,7 @@ export namespace Prisma {
     category?: CategoryOmit
     tag?: TagOmit
     project?: ProjectOmit
+    staticPage?: StaticPageOmit
   }
 
   /* Types for Logging */
@@ -6364,11 +6447,13 @@ export namespace Prisma {
   export type GlobalConfigAvgAggregateOutputType = {
     defaultLightThemePresetId: number | null
     defaultDarkThemePresetId: number | null
+    cookieBannerLinkPageId: number | null
   }
 
   export type GlobalConfigSumAggregateOutputType = {
     defaultLightThemePresetId: number | null
     defaultDarkThemePresetId: number | null
+    cookieBannerLinkPageId: number | null
   }
 
   export type GlobalConfigMinAggregateOutputType = {
@@ -6390,6 +6475,12 @@ export namespace Prisma {
     portfolioConfig: string | null
     defaultLightThemePresetId: number | null
     defaultDarkThemePresetId: number | null
+    themeAssignments: string | null
+    loadingSpinnerConfig: string | null
+    themeSwitcherConfig: string | null
+    stickyElementsConfig: string | null
+    cookieBannerText: string | null
+    cookieBannerLinkPageId: number | null
   }
 
   export type GlobalConfigMaxAggregateOutputType = {
@@ -6411,6 +6502,12 @@ export namespace Prisma {
     portfolioConfig: string | null
     defaultLightThemePresetId: number | null
     defaultDarkThemePresetId: number | null
+    themeAssignments: string | null
+    loadingSpinnerConfig: string | null
+    themeSwitcherConfig: string | null
+    stickyElementsConfig: string | null
+    cookieBannerText: string | null
+    cookieBannerLinkPageId: number | null
   }
 
   export type GlobalConfigCountAggregateOutputType = {
@@ -6436,6 +6533,8 @@ export namespace Prisma {
     loadingSpinnerConfig: number
     themeSwitcherConfig: number
     stickyElementsConfig: number
+    cookieBannerText: number
+    cookieBannerLinkPageId: number
     _all: number
   }
 
@@ -6443,11 +6542,13 @@ export namespace Prisma {
   export type GlobalConfigAvgAggregateInputType = {
     defaultLightThemePresetId?: true
     defaultDarkThemePresetId?: true
+    cookieBannerLinkPageId?: true
   }
 
   export type GlobalConfigSumAggregateInputType = {
     defaultLightThemePresetId?: true
     defaultDarkThemePresetId?: true
+    cookieBannerLinkPageId?: true
   }
 
   export type GlobalConfigMinAggregateInputType = {
@@ -6469,6 +6570,12 @@ export namespace Prisma {
     portfolioConfig?: true
     defaultLightThemePresetId?: true
     defaultDarkThemePresetId?: true
+    themeAssignments?: true
+    loadingSpinnerConfig?: true
+    themeSwitcherConfig?: true
+    stickyElementsConfig?: true
+    cookieBannerText?: true
+    cookieBannerLinkPageId?: true
   }
 
   export type GlobalConfigMaxAggregateInputType = {
@@ -6490,6 +6597,12 @@ export namespace Prisma {
     portfolioConfig?: true
     defaultLightThemePresetId?: true
     defaultDarkThemePresetId?: true
+    themeAssignments?: true
+    loadingSpinnerConfig?: true
+    themeSwitcherConfig?: true
+    stickyElementsConfig?: true
+    cookieBannerText?: true
+    cookieBannerLinkPageId?: true
   }
 
   export type GlobalConfigCountAggregateInputType = {
@@ -6515,6 +6628,8 @@ export namespace Prisma {
     loadingSpinnerConfig?: true
     themeSwitcherConfig?: true
     stickyElementsConfig?: true
+    cookieBannerText?: true
+    cookieBannerLinkPageId?: true
     _all?: true
   }
 
@@ -6623,10 +6738,12 @@ export namespace Prisma {
     portfolioConfig: string | null
     defaultLightThemePresetId: number | null
     defaultDarkThemePresetId: number | null
-    themeAssignments: JsonValue
-    loadingSpinnerConfig: JsonValue
-    themeSwitcherConfig: JsonValue
-    stickyElementsConfig: JsonValue
+    themeAssignments: string
+    loadingSpinnerConfig: string
+    themeSwitcherConfig: string
+    stickyElementsConfig: string
+    cookieBannerText: string | null
+    cookieBannerLinkPageId: number | null
     _count: GlobalConfigCountAggregateOutputType | null
     _avg: GlobalConfigAvgAggregateOutputType | null
     _sum: GlobalConfigSumAggregateOutputType | null
@@ -6671,6 +6788,8 @@ export namespace Prisma {
     loadingSpinnerConfig?: boolean
     themeSwitcherConfig?: boolean
     stickyElementsConfig?: boolean
+    cookieBannerText?: boolean
+    cookieBannerLinkPageId?: boolean
   }, ExtArgs["result"]["globalConfig"]>
 
 
@@ -6698,9 +6817,11 @@ export namespace Prisma {
     loadingSpinnerConfig?: boolean
     themeSwitcherConfig?: boolean
     stickyElementsConfig?: boolean
+    cookieBannerText?: boolean
+    cookieBannerLinkPageId?: boolean
   }
 
-  export type GlobalConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "siteName" | "siteUrl" | "logoUrl" | "faviconUrl" | "themeColor" | "header" | "footer" | "sidebar" | "social" | "sharing" | "createdAt" | "updatedAt" | "maintenanceMode" | "blogConfig" | "portfolioConfig" | "defaultLightThemePresetId" | "defaultDarkThemePresetId" | "themeAssignments" | "loadingSpinnerConfig" | "themeSwitcherConfig" | "stickyElementsConfig", ExtArgs["result"]["globalConfig"]>
+  export type GlobalConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "siteName" | "siteUrl" | "logoUrl" | "faviconUrl" | "themeColor" | "header" | "footer" | "sidebar" | "social" | "sharing" | "createdAt" | "updatedAt" | "maintenanceMode" | "blogConfig" | "portfolioConfig" | "defaultLightThemePresetId" | "defaultDarkThemePresetId" | "themeAssignments" | "loadingSpinnerConfig" | "themeSwitcherConfig" | "stickyElementsConfig" | "cookieBannerText" | "cookieBannerLinkPageId", ExtArgs["result"]["globalConfig"]>
 
   export type $GlobalConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "GlobalConfig"
@@ -6724,10 +6845,12 @@ export namespace Prisma {
       portfolioConfig: string | null
       defaultLightThemePresetId: number | null
       defaultDarkThemePresetId: number | null
-      themeAssignments: Prisma.JsonValue
-      loadingSpinnerConfig: Prisma.JsonValue
-      themeSwitcherConfig: Prisma.JsonValue
-      stickyElementsConfig: Prisma.JsonValue
+      themeAssignments: string
+      loadingSpinnerConfig: string
+      themeSwitcherConfig: string
+      stickyElementsConfig: string
+      cookieBannerText: string | null
+      cookieBannerLinkPageId: number | null
     }, ExtArgs["result"]["globalConfig"]>
     composites: {}
   }
@@ -7115,10 +7238,12 @@ export namespace Prisma {
     readonly portfolioConfig: FieldRef<"GlobalConfig", 'String'>
     readonly defaultLightThemePresetId: FieldRef<"GlobalConfig", 'Int'>
     readonly defaultDarkThemePresetId: FieldRef<"GlobalConfig", 'Int'>
-    readonly themeAssignments: FieldRef<"GlobalConfig", 'Json'>
-    readonly loadingSpinnerConfig: FieldRef<"GlobalConfig", 'Json'>
-    readonly themeSwitcherConfig: FieldRef<"GlobalConfig", 'Json'>
-    readonly stickyElementsConfig: FieldRef<"GlobalConfig", 'Json'>
+    readonly themeAssignments: FieldRef<"GlobalConfig", 'String'>
+    readonly loadingSpinnerConfig: FieldRef<"GlobalConfig", 'String'>
+    readonly themeSwitcherConfig: FieldRef<"GlobalConfig", 'String'>
+    readonly stickyElementsConfig: FieldRef<"GlobalConfig", 'String'>
+    readonly cookieBannerText: FieldRef<"GlobalConfig", 'String'>
+    readonly cookieBannerLinkPageId: FieldRef<"GlobalConfig", 'Int'>
   }
     
 
@@ -8356,11 +8481,13 @@ export namespace Prisma {
   export type ThemePresetMinAggregateOutputType = {
     id: number | null
     name: string | null
+    config: string | null
   }
 
   export type ThemePresetMaxAggregateOutputType = {
     id: number | null
     name: string | null
+    config: string | null
   }
 
   export type ThemePresetCountAggregateOutputType = {
@@ -8382,11 +8509,13 @@ export namespace Prisma {
   export type ThemePresetMinAggregateInputType = {
     id?: true
     name?: true
+    config?: true
   }
 
   export type ThemePresetMaxAggregateInputType = {
     id?: true
     name?: true
+    config?: true
   }
 
   export type ThemePresetCountAggregateInputType = {
@@ -8485,7 +8614,7 @@ export namespace Prisma {
   export type ThemePresetGroupByOutputType = {
     id: number
     name: string
-    config: JsonValue
+    config: string
     _count: ThemePresetCountAggregateOutputType | null
     _avg: ThemePresetAvgAggregateOutputType | null
     _sum: ThemePresetSumAggregateOutputType | null
@@ -8529,7 +8658,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       name: string
-      config: Prisma.JsonValue
+      config: string
     }, ExtArgs["result"]["themePreset"]>
     composites: {}
   }
@@ -8901,7 +9030,7 @@ export namespace Prisma {
   interface ThemePresetFieldRefs {
     readonly id: FieldRef<"ThemePreset", 'Int'>
     readonly name: FieldRef<"ThemePreset", 'String'>
-    readonly config: FieldRef<"ThemePreset", 'Json'>
+    readonly config: FieldRef<"ThemePreset", 'String'>
   }
     
 
@@ -19060,6 +19189,981 @@ export namespace Prisma {
 
 
   /**
+   * Model StaticPage
+   */
+
+  export type AggregateStaticPage = {
+    _count: StaticPageCountAggregateOutputType | null
+    _avg: StaticPageAvgAggregateOutputType | null
+    _sum: StaticPageSumAggregateOutputType | null
+    _min: StaticPageMinAggregateOutputType | null
+    _max: StaticPageMaxAggregateOutputType | null
+  }
+
+  export type StaticPageAvgAggregateOutputType = {
+    id: number | null
+    menuOrder: number | null
+  }
+
+  export type StaticPageSumAggregateOutputType = {
+    id: number | null
+    menuOrder: number | null
+  }
+
+  export type StaticPageMinAggregateOutputType = {
+    id: number | null
+    title: string | null
+    slug: string | null
+    contentHtml: string | null
+    menuOrder: number | null
+    includeInMenu: boolean | null
+    isHomePage: boolean | null
+    isVisible: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StaticPageMaxAggregateOutputType = {
+    id: number | null
+    title: string | null
+    slug: string | null
+    contentHtml: string | null
+    menuOrder: number | null
+    includeInMenu: boolean | null
+    isHomePage: boolean | null
+    isVisible: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type StaticPageCountAggregateOutputType = {
+    id: number
+    title: number
+    slug: number
+    contentHtml: number
+    menuOrder: number
+    includeInMenu: number
+    isHomePage: number
+    isVisible: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type StaticPageAvgAggregateInputType = {
+    id?: true
+    menuOrder?: true
+  }
+
+  export type StaticPageSumAggregateInputType = {
+    id?: true
+    menuOrder?: true
+  }
+
+  export type StaticPageMinAggregateInputType = {
+    id?: true
+    title?: true
+    slug?: true
+    contentHtml?: true
+    menuOrder?: true
+    includeInMenu?: true
+    isHomePage?: true
+    isVisible?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StaticPageMaxAggregateInputType = {
+    id?: true
+    title?: true
+    slug?: true
+    contentHtml?: true
+    menuOrder?: true
+    includeInMenu?: true
+    isHomePage?: true
+    isVisible?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type StaticPageCountAggregateInputType = {
+    id?: true
+    title?: true
+    slug?: true
+    contentHtml?: true
+    menuOrder?: true
+    includeInMenu?: true
+    isHomePage?: true
+    isVisible?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type StaticPageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StaticPage to aggregate.
+     */
+    where?: StaticPageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaticPages to fetch.
+     */
+    orderBy?: StaticPageOrderByWithRelationInput | StaticPageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StaticPageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaticPages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaticPages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StaticPages
+    **/
+    _count?: true | StaticPageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: StaticPageAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: StaticPageSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StaticPageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StaticPageMaxAggregateInputType
+  }
+
+  export type GetStaticPageAggregateType<T extends StaticPageAggregateArgs> = {
+        [P in keyof T & keyof AggregateStaticPage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStaticPage[P]>
+      : GetScalarType<T[P], AggregateStaticPage[P]>
+  }
+
+
+
+
+  export type StaticPageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StaticPageWhereInput
+    orderBy?: StaticPageOrderByWithAggregationInput | StaticPageOrderByWithAggregationInput[]
+    by: StaticPageScalarFieldEnum[] | StaticPageScalarFieldEnum
+    having?: StaticPageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StaticPageCountAggregateInputType | true
+    _avg?: StaticPageAvgAggregateInputType
+    _sum?: StaticPageSumAggregateInputType
+    _min?: StaticPageMinAggregateInputType
+    _max?: StaticPageMaxAggregateInputType
+  }
+
+  export type StaticPageGroupByOutputType = {
+    id: number
+    title: string
+    slug: string
+    contentHtml: string
+    menuOrder: number
+    includeInMenu: boolean
+    isHomePage: boolean
+    isVisible: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: StaticPageCountAggregateOutputType | null
+    _avg: StaticPageAvgAggregateOutputType | null
+    _sum: StaticPageSumAggregateOutputType | null
+    _min: StaticPageMinAggregateOutputType | null
+    _max: StaticPageMaxAggregateOutputType | null
+  }
+
+  type GetStaticPageGroupByPayload<T extends StaticPageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StaticPageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StaticPageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StaticPageGroupByOutputType[P]>
+            : GetScalarType<T[P], StaticPageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StaticPageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    slug?: boolean
+    contentHtml?: boolean
+    menuOrder?: boolean
+    includeInMenu?: boolean
+    isHomePage?: boolean
+    isVisible?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["staticPage"]>
+
+
+
+  export type StaticPageSelectScalar = {
+    id?: boolean
+    title?: boolean
+    slug?: boolean
+    contentHtml?: boolean
+    menuOrder?: boolean
+    includeInMenu?: boolean
+    isHomePage?: boolean
+    isVisible?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type StaticPageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "contentHtml" | "menuOrder" | "includeInMenu" | "isHomePage" | "isVisible" | "createdAt" | "updatedAt", ExtArgs["result"]["staticPage"]>
+
+  export type $StaticPagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StaticPage"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      title: string
+      slug: string
+      contentHtml: string
+      menuOrder: number
+      includeInMenu: boolean
+      isHomePage: boolean
+      isVisible: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["staticPage"]>
+    composites: {}
+  }
+
+  type StaticPageGetPayload<S extends boolean | null | undefined | StaticPageDefaultArgs> = $Result.GetResult<Prisma.$StaticPagePayload, S>
+
+  type StaticPageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<StaticPageFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: StaticPageCountAggregateInputType | true
+    }
+
+  export interface StaticPageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StaticPage'], meta: { name: 'StaticPage' } }
+    /**
+     * Find zero or one StaticPage that matches the filter.
+     * @param {StaticPageFindUniqueArgs} args - Arguments to find a StaticPage
+     * @example
+     * // Get one StaticPage
+     * const staticPage = await prisma.staticPage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StaticPageFindUniqueArgs>(args: SelectSubset<T, StaticPageFindUniqueArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one StaticPage that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {StaticPageFindUniqueOrThrowArgs} args - Arguments to find a StaticPage
+     * @example
+     * // Get one StaticPage
+     * const staticPage = await prisma.staticPage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StaticPageFindUniqueOrThrowArgs>(args: SelectSubset<T, StaticPageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StaticPage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaticPageFindFirstArgs} args - Arguments to find a StaticPage
+     * @example
+     * // Get one StaticPage
+     * const staticPage = await prisma.staticPage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StaticPageFindFirstArgs>(args?: SelectSubset<T, StaticPageFindFirstArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StaticPage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaticPageFindFirstOrThrowArgs} args - Arguments to find a StaticPage
+     * @example
+     * // Get one StaticPage
+     * const staticPage = await prisma.staticPage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StaticPageFindFirstOrThrowArgs>(args?: SelectSubset<T, StaticPageFindFirstOrThrowArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more StaticPages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaticPageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StaticPages
+     * const staticPages = await prisma.staticPage.findMany()
+     * 
+     * // Get first 10 StaticPages
+     * const staticPages = await prisma.staticPage.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const staticPageWithIdOnly = await prisma.staticPage.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StaticPageFindManyArgs>(args?: SelectSubset<T, StaticPageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a StaticPage.
+     * @param {StaticPageCreateArgs} args - Arguments to create a StaticPage.
+     * @example
+     * // Create one StaticPage
+     * const StaticPage = await prisma.staticPage.create({
+     *   data: {
+     *     // ... data to create a StaticPage
+     *   }
+     * })
+     * 
+     */
+    create<T extends StaticPageCreateArgs>(args: SelectSubset<T, StaticPageCreateArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many StaticPages.
+     * @param {StaticPageCreateManyArgs} args - Arguments to create many StaticPages.
+     * @example
+     * // Create many StaticPages
+     * const staticPage = await prisma.staticPage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StaticPageCreateManyArgs>(args?: SelectSubset<T, StaticPageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a StaticPage.
+     * @param {StaticPageDeleteArgs} args - Arguments to delete one StaticPage.
+     * @example
+     * // Delete one StaticPage
+     * const StaticPage = await prisma.staticPage.delete({
+     *   where: {
+     *     // ... filter to delete one StaticPage
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StaticPageDeleteArgs>(args: SelectSubset<T, StaticPageDeleteArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one StaticPage.
+     * @param {StaticPageUpdateArgs} args - Arguments to update one StaticPage.
+     * @example
+     * // Update one StaticPage
+     * const staticPage = await prisma.staticPage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StaticPageUpdateArgs>(args: SelectSubset<T, StaticPageUpdateArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more StaticPages.
+     * @param {StaticPageDeleteManyArgs} args - Arguments to filter StaticPages to delete.
+     * @example
+     * // Delete a few StaticPages
+     * const { count } = await prisma.staticPage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StaticPageDeleteManyArgs>(args?: SelectSubset<T, StaticPageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StaticPages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaticPageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StaticPages
+     * const staticPage = await prisma.staticPage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StaticPageUpdateManyArgs>(args: SelectSubset<T, StaticPageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one StaticPage.
+     * @param {StaticPageUpsertArgs} args - Arguments to update or create a StaticPage.
+     * @example
+     * // Update or create a StaticPage
+     * const staticPage = await prisma.staticPage.upsert({
+     *   create: {
+     *     // ... data to create a StaticPage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StaticPage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StaticPageUpsertArgs>(args: SelectSubset<T, StaticPageUpsertArgs<ExtArgs>>): Prisma__StaticPageClient<$Result.GetResult<Prisma.$StaticPagePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of StaticPages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaticPageCountArgs} args - Arguments to filter StaticPages to count.
+     * @example
+     * // Count the number of StaticPages
+     * const count = await prisma.staticPage.count({
+     *   where: {
+     *     // ... the filter for the StaticPages we want to count
+     *   }
+     * })
+    **/
+    count<T extends StaticPageCountArgs>(
+      args?: Subset<T, StaticPageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StaticPageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StaticPage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaticPageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StaticPageAggregateArgs>(args: Subset<T, StaticPageAggregateArgs>): Prisma.PrismaPromise<GetStaticPageAggregateType<T>>
+
+    /**
+     * Group by StaticPage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StaticPageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StaticPageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StaticPageGroupByArgs['orderBy'] }
+        : { orderBy?: StaticPageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StaticPageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStaticPageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StaticPage model
+   */
+  readonly fields: StaticPageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StaticPage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StaticPageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StaticPage model
+   */
+  interface StaticPageFieldRefs {
+    readonly id: FieldRef<"StaticPage", 'Int'>
+    readonly title: FieldRef<"StaticPage", 'String'>
+    readonly slug: FieldRef<"StaticPage", 'String'>
+    readonly contentHtml: FieldRef<"StaticPage", 'String'>
+    readonly menuOrder: FieldRef<"StaticPage", 'Int'>
+    readonly includeInMenu: FieldRef<"StaticPage", 'Boolean'>
+    readonly isHomePage: FieldRef<"StaticPage", 'Boolean'>
+    readonly isVisible: FieldRef<"StaticPage", 'Boolean'>
+    readonly createdAt: FieldRef<"StaticPage", 'DateTime'>
+    readonly updatedAt: FieldRef<"StaticPage", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StaticPage findUnique
+   */
+  export type StaticPageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * Filter, which StaticPage to fetch.
+     */
+    where: StaticPageWhereUniqueInput
+  }
+
+  /**
+   * StaticPage findUniqueOrThrow
+   */
+  export type StaticPageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * Filter, which StaticPage to fetch.
+     */
+    where: StaticPageWhereUniqueInput
+  }
+
+  /**
+   * StaticPage findFirst
+   */
+  export type StaticPageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * Filter, which StaticPage to fetch.
+     */
+    where?: StaticPageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaticPages to fetch.
+     */
+    orderBy?: StaticPageOrderByWithRelationInput | StaticPageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StaticPages.
+     */
+    cursor?: StaticPageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaticPages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaticPages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StaticPages.
+     */
+    distinct?: StaticPageScalarFieldEnum | StaticPageScalarFieldEnum[]
+  }
+
+  /**
+   * StaticPage findFirstOrThrow
+   */
+  export type StaticPageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * Filter, which StaticPage to fetch.
+     */
+    where?: StaticPageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaticPages to fetch.
+     */
+    orderBy?: StaticPageOrderByWithRelationInput | StaticPageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StaticPages.
+     */
+    cursor?: StaticPageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaticPages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaticPages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StaticPages.
+     */
+    distinct?: StaticPageScalarFieldEnum | StaticPageScalarFieldEnum[]
+  }
+
+  /**
+   * StaticPage findMany
+   */
+  export type StaticPageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * Filter, which StaticPages to fetch.
+     */
+    where?: StaticPageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StaticPages to fetch.
+     */
+    orderBy?: StaticPageOrderByWithRelationInput | StaticPageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StaticPages.
+     */
+    cursor?: StaticPageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StaticPages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StaticPages.
+     */
+    skip?: number
+    distinct?: StaticPageScalarFieldEnum | StaticPageScalarFieldEnum[]
+  }
+
+  /**
+   * StaticPage create
+   */
+  export type StaticPageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * The data needed to create a StaticPage.
+     */
+    data: XOR<StaticPageCreateInput, StaticPageUncheckedCreateInput>
+  }
+
+  /**
+   * StaticPage createMany
+   */
+  export type StaticPageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StaticPages.
+     */
+    data: StaticPageCreateManyInput | StaticPageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StaticPage update
+   */
+  export type StaticPageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * The data needed to update a StaticPage.
+     */
+    data: XOR<StaticPageUpdateInput, StaticPageUncheckedUpdateInput>
+    /**
+     * Choose, which StaticPage to update.
+     */
+    where: StaticPageWhereUniqueInput
+  }
+
+  /**
+   * StaticPage updateMany
+   */
+  export type StaticPageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StaticPages.
+     */
+    data: XOR<StaticPageUpdateManyMutationInput, StaticPageUncheckedUpdateManyInput>
+    /**
+     * Filter which StaticPages to update
+     */
+    where?: StaticPageWhereInput
+    /**
+     * Limit how many StaticPages to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StaticPage upsert
+   */
+  export type StaticPageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * The filter to search for the StaticPage to update in case it exists.
+     */
+    where: StaticPageWhereUniqueInput
+    /**
+     * In case the StaticPage found by the `where` argument doesn't exist, create a new StaticPage with this data.
+     */
+    create: XOR<StaticPageCreateInput, StaticPageUncheckedCreateInput>
+    /**
+     * In case the StaticPage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StaticPageUpdateInput, StaticPageUncheckedUpdateInput>
+  }
+
+  /**
+   * StaticPage delete
+   */
+  export type StaticPageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+    /**
+     * Filter which StaticPage to delete.
+     */
+    where: StaticPageWhereUniqueInput
+  }
+
+  /**
+   * StaticPage deleteMany
+   */
+  export type StaticPageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StaticPages to delete
+     */
+    where?: StaticPageWhereInput
+    /**
+     * Limit how many StaticPages to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * StaticPage without action
+   */
+  export type StaticPageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StaticPage
+     */
+    select?: StaticPageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StaticPage
+     */
+    omit?: StaticPageOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -19147,7 +20251,9 @@ export namespace Prisma {
     themeAssignments: 'themeAssignments',
     loadingSpinnerConfig: 'loadingSpinnerConfig',
     themeSwitcherConfig: 'themeSwitcherConfig',
-    stickyElementsConfig: 'stickyElementsConfig'
+    stickyElementsConfig: 'stickyElementsConfig',
+    cookieBannerText: 'cookieBannerText',
+    cookieBannerLinkPageId: 'cookieBannerLinkPageId'
   };
 
   export type GlobalConfigScalarFieldEnum = (typeof GlobalConfigScalarFieldEnum)[keyof typeof GlobalConfigScalarFieldEnum]
@@ -19313,19 +20419,28 @@ export namespace Prisma {
   export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
 
 
+  export const StaticPageScalarFieldEnum: {
+    id: 'id',
+    title: 'title',
+    slug: 'slug',
+    contentHtml: 'contentHtml',
+    menuOrder: 'menuOrder',
+    includeInMenu: 'includeInMenu',
+    isHomePage: 'isHomePage',
+    isVisible: 'isVisible',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type StaticPageScalarFieldEnum = (typeof StaticPageScalarFieldEnum)[keyof typeof StaticPageScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
   };
 
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
-
-
-  export const JsonNullValueInput: {
-    JsonNull: typeof JsonNull
-  };
-
-  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const NullsOrder: {
@@ -19381,23 +20496,6 @@ export namespace Prisma {
   export type VerificationTokenOrderByRelevanceFieldEnum = (typeof VerificationTokenOrderByRelevanceFieldEnum)[keyof typeof VerificationTokenOrderByRelevanceFieldEnum]
 
 
-  export const JsonNullValueFilter: {
-    DbNull: typeof DbNull,
-    JsonNull: typeof JsonNull,
-    AnyNull: typeof AnyNull
-  };
-
-  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
-
-
-  export const QueryMode: {
-    default: 'default',
-    insensitive: 'insensitive'
-  };
-
-  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
-
-
   export const GlobalConfigOrderByRelevanceFieldEnum: {
     id: 'id',
     siteName: 'siteName',
@@ -19411,7 +20509,12 @@ export namespace Prisma {
     social: 'social',
     sharing: 'sharing',
     blogConfig: 'blogConfig',
-    portfolioConfig: 'portfolioConfig'
+    portfolioConfig: 'portfolioConfig',
+    themeAssignments: 'themeAssignments',
+    loadingSpinnerConfig: 'loadingSpinnerConfig',
+    themeSwitcherConfig: 'themeSwitcherConfig',
+    stickyElementsConfig: 'stickyElementsConfig',
+    cookieBannerText: 'cookieBannerText'
   };
 
   export type GlobalConfigOrderByRelevanceFieldEnum = (typeof GlobalConfigOrderByRelevanceFieldEnum)[keyof typeof GlobalConfigOrderByRelevanceFieldEnum]
@@ -19429,7 +20532,8 @@ export namespace Prisma {
 
 
   export const ThemePresetOrderByRelevanceFieldEnum: {
-    name: 'name'
+    name: 'name',
+    config: 'config'
   };
 
   export type ThemePresetOrderByRelevanceFieldEnum = (typeof ThemePresetOrderByRelevanceFieldEnum)[keyof typeof ThemePresetOrderByRelevanceFieldEnum]
@@ -19538,6 +20642,15 @@ export namespace Prisma {
   export type ProjectOrderByRelevanceFieldEnum = (typeof ProjectOrderByRelevanceFieldEnum)[keyof typeof ProjectOrderByRelevanceFieldEnum]
 
 
+  export const StaticPageOrderByRelevanceFieldEnum: {
+    title: 'title',
+    slug: 'slug',
+    contentHtml: 'contentHtml'
+  };
+
+  export type StaticPageOrderByRelevanceFieldEnum = (typeof StaticPageOrderByRelevanceFieldEnum)[keyof typeof StaticPageOrderByRelevanceFieldEnum]
+
+
   /**
    * Field references
    */
@@ -19575,20 +20688,6 @@ export namespace Prisma {
    * Reference to a field of type 'Boolean'
    */
   export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
-    
-
-
-  /**
-   * Reference to a field of type 'Json'
-   */
-  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-  /**
-   * Reference to a field of type 'QueryMode'
-   */
-  export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -19933,10 +21032,12 @@ export namespace Prisma {
     portfolioConfig?: StringNullableFilter<"GlobalConfig"> | string | null
     defaultLightThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
     defaultDarkThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
-    themeAssignments?: JsonFilter<"GlobalConfig">
-    loadingSpinnerConfig?: JsonFilter<"GlobalConfig">
-    themeSwitcherConfig?: JsonFilter<"GlobalConfig">
-    stickyElementsConfig?: JsonFilter<"GlobalConfig">
+    themeAssignments?: StringFilter<"GlobalConfig"> | string
+    loadingSpinnerConfig?: StringFilter<"GlobalConfig"> | string
+    themeSwitcherConfig?: StringFilter<"GlobalConfig"> | string
+    stickyElementsConfig?: StringFilter<"GlobalConfig"> | string
+    cookieBannerText?: StringNullableFilter<"GlobalConfig"> | string | null
+    cookieBannerLinkPageId?: IntNullableFilter<"GlobalConfig"> | number | null
   }
 
   export type GlobalConfigOrderByWithRelationInput = {
@@ -19962,6 +21063,8 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
+    cookieBannerText?: SortOrderInput | SortOrder
+    cookieBannerLinkPageId?: SortOrderInput | SortOrder
     _relevance?: GlobalConfigOrderByRelevanceInput
   }
 
@@ -19987,10 +21090,12 @@ export namespace Prisma {
     portfolioConfig?: StringNullableFilter<"GlobalConfig"> | string | null
     defaultLightThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
     defaultDarkThemePresetId?: IntNullableFilter<"GlobalConfig"> | number | null
-    themeAssignments?: JsonFilter<"GlobalConfig">
-    loadingSpinnerConfig?: JsonFilter<"GlobalConfig">
-    themeSwitcherConfig?: JsonFilter<"GlobalConfig">
-    stickyElementsConfig?: JsonFilter<"GlobalConfig">
+    themeAssignments?: StringFilter<"GlobalConfig"> | string
+    loadingSpinnerConfig?: StringFilter<"GlobalConfig"> | string
+    themeSwitcherConfig?: StringFilter<"GlobalConfig"> | string
+    stickyElementsConfig?: StringFilter<"GlobalConfig"> | string
+    cookieBannerText?: StringNullableFilter<"GlobalConfig"> | string | null
+    cookieBannerLinkPageId?: IntNullableFilter<"GlobalConfig"> | number | null
   }, "id">
 
   export type GlobalConfigOrderByWithAggregationInput = {
@@ -20016,6 +21121,8 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
+    cookieBannerText?: SortOrderInput | SortOrder
+    cookieBannerLinkPageId?: SortOrderInput | SortOrder
     _count?: GlobalConfigCountOrderByAggregateInput
     _avg?: GlobalConfigAvgOrderByAggregateInput
     _max?: GlobalConfigMaxOrderByAggregateInput
@@ -20045,10 +21152,12 @@ export namespace Prisma {
     portfolioConfig?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
     defaultLightThemePresetId?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
     defaultDarkThemePresetId?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
-    themeAssignments?: JsonWithAggregatesFilter<"GlobalConfig">
-    loadingSpinnerConfig?: JsonWithAggregatesFilter<"GlobalConfig">
-    themeSwitcherConfig?: JsonWithAggregatesFilter<"GlobalConfig">
-    stickyElementsConfig?: JsonWithAggregatesFilter<"GlobalConfig">
+    themeAssignments?: StringWithAggregatesFilter<"GlobalConfig"> | string
+    loadingSpinnerConfig?: StringWithAggregatesFilter<"GlobalConfig"> | string
+    themeSwitcherConfig?: StringWithAggregatesFilter<"GlobalConfig"> | string
+    stickyElementsConfig?: StringWithAggregatesFilter<"GlobalConfig"> | string
+    cookieBannerText?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    cookieBannerLinkPageId?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
   }
 
   export type AdminActionWhereInput = {
@@ -20115,7 +21224,7 @@ export namespace Prisma {
     NOT?: ThemePresetWhereInput | ThemePresetWhereInput[]
     id?: IntFilter<"ThemePreset"> | number
     name?: StringFilter<"ThemePreset"> | string
-    config?: JsonFilter<"ThemePreset">
+    config?: StringFilter<"ThemePreset"> | string
   }
 
   export type ThemePresetOrderByWithRelationInput = {
@@ -20131,7 +21240,7 @@ export namespace Prisma {
     AND?: ThemePresetWhereInput | ThemePresetWhereInput[]
     OR?: ThemePresetWhereInput[]
     NOT?: ThemePresetWhereInput | ThemePresetWhereInput[]
-    config?: JsonFilter<"ThemePreset">
+    config?: StringFilter<"ThemePreset"> | string
   }, "id" | "name">
 
   export type ThemePresetOrderByWithAggregationInput = {
@@ -20151,7 +21260,7 @@ export namespace Prisma {
     NOT?: ThemePresetScalarWhereWithAggregatesInput | ThemePresetScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"ThemePreset"> | number
     name?: StringWithAggregatesFilter<"ThemePreset"> | string
-    config?: JsonWithAggregatesFilter<"ThemePreset">
+    config?: StringWithAggregatesFilter<"ThemePreset"> | string
   }
 
   export type WidgetWhereInput = {
@@ -20875,6 +21984,86 @@ export namespace Prisma {
     categoryId?: StringNullableWithAggregatesFilter<"Project"> | string | null
   }
 
+  export type StaticPageWhereInput = {
+    AND?: StaticPageWhereInput | StaticPageWhereInput[]
+    OR?: StaticPageWhereInput[]
+    NOT?: StaticPageWhereInput | StaticPageWhereInput[]
+    id?: IntFilter<"StaticPage"> | number
+    title?: StringFilter<"StaticPage"> | string
+    slug?: StringFilter<"StaticPage"> | string
+    contentHtml?: StringFilter<"StaticPage"> | string
+    menuOrder?: IntFilter<"StaticPage"> | number
+    includeInMenu?: BoolFilter<"StaticPage"> | boolean
+    isHomePage?: BoolFilter<"StaticPage"> | boolean
+    isVisible?: BoolFilter<"StaticPage"> | boolean
+    createdAt?: DateTimeFilter<"StaticPage"> | Date | string
+    updatedAt?: DateTimeFilter<"StaticPage"> | Date | string
+  }
+
+  export type StaticPageOrderByWithRelationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    slug?: SortOrder
+    contentHtml?: SortOrder
+    menuOrder?: SortOrder
+    includeInMenu?: SortOrder
+    isHomePage?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _relevance?: StaticPageOrderByRelevanceInput
+  }
+
+  export type StaticPageWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    slug?: string
+    AND?: StaticPageWhereInput | StaticPageWhereInput[]
+    OR?: StaticPageWhereInput[]
+    NOT?: StaticPageWhereInput | StaticPageWhereInput[]
+    title?: StringFilter<"StaticPage"> | string
+    contentHtml?: StringFilter<"StaticPage"> | string
+    menuOrder?: IntFilter<"StaticPage"> | number
+    includeInMenu?: BoolFilter<"StaticPage"> | boolean
+    isHomePage?: BoolFilter<"StaticPage"> | boolean
+    isVisible?: BoolFilter<"StaticPage"> | boolean
+    createdAt?: DateTimeFilter<"StaticPage"> | Date | string
+    updatedAt?: DateTimeFilter<"StaticPage"> | Date | string
+  }, "id" | "slug">
+
+  export type StaticPageOrderByWithAggregationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    slug?: SortOrder
+    contentHtml?: SortOrder
+    menuOrder?: SortOrder
+    includeInMenu?: SortOrder
+    isHomePage?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: StaticPageCountOrderByAggregateInput
+    _avg?: StaticPageAvgOrderByAggregateInput
+    _max?: StaticPageMaxOrderByAggregateInput
+    _min?: StaticPageMinOrderByAggregateInput
+    _sum?: StaticPageSumOrderByAggregateInput
+  }
+
+  export type StaticPageScalarWhereWithAggregatesInput = {
+    AND?: StaticPageScalarWhereWithAggregatesInput | StaticPageScalarWhereWithAggregatesInput[]
+    OR?: StaticPageScalarWhereWithAggregatesInput[]
+    NOT?: StaticPageScalarWhereWithAggregatesInput | StaticPageScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"StaticPage"> | number
+    title?: StringWithAggregatesFilter<"StaticPage"> | string
+    slug?: StringWithAggregatesFilter<"StaticPage"> | string
+    contentHtml?: StringWithAggregatesFilter<"StaticPage"> | string
+    menuOrder?: IntWithAggregatesFilter<"StaticPage"> | number
+    includeInMenu?: BoolWithAggregatesFilter<"StaticPage"> | boolean
+    isHomePage?: BoolWithAggregatesFilter<"StaticPage"> | boolean
+    isVisible?: BoolWithAggregatesFilter<"StaticPage"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"StaticPage"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"StaticPage"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     name?: string | null
@@ -21188,10 +22377,12 @@ export namespace Prisma {
     portfolioConfig?: string | null
     defaultLightThemePresetId?: number | null
     defaultDarkThemePresetId?: number | null
-    themeAssignments?: JsonNullValueInput | InputJsonValue
-    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
-    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
-    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
+    themeAssignments: string
+    loadingSpinnerConfig: string
+    themeSwitcherConfig: string
+    stickyElementsConfig: string
+    cookieBannerText?: string | null
+    cookieBannerLinkPageId?: number | null
   }
 
   export type GlobalConfigUncheckedCreateInput = {
@@ -21213,10 +22404,12 @@ export namespace Prisma {
     portfolioConfig?: string | null
     defaultLightThemePresetId?: number | null
     defaultDarkThemePresetId?: number | null
-    themeAssignments?: JsonNullValueInput | InputJsonValue
-    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
-    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
-    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
+    themeAssignments: string
+    loadingSpinnerConfig: string
+    themeSwitcherConfig: string
+    stickyElementsConfig: string
+    cookieBannerText?: string | null
+    cookieBannerLinkPageId?: number | null
   }
 
   export type GlobalConfigUpdateInput = {
@@ -21238,10 +22431,12 @@ export namespace Prisma {
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
     defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
-    themeAssignments?: JsonNullValueInput | InputJsonValue
-    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
-    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
-    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
+    themeAssignments?: StringFieldUpdateOperationsInput | string
+    loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
+    themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
+    stickyElementsConfig?: StringFieldUpdateOperationsInput | string
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type GlobalConfigUncheckedUpdateInput = {
@@ -21263,10 +22458,12 @@ export namespace Prisma {
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
     defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
-    themeAssignments?: JsonNullValueInput | InputJsonValue
-    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
-    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
-    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
+    themeAssignments?: StringFieldUpdateOperationsInput | string
+    loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
+    themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
+    stickyElementsConfig?: StringFieldUpdateOperationsInput | string
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type GlobalConfigCreateManyInput = {
@@ -21288,10 +22485,12 @@ export namespace Prisma {
     portfolioConfig?: string | null
     defaultLightThemePresetId?: number | null
     defaultDarkThemePresetId?: number | null
-    themeAssignments?: JsonNullValueInput | InputJsonValue
-    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
-    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
-    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
+    themeAssignments: string
+    loadingSpinnerConfig: string
+    themeSwitcherConfig: string
+    stickyElementsConfig: string
+    cookieBannerText?: string | null
+    cookieBannerLinkPageId?: number | null
   }
 
   export type GlobalConfigUpdateManyMutationInput = {
@@ -21313,10 +22512,12 @@ export namespace Prisma {
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
     defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
-    themeAssignments?: JsonNullValueInput | InputJsonValue
-    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
-    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
-    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
+    themeAssignments?: StringFieldUpdateOperationsInput | string
+    loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
+    themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
+    stickyElementsConfig?: StringFieldUpdateOperationsInput | string
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type GlobalConfigUncheckedUpdateManyInput = {
@@ -21338,10 +22539,12 @@ export namespace Prisma {
     portfolioConfig?: NullableStringFieldUpdateOperationsInput | string | null
     defaultLightThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
     defaultDarkThemePresetId?: NullableIntFieldUpdateOperationsInput | number | null
-    themeAssignments?: JsonNullValueInput | InputJsonValue
-    loadingSpinnerConfig?: JsonNullValueInput | InputJsonValue
-    themeSwitcherConfig?: JsonNullValueInput | InputJsonValue
-    stickyElementsConfig?: JsonNullValueInput | InputJsonValue
+    themeAssignments?: StringFieldUpdateOperationsInput | string
+    loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
+    themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
+    stickyElementsConfig?: StringFieldUpdateOperationsInput | string
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type AdminActionCreateInput = {
@@ -21409,41 +22612,41 @@ export namespace Prisma {
 
   export type ThemePresetCreateInput = {
     name: string
-    config: JsonNullValueInput | InputJsonValue
+    config: string
   }
 
   export type ThemePresetUncheckedCreateInput = {
     id?: number
     name: string
-    config: JsonNullValueInput | InputJsonValue
+    config: string
   }
 
   export type ThemePresetUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
-    config?: JsonNullValueInput | InputJsonValue
+    config?: StringFieldUpdateOperationsInput | string
   }
 
   export type ThemePresetUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    config?: JsonNullValueInput | InputJsonValue
+    config?: StringFieldUpdateOperationsInput | string
   }
 
   export type ThemePresetCreateManyInput = {
     id?: number
     name: string
-    config: JsonNullValueInput | InputJsonValue
+    config: string
   }
 
   export type ThemePresetUpdateManyMutationInput = {
     name?: StringFieldUpdateOperationsInput | string
-    config?: JsonNullValueInput | InputJsonValue
+    config?: StringFieldUpdateOperationsInput | string
   }
 
   export type ThemePresetUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     name?: StringFieldUpdateOperationsInput | string
-    config?: JsonNullValueInput | InputJsonValue
+    config?: StringFieldUpdateOperationsInput | string
   }
 
   export type WidgetCreateInput = {
@@ -22222,6 +23425,94 @@ export namespace Prisma {
     categoryId?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
+  export type StaticPageCreateInput = {
+    title: string
+    slug: string
+    contentHtml: string
+    menuOrder?: number
+    includeInMenu?: boolean
+    isHomePage?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaticPageUncheckedCreateInput = {
+    id?: number
+    title: string
+    slug: string
+    contentHtml: string
+    menuOrder?: number
+    includeInMenu?: boolean
+    isHomePage?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaticPageUpdateInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    contentHtml?: StringFieldUpdateOperationsInput | string
+    menuOrder?: IntFieldUpdateOperationsInput | number
+    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
+    isHomePage?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaticPageUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    contentHtml?: StringFieldUpdateOperationsInput | string
+    menuOrder?: IntFieldUpdateOperationsInput | number
+    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
+    isHomePage?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaticPageCreateManyInput = {
+    id?: number
+    title: string
+    slug: string
+    contentHtml: string
+    menuOrder?: number
+    includeInMenu?: boolean
+    isHomePage?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type StaticPageUpdateManyMutationInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    contentHtml?: StringFieldUpdateOperationsInput | string
+    menuOrder?: IntFieldUpdateOperationsInput | number
+    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
+    isHomePage?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StaticPageUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    contentHtml?: StringFieldUpdateOperationsInput | string
+    menuOrder?: IntFieldUpdateOperationsInput | number
+    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
+    isHomePage?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[]
@@ -22598,29 +23889,6 @@ export namespace Prisma {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
-  export type JsonFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-  }
 
   export type GlobalConfigOrderByRelevanceInput = {
     fields: GlobalConfigOrderByRelevanceFieldEnum | GlobalConfigOrderByRelevanceFieldEnum[]
@@ -22651,11 +23919,14 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
+    cookieBannerText?: SortOrder
+    cookieBannerLinkPageId?: SortOrder
   }
 
   export type GlobalConfigAvgOrderByAggregateInput = {
     defaultLightThemePresetId?: SortOrder
     defaultDarkThemePresetId?: SortOrder
+    cookieBannerLinkPageId?: SortOrder
   }
 
   export type GlobalConfigMaxOrderByAggregateInput = {
@@ -22677,6 +23948,12 @@ export namespace Prisma {
     portfolioConfig?: SortOrder
     defaultLightThemePresetId?: SortOrder
     defaultDarkThemePresetId?: SortOrder
+    themeAssignments?: SortOrder
+    loadingSpinnerConfig?: SortOrder
+    themeSwitcherConfig?: SortOrder
+    stickyElementsConfig?: SortOrder
+    cookieBannerText?: SortOrder
+    cookieBannerLinkPageId?: SortOrder
   }
 
   export type GlobalConfigMinOrderByAggregateInput = {
@@ -22698,11 +23975,18 @@ export namespace Prisma {
     portfolioConfig?: SortOrder
     defaultLightThemePresetId?: SortOrder
     defaultDarkThemePresetId?: SortOrder
+    themeAssignments?: SortOrder
+    loadingSpinnerConfig?: SortOrder
+    themeSwitcherConfig?: SortOrder
+    stickyElementsConfig?: SortOrder
+    cookieBannerText?: SortOrder
+    cookieBannerLinkPageId?: SortOrder
   }
 
   export type GlobalConfigSumOrderByAggregateInput = {
     defaultLightThemePresetId?: SortOrder
     defaultDarkThemePresetId?: SortOrder
+    cookieBannerLinkPageId?: SortOrder
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -22711,32 +23995,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
-  }
-  export type JsonWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedJsonFilter<$PrismaModel>
-    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type AdminActionOrderByRelevanceInput = {
@@ -22802,11 +24060,13 @@ export namespace Prisma {
   export type ThemePresetMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    config?: SortOrder
   }
 
   export type ThemePresetMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    config?: SortOrder
   }
 
   export type ThemePresetSumOrderByAggregateInput = {
@@ -23379,6 +24639,61 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumProjectStatusFilter<$PrismaModel>
     _max?: NestedEnumProjectStatusFilter<$PrismaModel>
+  }
+
+  export type StaticPageOrderByRelevanceInput = {
+    fields: StaticPageOrderByRelevanceFieldEnum | StaticPageOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type StaticPageCountOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    slug?: SortOrder
+    contentHtml?: SortOrder
+    menuOrder?: SortOrder
+    includeInMenu?: SortOrder
+    isHomePage?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaticPageAvgOrderByAggregateInput = {
+    id?: SortOrder
+    menuOrder?: SortOrder
+  }
+
+  export type StaticPageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    slug?: SortOrder
+    contentHtml?: SortOrder
+    menuOrder?: SortOrder
+    includeInMenu?: SortOrder
+    isHomePage?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaticPageMinOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    slug?: SortOrder
+    contentHtml?: SortOrder
+    menuOrder?: SortOrder
+    includeInMenu?: SortOrder
+    isHomePage?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type StaticPageSumOrderByAggregateInput = {
+    id?: SortOrder
+    menuOrder?: SortOrder
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -24148,29 +25463,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
-  }
-  export type NestedJsonFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {

@@ -1,39 +1,29 @@
 import { ReactNode } from "react";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import AdminSidebar from "@/components/admin/AdminSidebar";
-import AdminHeader from "@/components/admin/AdminHeader";
 
 /**
- * Admin layout component
- *
- * This layout is used for all admin pages.
- * It includes the admin sidebar and header.
- * It also protects the admin routes by checking if the user is authenticated.
- *
- * @param children - The page content
- * @returns The admin layout component
+ * DEPRECATED: Este layout está OBSOLETO y no debería usarse.
+ * 
+ * Se mantiene únicamente por compatibilidad mientras se completa la migración.
+ * Las nuevas rutas deben usar app/(admin)/layout.tsx para asegurar consistencia.
+ * 
+ * Todas las páginas en este directorio deberían redirigir a sus equivalentes
+ * en app/(admin)/ para garantizar que todas las páginas usen el mismo layout.
  */
-export default async function AdminLayout({
+export default async function DeprecatedAdminLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  // Solo verificamos autenticación básica
   const session = await auth();
 
   if (!session?.user) {
     redirect("/login");
   }
 
-  return (
-    <div className="flex h-screen bg-gray-100">
-      <AdminSidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <AdminHeader user={session.user} />
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+  // NO renderizamos ninguna UI, ya que esperamos que todas las páginas
+  // redirijan a sus equivalentes en app/(admin)/
+  return <>{children}</>;
 }

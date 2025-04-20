@@ -179,7 +179,9 @@ exports.Prisma.GlobalConfigScalarFieldEnum = {
   themeAssignments: 'themeAssignments',
   loadingSpinnerConfig: 'loadingSpinnerConfig',
   themeSwitcherConfig: 'themeSwitcherConfig',
-  stickyElementsConfig: 'stickyElementsConfig'
+  stickyElementsConfig: 'stickyElementsConfig',
+  cookieBannerText: 'cookieBannerText',
+  cookieBannerLinkPageId: 'cookieBannerLinkPageId'
 };
 
 exports.Prisma.AdminActionScalarFieldEnum = {
@@ -306,13 +308,22 @@ exports.Prisma.ProjectScalarFieldEnum = {
   categoryId: 'categoryId'
 };
 
+exports.Prisma.StaticPageScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  slug: 'slug',
+  contentHtml: 'contentHtml',
+  menuOrder: 'menuOrder',
+  includeInMenu: 'includeInMenu',
+  isHomePage: 'isHomePage',
+  isVisible: 'isVisible',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
-};
-
-exports.Prisma.JsonNullValueInput = {
-  JsonNull: Prisma.JsonNull
 };
 
 exports.Prisma.NullsOrder = {
@@ -353,17 +364,6 @@ exports.Prisma.VerificationTokenOrderByRelevanceFieldEnum = {
   token: 'token'
 };
 
-exports.Prisma.JsonNullValueFilter = {
-  DbNull: Prisma.DbNull,
-  JsonNull: Prisma.JsonNull,
-  AnyNull: Prisma.AnyNull
-};
-
-exports.Prisma.QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
-};
-
 exports.Prisma.GlobalConfigOrderByRelevanceFieldEnum = {
   id: 'id',
   siteName: 'siteName',
@@ -377,7 +377,12 @@ exports.Prisma.GlobalConfigOrderByRelevanceFieldEnum = {
   social: 'social',
   sharing: 'sharing',
   blogConfig: 'blogConfig',
-  portfolioConfig: 'portfolioConfig'
+  portfolioConfig: 'portfolioConfig',
+  themeAssignments: 'themeAssignments',
+  loadingSpinnerConfig: 'loadingSpinnerConfig',
+  themeSwitcherConfig: 'themeSwitcherConfig',
+  stickyElementsConfig: 'stickyElementsConfig',
+  cookieBannerText: 'cookieBannerText'
 };
 
 exports.Prisma.AdminActionOrderByRelevanceFieldEnum = {
@@ -389,7 +394,8 @@ exports.Prisma.AdminActionOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.ThemePresetOrderByRelevanceFieldEnum = {
-  name: 'name'
+  name: 'name',
+  config: 'config'
 };
 
 exports.Prisma.WidgetOrderByRelevanceFieldEnum = {
@@ -464,6 +470,12 @@ exports.Prisma.ProjectOrderByRelevanceFieldEnum = {
   authorId: 'authorId',
   categoryId: 'categoryId'
 };
+
+exports.Prisma.StaticPageOrderByRelevanceFieldEnum = {
+  title: 'title',
+  slug: 'slug',
+  contentHtml: 'contentHtml'
+};
 exports.Role = exports.$Enums.Role = {
   MASTER: 'MASTER',
   ADMIN: 'ADMIN',
@@ -525,7 +537,8 @@ exports.Prisma.ModelName = {
   Post: 'Post',
   Category: 'Category',
   Tag: 'Tag',
-  Project: 'Project'
+  Project: 'Project',
+  StaticPage: 'StaticPage'
 };
 
 /**
