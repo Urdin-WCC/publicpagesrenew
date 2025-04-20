@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { hasPermission } from '@/lib/auth-utils';
@@ -18,6 +18,18 @@ import useSWR from 'swr';
 
 // Importar la interfaz PortfolioConfig desde config-server.ts
 import { PortfolioConfig } from '@/lib/config-server';
+
+// Extensión de la interfaz para incluir temas
+interface PortfolioConfigFormData extends PortfolioConfig {
+  lightThemeId?: number | null;
+  darkThemeId?: number | null;
+}
+
+// Interfaz para el tema
+interface ThemePreset {
+  id: number;
+  name: string;
+}
 
 // Fetcher para SWR
 const fetcher = (url: string) => fetch(url).then(async res => {
@@ -37,13 +49,18 @@ export default function PortfolioSettingsPage() {
   const role = session?.user?.role as Role | undefined;
 
   // Cargar configuración actual usando SWR
-  const { data: portfolioConfig, error, isLoading, mutate } = useSWR<PortfolioConfig>(
+  const { data: portfolioConfig, error, isLoading, mutate } = useSWR<PortfolioConfigFormData>(
     '/api/settings/portfolio',
     fetcher,
     {
       revalidateOnFocus: false, // Evitar recargar al cambiar de pestaña
     }
   );
+  
+  // Cargar lista de temas disponibles
+  const { data: themes } = useSWR<ThemePreset[]>('/api/theme/presets', fetcher, {
+      revalidateOnFocus: false,
+  });
 
   // Configurar formulario
   const {
@@ -54,29 +71,70 @@ export default function PortfolioSettingsPage() {
     watch,
     setValue, // Añadir setValue para poder actualizar campos
     formState: { errors, isDirty }, // isDirty para saber si hay cambios
-  } = useForm<PortfolioConfig>();
+  } = useForm<PortfolioConfigFormData>();
 
   // Resetear el formulario cuando la configuración se carga
   useEffect(() => {
     if (portfolioConfig) {
       reset(portfolioConfig);
+      
+      // Obtener asignaciones de tema para el portfolio
+      try {
+        fetch('/api/settings/global')
+          .then(res => res.json())
+          .then(globalConfig => {
+            if (globalConfig?.themeAssignments) {
+              try {
+                const assignments = JSON.parse(globalConfig.themeAssignments);
+                if (assignments.portfolio) {
+                  if (assignments.portfolio.light) {
+                    setValue('lightThemeId', assignments.portfolio.light);
+                  }
+                  if (assignments.portfolio.dark) {
+                    setValue('darkThemeId', assignments.portfolio.dark);
+                  }
+                }
+              } catch (e) {
+                console.error('Error parsing theme assignments:', e);
+              }
+            }
+          })
+          .catch(err => console.error('Error fetching global config:', err));
+      } catch (error) {
+        console.error('Error setting up theme values:', error);
+      }
     }
-  }, [portfolioConfig, reset]);
+  }, [portfolioConfig, reset, setValue]);
 
   // Verificar permisos (ADMIN+)
   const canManageSettings = hasPermission(session?.user?.role, 'manage_settings');
+  
+  // Manejar cambios en selección de tema claro
+  const handleLightThemeChange = (value: string) => {
+    // Si es "default" o cadena vacía, establecer como null
+    setValue('lightThemeId', value && value !== 'default' ? parseInt(value) : null);
+  };
+
+  // Manejar cambios en selección de tema oscuro
+  const handleDarkThemeChange = (value: string) => {
+    // Si es "default" o cadena vacía, establecer como null
+    setValue('darkThemeId', value && value !== 'default' ? parseInt(value) : null);
+  };
 
   // Manejar envío del formulario
-  const onSubmit = async (data: PortfolioConfig) => {
+  const onSubmit = async (data: PortfolioConfigFormData) => {
     setIsSaving(true);
 
     try {
+      // Extraer IDs de temas para manejarlos separadamente
+      const { lightThemeId, darkThemeId, ...portfolioData } = data;
+      
       const response = await fetch('/api/settings/portfolio', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(portfolioData),
       });
 
       if (!response.ok) {
@@ -84,9 +142,52 @@ export default function PortfolioSettingsPage() {
         throw new Error(errorData.message || translations.notifications.saveError);
       }
 
+      // Actualizar asignaciones de temas
+      try {
+        // Crear/actualizar asignaciones de temas
+        let themeAssignments = {};
+        
+        // Si existe, intenta cargar themeAssignments actual
+        const globalConfigRes = await fetch('/api/settings/global');
+        if (globalConfigRes.ok) {
+          const globalConfig = await globalConfigRes.json();
+          if (globalConfig && globalConfig.themeAssignments) {
+            try {
+              themeAssignments = JSON.parse(globalConfig.themeAssignments);
+            } catch (e) {
+              console.error('Error parsing theme assignments', e);
+            }
+          }
+        }
+        
+        // Actualizar asignación para portfolio
+        themeAssignments = {
+          ...themeAssignments,
+          portfolio: {
+            light: lightThemeId,
+            dark: darkThemeId
+          }
+        };
+        
+        // Guardar asignaciones de temas en configuración global
+        const themeResponse = await fetch('/api/settings/global', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            themeAssignments: JSON.stringify(themeAssignments)
+          }),
+        });
+        
+        if (!themeResponse.ok) {
+          console.warn('Configuración guardada, pero hubo un error al guardar las asignaciones de tema');
+        }
+      } catch (themeError) {
+        console.error('Error guardando asignaciones de tema:', themeError);
+      }
+
       const updatedConfig = await response.json();
       mutate(updatedConfig, false); // Actualizar caché SWR sin revalidar
-      reset(updatedConfig); // Resetear form para quitar 'isDirty'
+      reset({ ...updatedConfig, lightThemeId, darkThemeId }); // Resetear form para quitar 'isDirty' manteniendo temas
       toast.success(translations.notifications.saveSuccess);
     } catch (error: any) {
       console.error('Error saving portfolio config:', error);
@@ -118,6 +219,74 @@ export default function PortfolioSettingsPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              {/* Selección de Temas */}
+              <div className="border-t my-4"></div>
+              <h3 className="text-lg font-medium mb-2">Temas Visuales</h3>
+              
+              {/* Tema Modo Claro */}
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="lightThemeId">Tema para Modo Claro</Label>
+                <Controller
+                  name="lightThemeId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={handleLightThemeChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un tema..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="default">Tema por defecto del sitio</SelectItem>
+                        {themes?.map((theme) => (
+                          <SelectItem key={theme.id} value={theme.id.toString()}>
+                            {theme.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <p className="text-muted-foreground text-sm">
+                  Selecciona el tema para el modo claro del portfolio (opcional).
+                </p>
+              </div>
+              
+              {/* Tema Modo Oscuro */}
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="darkThemeId">Tema para Modo Oscuro</Label>
+                <Controller
+                  name="darkThemeId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value?.toString() || ""}
+                      onValueChange={handleDarkThemeChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona un tema..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="default">Tema por defecto del sitio</SelectItem>
+                        {themes?.map((theme) => (
+                          <SelectItem key={theme.id} value={theme.id.toString()}>
+                            {theme.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <p className="text-muted-foreground text-sm">
+                  Selecciona el tema para el modo oscuro del portfolio (opcional).
+                </p>
+              </div>
+              
+              {/* Separador */}
+              <div className="border-t my-4"></div>
+              <h3 className="text-lg font-medium mb-2">Configuración General</h3>
+              
               {/* Proyectos por página */}
               <div>
                 <Label htmlFor="projectsPerPage">
