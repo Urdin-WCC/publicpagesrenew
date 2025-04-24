@@ -1,0 +1,263 @@
+#############################################################################
+# Neurowitch - Complete Modular Development Guide                           #
+# ASSIGNED TASK: Chapter 8 - Theme_Module (Visual Theme Preset Management)  #
+#############################################################################
+
+# NOTE: This document contains instructions for a specific module.
+# You MUST FIRST READ AND ADHERE TO "Chapter 0" provided below,
+# which contains essential common information, project principles,
+# and the mandatory tech stack for the entire Neurowitch project.
+# It also assumes that the preparatory refactoring from "Appendix B"
+# has been completed on the codebase.
+
+#############################################################################
+# Chapter 0: Common Information & Project Principles                        #
+#############################################################################
+
+# 0.1 Introduction
+# Welcome to the development guide for the "Neurowitch" project. This document
+# details the modular architecture and technical specifications for building the
+# application. The goal of this modular structure is to enable parallel and efficient
+# development, where each developer or AI agent can focus on a specific module with
+# self-contained instructions.
+#
+# This Chapter 0 contains all the fundamental and common information that all
+# developers must know before starting work on any module. The subsequent chapters
+# describe the specific modules. To work on your assigned module (Chapter 8),
+# you will need to read this Chapter 0 thoroughly AND the specific instructions
+# in the Chapter 8 section below.
+
+# 0.2 Project Overview
+# Neurowitch is a complete, responsive, and accessible web application featuring an
+# administration panel for managing content (blog, portfolio, static pages), SEO,
+# appearance (theming), and site statistics. It consists of a publicly accessible front-
+# end and an administration panel protected by role-based authentication.
+
+# 0.3 Mandatory Tech Stack
+# All development must exclusively use the following technology stack to ensure
+# compatibility:
+#
+# - Primary Framework: Next.js (version 14+ with App Router)
+# - Language: TypeScript
+# - UI Library: React (version 18+)
+# - Database: MySQL (version 5.7+)
+# - ORM: Prisma (using the Core_Module provided client: `lib/prisma.ts`)
+# - CSS Styling: Tailwind CSS
+# - Authentication: Next-Auth.js (v5+) (using Core_Module setup: `lib/auth.ts`)
+# - Form Handling: React Hook Form
+# - UI Components (Recommended): Shadcn/ui (installed and configured in the base project)
+# - State Management (Client-side): Zustand (preferred) or React Context API
+# - HTML Editor: React Quill or Tiptap (Use the Core_Module provided `HtmlEditor` component: `components/core/HtmlEditor.tsx`)
+# - File Upload (UI): React Dropzone (Use the Core_Module provided `ImageUploader` component: `components/core/ImageUploader.tsx`)
+# - Color Picker: **react-color** (or a similar library supporting alpha transparency) - You might need to install this (`npm install react-color @types/react-color`).
+# - Charts: Recharts
+# - Package Manager: npm or yarn
+
+# 0.4 Credentials & Initial Setup (Reference for Core Module - You interact via code)
+# - Database (MySQL): Connection URL is configured in `.env` as DATABASE_URL for Prisma (Managed by Core_Module).
+# - Default Users: Created by Core_Module's seed script (master, admin, editor, collaborator) with hashed passwords (bcrypt).
+# - Role Hierarchy (Strict): master > admin > editor > collaborator
+#   - A user can only view/manage users and content at their level or lower, as specified in each module. Access to admin panel sections/features must be strictly restricted by role. Use Core_Module helpers/hooks for role checks (e.g., `useCurrentUserRole`, `checkUserRole`).
+
+# 0.5 General Principles & Mandatory Requirements
+# All modules must adhere to the following principles:
+#
+# - Responsiveness & Accessibility: All interfaces (public and admin) must be fully responsive and follow accessibility best practices (WCAG 2.1 AA). Use Tailwind CSS for this. Use semantic HTML.
+# - No Public Signup: The application does not allow public user registration. Users are created from the admin panel (Module 10).
+# - NO Browser Local Storage: Under no circumstances should localStorage or sessionStorage be used for storing sensitive information or application state. Use secure cookies (managed by Next-Auth for session) or server/URL state.
+# - Clean & Commented Code: Write clear, well-structured, and maintainable TypeScript code. Comment complex logic, public functions, and data types (use TSDoc).
+# - Documentation: Maintain necessary documentation (TSDoc, comments) to understand the module's functionality.
+# - Robustness & Reliability: Use the tech stack tools appropriately. Implement error handling (try/catch, UI error states). Do not simulate, remove, hide, or simplify described features without authorization.
+# - Security: Implement basic security measures: input validation in API routes, CSRF protection (Next-Auth helps), XSS protection (React helps, be careful with dangerouslySetInnerHTML), security header configuration, route/API protection by role. Prevent Path Traversal in file handling. Hash passwords (bcrypt handled by Core_Module).
+# - Performance: Optimize public page load times (Next.js SSR/SSG), image loading (use `next/image` component), and DB queries (Prisma - be mindful of query efficiency).
+# - Consistency: Follow the naming and structure conventions defined in this chapter. Use components and utilities from the Core_Module whenever possible (e.g., `ImageUploader`, `HtmlEditor`, `prisma` client, `logAdminAction`).
+# - Error Handling: Display clear and user-friendly error messages when something fails (both client-side and server-side validations). Use UI components (like Shadcn/ui's Alert/Toast) for feedback.
+# - Backups: (Responsibility of the project manager) Regular database backups are performed.
+# - **Application Language: IMPORTANT:** While these development instructions are in English, the final application's **user-facing interface** (UI text, labels, messages, content displayed to the end-user in both the public site and the admin panel) **MUST be in Spanish.** Ensure all user-visible text implemented in the components is in Spanish.
+
+# 0.6 Recommended Folder Structure (Next.js App Router)
+# The project should follow a structure similar to this (adapt as needed for your module):
+# ```
+# neurowitch-app/
+# |- app/
+# |  |- (admin)/              # Admin panel routes (grouped by layout)
+# |  |  |- admin/
+# |  |  |  |- dashboard/
+# |  |  |  |- blog/
+# |  |  |  |- portfolio/
+# |  |  |  |- pages/
+# |  |  |  |- theme/         # <<< Your admin UI pages go here (Module 8)
+# |  |  |  |- seo/
+# |  |  |  |- users/
+# |  |  |  |- settings/
+# |  |  |  |- files/
+# |  |  |  |- maintenance/
+# |  |  |  |- layout.tsx     # Admin base layout (Provided by UI_Framework_Module)
+# |  |- (public)/             # Public routes (grouped by layout)
+# |  |  |- ...               # Public routes managed by other modules
+# |  |  |- layout.tsx     # Public base layout (Provided by UI_Framework_Module)
+# |  |- api/                  # API Routes
+# |  |  |- auth/             # Next-Auth routes (Core)
+# |  |  |- core/             # Core API routes (Core)
+# |  |  |- blog/
+# |  |  |- portfolio/
+# |  |  |- pages/
+# |  |  |- theme/            # <<< Your API routes go here (Module 8)
+# |  |  |  |- presets/       # <<< (Sub-routes for presets)
+# |  |  |- seo/
+# |  |  |- users/
+# |  |  |- settings/
+# |  |  |- files/
+# |  |  |- maintenance/
+# |  |  |- stats/
+# |  |- layout.tsx          # Root layout (Core)
+# |  |- globals.css         # Global styles (Tailwind)
+# |  |- ...                 # Other root files (favicon, robots.ts, sitemap.ts, etc.)
+# |- components/
+# |  |- core/               # Core reusable components (HtmlEditor, ImageUploader - Provided by Core)
+# |  |- admin/              # Admin specific components (AdminLayout, Sidebar - Provided by UI_Framework)
+# |  |  |- theme/           # <<< Your admin components go here (Module 8)
+# |  |- public/             # Public site specific components (PublicLayout, Header, Footer - Provided by UI_Framework)
+# |  |- ui/                 # Shadcn/ui components (Base project)
+# |- lib/                    # Shared logic, utilities, config
+# |  |- prisma.ts           # Prisma client instance (Provided by Core)
+# |  |- auth.ts             # Next-Auth config & helpers (Provided by Core)
+# |  |- utils.ts            # Utility functions (e.g., generateSlug - Provided by Core)
+# |  |- stats.ts            # Statistics logging function `logAdminAction` (Provided by Core)
+# |  |- hooks/              # Custom React hooks (e.g., role checks - Provided by Core)
+# |- prisma/                 # Prisma schema and migrations (Managed by Core, modified by modules)
+# |  |- schema.prisma       # <<< Assumes ThemePreset model exists from Appendix B
+# |  |- migrations/
+# |- public/                 # Static assets
+# |  |- uploads/            # Folder for user uploads (Managed by Core)
+# |- .env                    # Environment variables (Managed by Core)
+# |- next.config.mjs
+# |- tailwind.config.ts
+# |- tsconfig.json
+# |- package.json
+# ```
+
+# 0.7 Core Module Interface Summary (Module 1 Exports - What you can use)
+# The Core_Module (Chapter 1, potentially modified by Appendix B) established the foundation and provides the following key tools and functionalities that other modules must use:
+# - Database Access: Via the singleton Prisma client exported from `lib/prisma.ts`. All DB interactions must use this typed client.
+# - Authentication & Session (Next-Auth.js):
+#   - `signIn`, `signOut` functions (from `next-auth/react`) for login/logout.
+#   - `useSession` hook (client) or `auth()` function (server components) from `lib/auth.ts` (or `next-auth`) to get current user session data (including role).
+#   - Middleware (`middleware.ts`) protects admin routes (`/admin/**`).
+#   - Helpers/Hooks (in `lib/auth.ts` or `lib/hooks/`) to check specific user roles (e.g., `checkUserRole(requiredRole)`).
+# - ImageUploader Component (`components/core/ImageUploader.tsx`): Reusable React component for uploading/selecting images. Handles upload via an internal API, validation, and returns the public image URL.
+# - HtmlEditor Component (`components/core/HtmlEditor.tsx`): Reusable React component (based on React Quill or Tiptap) for editing HTML content.
+# - `generateSlug(title: string): string` Function (`lib/utils.ts`): Utility to generate URL-friendly slugs from titles.
+# - `logAdminAction(...)` Function (`lib/stats.ts`): Function to log important admin actions (MUST be called on DB writes via admin APIs). Takes user info and action description.
+# - Global Configuration: Functions (in `lib/config.ts` or similar) like `getGlobalConfig()`, `updateGlobalConfig()` to read/write global settings stored in the `GlobalConfig` model in Prisma.
+
+# 0.8 Basic Workflow
+# - Version Control: Use Git for everything (`git add .`, `git commit -m "Message"`, `git push`). Assume a repository exists.
+# - Install Dependencies: Run `npm install` (or `yarn install`) if new dependencies are added (e.g., `react-color`).
+# - Run Migrations: Not expected for this module as schema changes were handled by Appendix B.
+# - Generate Prisma Client: Run `npx prisma generate` if needed.
+# - Run Development Server: `npm run dev` (or `yarn dev`).
+# - Testing: Verify CRUD operations for themes work correctly via UI and API calls.
+
+# ---------------------------------------------------------------------------
+# End of Chapter 0
+# ---------------------------------------------------------------------------
+
+
+# ############################################################################
+# Chapter 8: Theme_Module (Visual Theme Preset Management)                  #
+# ############################################################################
+
+# **Objective:** Implement the admin interface for creating, managing, and deleting reusable **Theme Presets**. Each preset stores a collection of styling configurations (colors, fonts, spacing, etc.) that can later be applied to the site (application handled by other modules). This module *only* manages the presets themselves.
+
+# **Specific Technology:** Next.js (App Router, API Routes), React, TypeScript, Prisma (via Core), Tailwind CSS, React Hook Form, **react-color** (or similar with alpha support).
+
+# **Detailed Responsibilities:**
+
+# 1.  **Data Model (Prisma Schema):**
+#     - Assume the `ThemePreset` model already exists in `prisma/schema.prisma` as defined and migrated in Appendix B. It should have at least `id` (Int), `name` (String, unique), and `config` (Json) fields.
+#     - The `config` Json field is intended to store a structured object containing various theme settings. Define a suitable TypeScript interface/type for this configuration object (e.g., `ThemeConfig`) to ensure type safety when handling it. Example structure (adapt as needed):
+#       ```typescript
+#       interface ThemeConfig {
+#         background?: { type: 'color' | 'gradient' | 'image'; value: string; imageUrl?: string };
+#         typography?: {
+#           heading?: { fontFamily?: string; color?: string };
+#           paragraph?: { fontFamily?: string; color?: string };
+#           link?: { fontFamily?: string; color?: string; hoverColor?: string };
+#           button?: { fontFamily?: string; color?: string };
+#         };
+#         spacing?: { baseMargin?: string; basePadding?: string }; // e.g., '1rem', '4px'
+#         cards?: {
+#           borderRadius?: string; // e.g., 'rounded-md', '8px'
+#           borderWidth?: string; // e.g., 'border', 'border-2'
+#           borderColor?: string; // Color value (rgba)
+#           background?: { type: 'color' | 'gradient' | 'image'; value: string; imageUrl?: string };
+#           shadow?: string; // e.g., 'shadow-lg'
+#         };
+#         buttons?: { /* styles for default, hover, specific types */ };
+#         forms?: { /* styles for inputs, labels, etc. */ };
+#         effects?: { transitions?: boolean; /* other effects */ };
+#         // Add other configurable sections as required
+#       }
+#       ```
+#     - This interface should guide the structure of your form and how you save data to the `config` JSON field.
+
+# 2.  **Admin Panel Theme Preset Management [admin]:**
+#     - **Main Page:** Create `app/(admin)/admin/theme/page.tsx`.
+#       - Use `AdminLayout`. Protect access [admin].
+#       - **UI text must be in Spanish.** (e.g., Page Title: "Gestión de Temas Visuales").
+#     - **Preset List Component:** Create a client component (e.g., `components/admin/theme/PresetList.tsx`).
+#       - Fetch the list of existing presets (id, name) from API `/api/theme/presets` using `useSWR` or `React Query`.
+#       - Display the presets in a table or list.
+#       - For each preset, provide buttons/icons for:
+#         - "Editar" (Edit): Link to `/admin/theme/edit/[id]`.
+#         - "Duplicar" (Duplicate): Calls API `POST /api/theme/presets/[id]/duplicate` (requires confirmation - **text in Spanish**). Refetch list on success.
+#         - "Eliminar" (Delete): Calls API `DELETE /api/theme/presets/[id]` (requires confirmation using Shadcn/ui AlertDialog - **text in Spanish**). Refetch list on success.
+#     - **Create Button:** Add a button "Crear Nuevo Tema" on the main page, linking to `/admin/theme/new`.
+#     - **Create/Edit Form Page:** Create `app/(admin)/admin/theme/new/page.tsx` and `app/(admin)/admin/theme/edit/[id]/page.tsx`.
+#       - Use `AdminLayout`. Protect access [admin].
+#       - Implement a form using `react-hook-form`. Fetch existing preset data (including `config`) for the edit page using the `[id]` param and the API `GET /api/theme/presets/[id]`.
+#       - **Form Fields:**
+#         - `name`: Input field for the theme preset name. (Required).
+#         - Organize inputs into logical sections based on the `ThemeConfig` structure (e.g., Background, Typography, Cards, Buttons, etc.) using fieldsets or cards.
+#         - **Color Pickers:** Use `react-color` (e.g., `<SketchPicker />`, `<ChromePicker />`) or a similar library for all color selections. **Crucially, ensure the picker is configured to allow setting the alpha (transparency) value and returns colors in a format like RGBA string or an object `{ r, g, b, a }` that you can store/reconstruct.**
+#         - **Image Uploads:** For background images (e.g., body background, card background), use the Core Module's `ImageUploader` component (`components/core/ImageUploader.tsx`). Store the returned image URL in the `config` object.
+#         - **Other Inputs:** Use standard HTML inputs, selects, Textareas, or Shadcn/ui components for fonts (potentially allow selecting from a predefined list or entering font names), spacing values, border styles (Tailwind classes or specific values), shadow options (Tailwind classes), etc.
+#       - **Data Handling:** When the form submits, assemble the form data into a structured JSON object matching your `ThemeConfig` interface.
+#       - **Submit Action (Create):** Call `POST /api/theme/presets` with `{ name, config: themeConfigJson }`. Redirect to the theme list on success.
+#       - **Submit Action (Edit):** Call `PUT /api/theme/presets/[id]` with `{ name, config: themeConfigJson }`. Show success message (e.g., Toast) and optionally redirect.
+#       - **All form labels, section titles, button texts, and validation messages must be in Spanish.**
+
+# 3.  **API Routes:**
+#     - Create routes under `app/api/theme/presets/`:
+#       - `route.ts`:
+#         - `GET`: Fetch all presets (select only `id`, `name`). Protect [admin].
+#         - `POST`: Create a new `ThemePreset`. Receive `{ name: string, config: object }`. Validate input. Use Prisma to create. Return the created preset or success status. Protect [admin]. Call `logAdminAction`.
+#       - `[id]/route.ts`:
+#         - `GET`: Fetch a single preset by ID, including its `config`. Protect [admin].
+#         - `PUT`: Update a preset by ID. Receive `{ name?: string, config?: object }`. Validate input. Use Prisma to update. Return the updated preset or success status. Protect [admin]. Call `logAdminAction`.
+#         - `DELETE`: Delete a preset by ID. Use Prisma to delete. Return success status. Protect [admin]. Call `logAdminAction`.
+#       - `[id]/duplicate/route.ts` *(Optional but recommended)*:
+#         - `POST`: Fetch the preset by ID. Create a new preset with a modified name (e.g., "Copy of [Original Name]") and the same `config`. Use Prisma to create. Return the new preset or success status. Protect [admin]. Call `logAdminAction`.
+
+# **Dependencies:**
+# - Core_Module: Auth, DB/Prisma client (using updated schema), ImageUploader component, logAdminAction function.
+# - UI_Framework_Module: AdminLayout.
+# - External Libraries: `react-hook-form`, `react-color` (install if needed), potentially `swr` or `@tanstack/react-query` for client-side data fetching.
+
+# **Completion Criteria:**
+# - Admin users can create new theme presets via the UI form.
+# - Admin users can view a list of existing theme presets.
+# - Admin users can edit the name and all configuration details of existing presets.
+# - Admin users can duplicate existing presets.
+# - Admin users can delete presets (with confirmation).
+# - Color pickers allow setting transparency.
+# - Image uploader is used for relevant image fields.
+# - All data is correctly saved to the `ThemePreset` model (specifically the `config` JSON field).
+# - All required API routes are implemented, protected [admin], and call `logAdminAction`.
+# - All admin UI text is in Spanish.
+# - Code follows project principles.
+
+# ############################################################################
+# End of Chapter 8                                                          #
+# ############################################################################

@@ -1,116 +1,124 @@
 #!/bin/bash
+# Script para hacer una copia de seguridad completa del proyecto en un repositorio GitHub
+# Ejecutar desde Bash: bash push-to-github.sh
 
-# Script para subir el proyecto a GitHub
-# Basado en los cambios realizados por el módulo de configuración de apariencia
+# Configuración del repositorio
+REPO_URL="https://github.com/Urdin-WCC/publicpagesrenew.git"
+BRANCH_NAME="main"
+COMMIT_MESSAGE="Backup completo antes de implementar cambios en la interfaz pública"
 
-# Colores para mejor visualización
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Colores para la consola
+RESET="\033[0m"
+RED="\033[31m"
+GREEN="\033[32m"
+YELLOW="\033[33m"
+BLUE="\033[34m"
+CYAN="\033[36m"
 
-echo -e "${YELLOW}Preparando para subir el proyecto a GitHub...${NC}"
+# Función para imprimir mensajes con colores
+log() {
+  COLOR=$1
+  shift
+  echo -e "${COLOR}$@${RESET}"
+}
 
-# Verificar si Git está instalado
-if ! command -v git &> /dev/null; then
-    echo -e "${RED}Git no está instalado. Por favor, instala Git primero.${NC}"
-    exit 1
-fi
+# Función para ejecutar comandos con manejo de errores
+exec_command() {
+  COMMAND=$1
+  SUPPRESS_OUTPUT=$2
 
-# Verificar si ya existe un repositorio Git
-if [ ! -d ".git" ]; then
-    echo -e "${YELLOW}Inicializando repositorio Git...${NC}"
-    git init
-    
-    # Verificar que se creó correctamente
-    if [ ! -d ".git" ]; then
-        echo -e "${RED}Error al inicializar repositorio Git.${NC}"
-        exit 1
+  if [ "$SUPPRESS_OUTPUT" = "true" ]; then
+    eval "$COMMAND" > /dev/null 2>&1
+  else
+    eval "$COMMAND"
+  fi
+
+  if [ $? -ne 0 ]; then
+    if [ "$SUPPRESS_OUTPUT" != "true" ]; then
+      log $RED "Error ejecutando: $COMMAND"
     fi
+    return 1
+  fi
+
+  return 0
+}
+
+# Función principal
+main() {
+  log $GREEN "\n🚀 Iniciando copia de seguridad a GitHub..."
+  
+  # 1. Verificar si ya existe un repositorio Git
+  if [ -d ".git" ]; then
+    log $GREEN "✅ Repositorio Git ya existe."
+  else
+    log $BLUE "\n📦 Inicializando repositorio Git..."
+    if ! exec_command "git init"; then
+      log $RED "❌ Error al inicializar repositorio Git. Abortando."
+      exit 1
+    fi
+  fi
+  
+  # 2. Verificar estado actual
+  log $BLUE "\n🔍 Verificando estado actual del repositorio..."
+  exec_command "git status"
+  
+  # 3. Añadir todos los archivos al staging
+  log $BLUE "\n📋 Añadiendo archivos al staging..."
+  if ! exec_command "git add ."; then
+    log $RED "❌ Error al añadir archivos. Abortando."
+    exit 1
+  fi
+  
+  # 4. Crear commit
+  log $BLUE "\n💾 Creando commit..."
+  if ! exec_command "git commit -m \"$COMMIT_MESSAGE\""; then
+    log $YELLOW "⚠️ No se pudo crear el commit, posiblemente no hay cambios o hay problemas con la configuración de Git."
+    # Continuamos de todos modos, ya que podría ser solo que no hay cambios nuevos
+  fi
+  
+  # 5. Configurar repositorio remoto
+  log $BLUE "\n🔗 Configurando repositorio remoto..."
+  
+  # Verificar si ya existe el remoto "origin"
+  REMOTES=$(git remote)
+  
+  if echo "$REMOTES" | grep -q "origin"; then
+    # Actualizar URL del remoto existente
+    log $BLUE "Actualizando URL del remoto 'origin'..."
+    if ! exec_command "git remote set-url origin $REPO_URL"; then
+      log $RED "❌ Error al actualizar URL del remoto. Abortando."
+      exit 1
+    fi
+  else
+    # Agregar nuevo remoto
+    log $BLUE "Agregando nuevo remoto 'origin'..."
+    if ! exec_command "git remote add origin $REPO_URL"; then
+      log $RED "❌ Error al añadir remoto. Abortando."
+      exit 1
+    fi
+  fi
+  
+  # 6. Subir cambios al repositorio remoto
+  log $BLUE "\n☁️ Subiendo cambios a GitHub..."
+  if ! exec_command "git push -u origin $BRANCH_NAME"; then
+    log $YELLOW "\n⚠️ Error al subir cambios. Intentando forzar el push..."
     
-    echo -e "${GREEN}Repositorio Git inicializado correctamente.${NC}"
-else
-    echo -e "${GREEN}Repositorio Git ya existe, continuando...${NC}"
-fi
+    if ! exec_command "git push -u origin $BRANCH_NAME --force"; then
+      log $RED "❌ Error al forzar el push. Revisa credenciales o permisos."
+      
+      # Sugerir comandos manuales
+      log $CYAN "\n🔧 Puedes intentar manualmente:"
+      echo "git push -u origin $BRANCH_NAME --force"
+      
+      exit 1
+    fi
+  fi
+  
+  log $GREEN "\n✅ Copia de seguridad completada con éxito!"
+  log $CYAN "Repositorio: $REPO_URL"
+  log $CYAN "Rama: $BRANCH_NAME"
+  log $GREEN "\n🚀 Ahora puedes proceder con la implementación de los cambios en la interfaz pública."
+}
 
-# Crear o actualizar .gitignore si no existe
-if [ ! -f ".gitignore" ]; then
-    echo -e "${YELLOW}Creando archivo .gitignore básico...${NC}"
-    cat > .gitignore << EOF
-# Dependencias
-/node_modules
-
-# Directorios de build
-/.next/
-/out/
-/build
-
-# Archivos de ambiente
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Configuración de los editores
-.DS_Store
-.idea
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Archivos de sistema
-Thumbs.db
-.DS_Store
-
-# Archivos de imagen subidos
-/public/uploads/images/*
-!/public/uploads/images/.gitkeep
-EOF
-    # Crear el directorio de imágenes si no existe
-    mkdir -p public/uploads/images
-    touch public/uploads/images/.gitkeep
-    echo -e "${GREEN}Archivo .gitignore creado correctamente.${NC}"
-else
-    echo -e "${GREEN}Archivo .gitignore ya existe, asegúrate de que excluye node_modules y archivos de sistema.${NC}"
-fi
-
-# Comprobar si hay cambios para añadir
-if git status --porcelain | grep -q .; then
-    echo -e "${YELLOW}Añadiendo archivos al repositorio...${NC}"
-    git add .
-    
-    echo -e "${YELLOW}Realizando commit de los cambios...${NC}"
-    git commit -m "Mejoras en módulo de configuración de apariencia: fix en SelectItem, soporte para GIF/WebP, robustez en base de datos"
-    
-    echo -e "${GREEN}Commit realizado correctamente.${NC}"
-else
-    echo -e "${YELLOW}No hay cambios que commitear.${NC}"
-fi
-
-# Comprobar si existe un remote
-if git remote -v | grep -q origin; then
-    echo -e "${YELLOW}Subiendo cambios a GitHub...${NC}"
-    git push origin
-    echo -e "${GREEN}Proyecto subido a GitHub correctamente.${NC}"
-else
-    echo -e "${YELLOW}No se ha configurado un remote 'origin'. Para subir a GitHub:${NC}"
-    echo -e "1. Crea un repositorio en GitHub: https://github.com/new"
-    echo -e "2. Configura el remote con: ${GREEN}git remote add origin https://github.com/TU-USUARIO/TU-REPOSITORIO.git${NC}"
-    echo -e "3. Sube los cambios con: ${GREEN}git push -u origin main${NC} (o ${GREEN}git push -u origin master${NC} según tu configuración)"
-fi
-
-echo -e "${GREEN}¡Proceso completado! Revisa los mensajes anteriores para confirmar el estado.${NC}"
+# Ejecutar la función principal
+main

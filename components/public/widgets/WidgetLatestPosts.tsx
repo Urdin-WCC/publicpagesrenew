@@ -1,4 +1,4 @@
-import { t } from '@/app/translations';
+import { translations } from '@/app/translations';
 import Link from 'next/link';
 
 interface Post {
@@ -33,7 +33,7 @@ export default async function WidgetLatestPosts({ title, config }: WidgetLatestP
 
   return (
     <div className="widget p-4 border rounded bg-white shadow-sm mb-4">
-      <h3 className="widget-title text-lg font-semibold mb-3">{title || t('public', 'recentPosts')}</h3>
+      <h3 className="widget-title text-lg font-semibold mb-3">{title || translations.public.recentPosts}</h3>
       {posts.length > 0 ? (
         <ul className="space-y-2">
           {posts.map((post) => (
@@ -48,7 +48,7 @@ export default async function WidgetLatestPosts({ title, config }: WidgetLatestP
         </ul>
       ) : (
         // Usar traducción sin default
-        <p className="text-sm text-gray-500">{t('common', 'noPostsFound')}</p>
+        <p className="text-sm text-gray-500">{translations.admin.blogList.noPostsFound}</p>
       )}
     </div>
   );

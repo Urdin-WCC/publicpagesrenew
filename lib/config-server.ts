@@ -1,14 +1,41 @@
 import { prisma } from './prisma';
-import type { GlobalConfig as PrismaGlobalConfig } from '@prisma/client';
+import { getGlobalConfig as getGlobalConfigRobust } from './config';
+import { Prisma } from '@prisma/client';
 
-// Extendemos el tipo GlobalConfig para incluir los campos personalizados
-export interface GlobalConfig extends PrismaGlobalConfig {
+type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[];
+
+// Definimos un nuevo tipo que no dependa de Prisma, pero que incluya todos los campos necesarios
+export interface GlobalConfig {
+  id: string;
+  siteName: string;
+  siteUrl: string;
+  logoUrl?: string | null;
+  faviconUrl?: string | null;
+  themeColor?: string | null;
+  header?: string | null | JsonValue;
+  footer?: string | null | JsonValue;
+  sidebar?: string | null | JsonValue;
+  social?: string | null | JsonValue;
+  sharing: string | JsonValue;
+  maintenanceMode: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  blogConfig?: JsonValue;
+  portfolioConfig?: JsonValue;
   defaultLightThemePresetId?: number | null;
   defaultDarkThemePresetId?: number | null;
-  themeAssignments?: string | null | Record<string, any>;
-  loadingSpinnerConfig?: string | null | Record<string, any>;
-  themeSwitcherConfig?: string | null | Record<string, any>;
-  stickyElementsConfig?: string | null | Record<string, any>;
+  themeAssignments?: string | JsonValue;
+  loadingSpinnerConfig?: string | JsonValue;
+  themeSwitcherConfig?: string | JsonValue;
+  stickyElementsConfig?: string | JsonValue;
+  navigationMenu?: string | JsonValue;
+  developerHtmlContent?: string | null;
+  // Añadir otros campos según sea necesario
+}
+
+// Tipo para uso en Server Actions
+export interface GlobalConfigWithCustomFields extends Partial<GlobalConfig> {
+  // Cualquier tipo personalizado puede ir aquí
 }
 
 // Interfaz para la configuración específica del blog (debe coincidir con la API y el formulario)
@@ -65,64 +92,51 @@ export const defaultPortfolioConfig: PortfolioConfig = {
  */
 export async function getGlobalConfig(): Promise<GlobalConfig | null> {
   try {
-    // Intentar una consulta básica que solo incluya columnas que sabemos que existen
-    try {
-      const result = await prisma.$queryRaw`
-        SELECT 
-          id, siteName, siteUrl, logoUrl, faviconUrl, themeColor
-        FROM GlobalConfig 
-        WHERE id = 'global'
-      `;
-      
-      if (!Array.isArray(result) || result.length === 0) {
-        console.log("No se encontró configuración global");
-        return null;
-      }
-      
-      // Si tenemos las columnas básicas, intentamos obtener también las columnas de apariencia
-      const config = result[0] as GlobalConfig;
-      
-      try {
-        // Intentar obtener las columnas de temas separadamente
-        const themeResult = await prisma.$queryRaw`
-          SELECT 
-            defaultLightThemePresetId, defaultDarkThemePresetId,
-            themeAssignments, loadingSpinnerConfig, 
-            themeSwitcherConfig, stickyElementsConfig
-          FROM GlobalConfig 
-          WHERE id = 'global'
-        `;
-        
-        if (Array.isArray(themeResult) && themeResult.length > 0) {
-          // Combinar con el resultado básico
-          Object.assign(config, themeResult[0]);
-        }
-      } catch (themeError) {
-        console.log("No se pudieron obtener campos de temas:", themeError);
-        // No fallamos completamente, seguimos con lo que tenemos
-      }
-      
-      return config;
-    } catch (mainError) {
-      console.error("Error en consulta principal:", mainError);
-      
-      // Último recurso: intentar con la consulta más básica posible
-      try {
-        const existence = await prisma.$queryRaw`SELECT id FROM GlobalConfig WHERE id = 'global'`;
-        
-        if (Array.isArray(existence) && existence.length > 0) {
-          // Al menos sabemos que el registro existe
-          console.log("Configuración global existe pero no se pueden leer todos los campos");
-          return { id: 'global' } as GlobalConfig;
-        }
-      } catch (finalError) {
-        console.error("Error en consulta final:", finalError);
-      }
-      
+    console.log("🔍 Iniciando getGlobalConfig - Buscando configuración global...");
+    
+    // Ahora que tenemos un schema de Prisma completo, podemos usar findUnique directamente
+    const config = await prisma.globalConfig.findUnique({
+      where: { id: 'global' }
+    });
+    
+    if (!config) {
+      console.log("❌ No se encontró configuración global");
       return null;
     }
+    
+    console.log("✅ Configuración global encontrada con id:", config.id);
+    
+    // Procesar campos JSON para convertirlos a objetos si son strings
+    const processedConfig = { ...config } as Record<string, any>;
+    
+    // Campos que sabemos que pueden ser JSON
+    const jsonFields = ['themeAssignments', 'loadingSpinnerConfig', 'themeSwitcherConfig', 
+      'stickyElementsConfig', 'blogConfig', 'portfolioConfig', 'header', 'footer', 'sidebar', 
+      'social', 'sharing', 'navigationMenu'];
+    
+    // Parsear campos JSON
+    jsonFields.forEach(field => {
+      if (typeof processedConfig[field] === 'string' && processedConfig[field]) {
+        try {
+          processedConfig[field] = JSON.parse(processedConfig[field]);
+        } catch (e) {
+          console.log(`Error parsing ${field}:`, e);
+          // Mantener como string si no se puede parsear
+        }
+      }
+    });
+    
+    return processedConfig as unknown as GlobalConfig;
   } catch (error) {
     console.error("Error fetching global config:", error);
+    
+    // Si hay un error específico de Prisma, mostrar más detalles
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      console.error(`Código de error: ${error.code}`);
+      console.error(`Mensaje: ${error.message}`);
+      console.error(`Metadatos: ${JSON.stringify(error.meta)}`);
+    }
+    
     return null;
   }
 }
@@ -132,17 +146,25 @@ export async function getGlobalConfig(): Promise<GlobalConfig | null> {
  * @returns {Promise<BlogConfig>} Objeto con la configuración completa del blog.
  */
 export async function getBlogConfig(): Promise<BlogConfig> {
-  const globalConfig = await getGlobalConfig();
-  // Acceder a blogConfig (puede ser null o JsonValue) y castear de forma segura
-  const savedBlogConfig = (globalConfig?.blogConfig as Partial<BlogConfig>) || {};
+  try {
+    // Usar la versión robusta de getGlobalConfig
+    const globalConfig = await getGlobalConfigRobust();
+    
+    // Acceder a blogConfig (puede ser null o JsonValue) y castear de forma segura
+    const savedBlogConfig = (globalConfig?.blogConfig as Partial<BlogConfig>) || {};
 
-  // Combinar configuración guardada con valores por defecto
-  const currentConfig = {
-    ...defaultBlogConfig,
-    ...savedBlogConfig,
-  };
+    // Combinar configuración guardada con valores por defecto
+    const currentConfig = {
+      ...defaultBlogConfig,
+      ...savedBlogConfig,
+    };
 
-  return currentConfig;
+    return currentConfig;
+  } catch (error) {
+    console.error("Error fetching blog config:", error);
+    // En caso de error, devolver la configuración por defecto
+    return { ...defaultBlogConfig };
+  }
 }
 
 /**
@@ -150,34 +172,41 @@ export async function getBlogConfig(): Promise<BlogConfig> {
  * @returns {Promise<PortfolioConfig>} Objeto con la configuración completa del portfolio.
  */
 export async function getPortfolioConfig(): Promise<PortfolioConfig> {
-  const globalConfig = await getGlobalConfig();
-  
-  // Intentar extraer la configuración de portfolio desde blogConfig
-  let savedPortfolioConfig: Partial<PortfolioConfig> = {};
-  
-  if (globalConfig?.blogConfig) {
-    try {
-      // Parsear blogConfig que es un string JSON
-      const blogConfig = typeof globalConfig.blogConfig === 'string' 
-        ? JSON.parse(globalConfig.blogConfig) 
-        : globalConfig.blogConfig;
-      
-      // Acceder a la propiedad portfolio dentro de blogConfig
-      if (blogConfig && blogConfig.portfolio) {
-        savedPortfolioConfig = blogConfig.portfolio;
+  try {
+    // Usar la versión robusta de getGlobalConfig
+    const globalConfig = await getGlobalConfigRobust();
+    
+    // Intentar extraer la configuración de portfolio desde blogConfig
+    let savedPortfolioConfig: Partial<PortfolioConfig> = {};
+    
+    if (globalConfig?.blogConfig) {
+      try {
+        // Parsear blogConfig que es un string JSON
+        const blogConfig = typeof globalConfig.blogConfig === 'string' 
+          ? JSON.parse(globalConfig.blogConfig) 
+          : globalConfig.blogConfig;
+        
+        // Acceder a la propiedad portfolio dentro de blogConfig
+        if (blogConfig && blogConfig.portfolio) {
+          savedPortfolioConfig = blogConfig.portfolio;
+        }
+      } catch (error) {
+        console.error('Error parsing portfolio config from blogConfig:', error);
       }
-    } catch (error) {
-      console.error('Error parsing portfolio config from blogConfig:', error);
     }
+
+    // Combinar configuración guardada con valores por defecto
+    const currentConfig = {
+      ...defaultPortfolioConfig,
+      ...savedPortfolioConfig,
+    };
+
+    return currentConfig;
+  } catch (error) {
+    console.error("Error fetching portfolio config:", error);
+    // En caso de error, devolver la configuración por defecto
+    return { ...defaultPortfolioConfig };
   }
-
-  // Combinar configuración guardada con valores por defecto
-  const currentConfig = {
-    ...defaultPortfolioConfig,
-    ...savedPortfolioConfig,
-  };
-
-  return currentConfig;
 }
 
 /**
@@ -219,6 +248,8 @@ export async function updateGlobalConfig(data: any): Promise<any> {
       }
     }
     
+    console.log("🔍 updateGlobalConfig - Datos recibidos:", JSON.stringify(data, null, 2));
+    
     // Preparar los datos para la actualización, manejando objetos JSON
     const preparedData: Record<string, any> = {};
     Object.entries(data).forEach(([key, value]) => {
@@ -226,38 +257,81 @@ export async function updateGlobalConfig(data: any): Promise<any> {
         // Convertimos objetos y arreglos a JSON strings
         if (typeof value === 'object' && value !== null) {
           preparedData[key] = JSON.stringify(value);
+          console.log(`📦 Campo '${key}' convertido a JSON string`);
         } else {
           preparedData[key] = value;
+          console.log(`📦 Campo '${key}' mantenido como ${typeof value}`);
         }
       }
     });
+    
+    console.log("📋 updateGlobalConfig - Datos preparados:", JSON.stringify(preparedData, null, 2));
     
     if (exists) {
       // Si existe, actualizamos los campos proporcionados
       console.log("Encontrada configuración global, actualizando...");
       
-      // Construir la consulta UPDATE
-      let setClause = '';
-      const updateParams: any[] = [];
-      
-      Object.entries(preparedData).forEach(([key, value], index) => {
-        if (index > 0) setClause += ', ';
-        setClause += `${key} = ?`;
-        updateParams.push(value);
-      });
-      
-      // Solo ejecutar si hay campos para actualizar
-      if (setClause && updateParams.length > 0) {
+      // Ahora que tenemos un schema de Prisma actualizado, podemos usar el cliente Prisma directamente
+      try {
+        // Añadir timestamp de actualización
+        preparedData.updatedAt = new Date();
+        
         try {
-          await prisma.$executeRawUnsafe(
-            `UPDATE GlobalConfig SET ${setClause} WHERE id = 'global'`,
-            ...updateParams
-          );
-          console.log("Configuración global actualizada exitosamente");
-        } catch (updateError) {
-          console.error("Error actualizando configuración global:", updateError);
-          throw updateError;
+          // Intentar usar Prisma Client directo primero
+          await prisma.globalConfig.update({
+            where: { id: 'global' },
+            data: preparedData
+          });
+          
+          console.log("Configuración global actualizada exitosamente con Prisma Client");
+        } catch (prismaUpdateError) {
+          console.error("Error con Prisma Client, intentando con SQL directo:", prismaUpdateError);
+          
+          // Fallback: Usar SQL directo para actualizar los campos
+          // Construir la consulta SQL dinámicamente
+          const setClauses = Object.entries(preparedData)
+            .map(([key, value]) => {
+              // Escapar comillas simples para valores de cadena
+              const escapedValue = typeof value === 'string' 
+                ? value.replace(/'/g, "''")
+                : value;
+              
+              // Formatear el valor para SQL
+              const sqlValue = value === null 
+                ? 'NULL'
+                : typeof value === 'string' 
+                  ? `'${escapedValue}'`
+                  : typeof value === 'boolean'
+                    ? value ? '1' : '0'
+                    : value instanceof Date
+                      ? `'${value.toISOString()}'`
+                      : String(value);
+              
+              return `${key} = ${sqlValue}`;
+            })
+            .join(', ');
+          
+          // Ejecutar la consulta SQL
+          if (setClauses) {
+            await prisma.$executeRawUnsafe(
+              `UPDATE GlobalConfig SET ${setClauses} WHERE id = 'global'`
+            );
+            console.log("Configuración global actualizada exitosamente con SQL directo");
+          } else {
+            console.log("No hay datos para actualizar");
+          }
         }
+      } catch (updateError) {
+        console.error("Error actualizando configuración global:", updateError);
+        
+        // Si todavía hay problemas, mostramos más detalles para diagnóstico
+        if (updateError instanceof Prisma.PrismaClientKnownRequestError) {
+          console.error(`Código de error: ${updateError.code}`);
+          console.error(`Mensaje: ${updateError.message}`);
+          console.error(`Metadatos: ${JSON.stringify(updateError.meta)}`);
+        }
+        
+        throw updateError;
       }
     } else {
       // Si no existe, creamos una nueva entrada con valores predeterminados

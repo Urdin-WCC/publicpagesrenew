@@ -1,0 +1,225 @@
+#############################################################################
+# Neurowitch - Complete Modular Development Guide                           #
+# ASSIGNED TASK: Chapter 14 - HTML_Wrapper_Module                           #
+#                 (Developer Custom Content Widget)                         #
+#############################################################################
+
+# NOTE: This document contains instructions for a specific module.
+# You MUST FIRST READ AND ADHERE TO "Chapter 0" provided below,
+# which contains essential common information, project principles,
+# and the mandatory tech stack for the entire Neurowitch project.
+# It assumes the codebase reflects the completion of previous modules.
+# CRITICAL SECURITY NOTE: This module involves rendering raw HTML provided
+# by an administrator. Strict access control and clear warnings about XSS risks
+# are necessary.
+
+#############################################################################
+# Chapter 0: Common Information & Project Principles                        #
+#############################################################################
+
+# 0.1 Introduction
+# Welcome to the development guide for the "Neurowitch" project. This document
+# details the modular architecture and technical specifications for building the
+# application. The goal of this modular structure is to enable parallel and efficient
+# development, where each developer or AI agent can focus on a specific module with
+# self-contained instructions.
+#
+# This Chapter 0 contains all the fundamental and common information that all
+# developers must know before starting work on any module. The subsequent chapters
+# describe the specific modules. To work on your assigned module (Chapter 14),
+# you will need to read this Chapter 0 thoroughly AND the specific instructions
+# in the Chapter 14 section below.
+
+# 0.2 Project Overview
+# Neurowitch is a complete, responsive, and accessible web application featuring an
+# administration panel for managing content (blog, portfolio, static pages), SEO,
+# appearance (theming), and site statistics. It consists of a publicly accessible front-
+# end and an administration panel protected by role-based authentication. This module
+# adds a specific widget type for embedding custom HTML content.
+
+# 0.3 Mandatory Tech Stack
+# All development must exclusively use the following technology stack to ensure
+# compatibility:
+#
+# - Primary Framework: Next.js (version 14+ with App Router)
+# - Language: TypeScript
+# - UI Library: React (version 18+)
+# - Database: MySQL (version 5.7+)
+# - ORM: Prisma (using the Core_Module provided client: `lib/prisma.ts`)
+# - CSS Styling: Tailwind CSS
+# - Authentication: Next-Auth.js (v5+) (using Core_Module setup: `lib/auth.ts`)
+# - Form Handling: React Hook Form
+# - UI Components (Recommended): Shadcn/ui (installed and configured)
+# - State Management (Client-side): Zustand (preferred) or React Context API
+# - HTML Editor: N/A (Simple Textarea is sufficient here)
+# - File Upload (UI): N/A
+# - Charts: Recharts
+# - Package Manager: npm or yarn
+
+# 0.4 Credentials & Initial Setup (Reference for Core Module - You interact via code)
+# - Database (MySQL): Connection URL configured.
+# - Default Users: Roles defined (master > admin > editor > collaborator). Access to edit this HTML MUST be restricted to [master] ONLY due to XSS risks.
+# - Role Hierarchy (Strict): Used for API and UI protection.
+
+# 0.5 General Principles & Mandatory Requirements
+# All modules must adhere to the following principles:
+#
+# - Responsiveness & Accessibility: Admin interface must be responsive. Rendered HTML should ideally be responsive if well-formed.
+# - No Public Signup: N/A.
+# - NO Browser Local Storage: N/A.
+# - Clean & Commented Code: Clear comments on security implications.
+# - Documentation: Document the purpose and risks of this module.
+# - Robustness & Reliability: Ensure saving/loading HTML works correctly.
+# - **Security:** CRITICAL FOCUS.
+#   - **Strict Access Control:** The admin interface and API endpoint for saving the custom HTML MUST be protected for the [master] role ONLY. This is non-negotiable due to the high risk of Cross-Site Scripting (XSS) if any lower role could inject arbitrary HTML/JavaScript.
+#   - **Rendering Raw HTML:** Use React's `dangerouslySetInnerHTML`. Acknowledge the risk explicitly in code comments where it's used. The protection relies entirely on restricting who can *input* the HTML.
+# - Performance: Minimal impact.
+# - Consistency: Use Core components/utilities. Follow project structure.
+# - Error Handling: Provide feedback on save errors.
+# - Backups: N/A (DB backup handled elsewhere).
+# - **Application Language: IMPORTANT:** All **user-facing text** in the admin panel UI (titles, buttons, labels, warnings) **MUST be in Spanish.**
+
+# 0.6 Recommended Folder Structure (Next.js App Router)
+# ```
+# neurowitch-app/
+# |- app/
+# |  |- (admin)/
+# |  |  |- admin/
+# |  |  |  |- ...
+# |  |  |  |- developer-html/ # <<< Your admin UI page goes here (Module 14)
+# |  |  |  |  |- page.tsx
+# |  |  |  |- ...
+# |  |  |  |- layout.tsx      # Admin base layout (Provided)
+# |  |- (public)/
+# |  |  |- ...
+# |  |- api/
+# |  |  |- ...
+# |  |  |- settings/
+# |  |  |  |- developer-html/ # <<< Your API route goes here (Module 14)
+# |  |  |  |  '- route.ts
+# |  |  |- ...
+# |  |- layout.tsx           # Root layout (Core)
+# |  |- ...
+# |- components/
+# |  |- core/                # Core components (Provided)
+# |  |- admin/               # Admin components (Provided)
+# |  |  |- developer-html/  # <<< Your specific components (if any)
+# |  |- public/              # Public components (Provided)
+# |  |  |- widgets/          # <<< Your widget component goes here (Module 14)
+# |  |  |  '- WidgetDeveloperHTML.tsx
+# |  |- ui/                  # Shadcn/ui components (Base project)
+# |- lib/                     # Shared logic, utilities, config
+# |  |- prisma.ts            # Prisma client instance (Provided)
+# |  |- auth.ts              # Next-Auth config & helpers (Provided)
+# |  |- stats.ts             # Statistics logging function `logAdminAction` (Provided)
+# |  |- constants.ts         # <<< Add DEVELOPER_HTML to WIDGET_TYPES
+# |  |- ...
+# |- prisma/                  # Prisma schema and migrations (Managed by Core, modified by modules)
+# |  |- schema.prisma        # <<< Ensure GlobalConfig model has developerHtmlContent
+# |  |- migrations/
+# |- public/                  # Static assets
+# |- .env                     # Environment variables (Managed by Core)
+# |- ...
+# ```
+
+# 0.7 Core Module Interface Summary (Module 1 Exports - What you can use)
+# - Authentication & Session (Next-Auth.js): Use Core helpers/hooks for **strict role check [master]**.
+# - Database Access: Via the singleton Prisma client (`lib/prisma.ts`).
+# - Global Configuration: `getGlobalConfig()`, `updateGlobalConfig()` to read/write the `developerHtmlContent` field in the `GlobalConfig` model.
+# - `logAdminAction(...)` Function (`lib/stats.ts`): MUST be called when the custom HTML is saved via the API.
+# - Widget Type List (`lib/constants.ts`): You will add a new widget type to this list.
+
+# 0.8 Basic Workflow
+# - Version Control: Use Git.
+# - Install Dependencies: None expected.
+# - Migrations: Add `developerHtmlContent: String?` (nullable Text/LongText) field to `GlobalConfig` in `schema.prisma` and run `npx prisma migrate dev --name add-dev-html`. Update Core accessors/seed.
+# - Prisma Client: `npx prisma generate`.
+# - Dev Server: `npm run dev`.
+# - Testing: Verify [master] access control. Test saving and rendering of HTML. Confirm XSS warnings/comments.
+
+# ---------------------------------------------------------------------------
+# End of Chapter 0
+# ---------------------------------------------------------------------------
+
+
+# ############################################################################
+# Chapter 14: HTML_Wrapper_Module (Developer Custom Content Widget)         #
+# ############################################################################
+
+# **Objective:** Implement a simple widget/section type allowing a user with the [master] role ONLY to input raw HTML content, which can then be displayed on the public site (e.g., in the footer or sidebar).
+
+# **Specific Technology:** Next.js (App Router, API Routes), React, TypeScript, Prisma (via Core), Tailwind CSS, React Hook Form.
+
+# **Detailed Responsibilities:**
+
+# 1.  **Data Model Preparation:**
+#     - Ensure the `GlobalConfig` model in `prisma/schema.prisma` has a field `developerHtmlContent: String?`. Use a type suitable for potentially long HTML content (e.g., `TEXT` or `LONGTEXT` in MySQL, Prisma typically maps `String` appropriately, but consider `@db.Text`). Make it nullable.
+#     - If not present, add the field, run `npx prisma migrate dev --name add-dev-html`, regenerate the client (`npx prisma generate`), and update the Core `getGlobalConfig`/`updateGlobalConfig` functions and seed script accordingly.
+
+# 2.  **Admin Interface (`app/(admin)/admin/developer-html/page.tsx`) [master]:**
+#     - Create the admin page `app/(admin)/admin/developer-html/page.tsx`.
+#     - Use `AdminLayout`.
+#     - **CRITICAL:** Protect access strictly for the [master] role ONLY. Use Core `checkUserRole` or similar robust check.
+#     - **UI text must be in Spanish.** (e.g., Title: "Contenido HTML Personalizado (Master)").
+#     - **HTML Input Form:**
+#       - Use `react-hook-form`.
+#       - Load the current `developerHtmlContent` from `GlobalConfig` using Core `getGlobalConfig` function.
+#       - Provide a large Textarea (`<textarea>` or Shadcn/ui Textarea) for editing the raw HTML content. Do NOT use the Core `HtmlEditor` here; raw HTML input is intended.
+#       - **Display a prominent warning message** on the page explaining the security risks (XSS) associated with injecting raw HTML and stating that this feature should ONLY be used by trusted administrators ([master]). **Warning text must be in Spanish.** (e.g., "ADVERTENCIA: Editar este contenido permite inyectar HTML y JavaScript arbitrario. Esto puede crear vulnerabilidades de seguridad graves (XSS) si no se usa con cuidado. Solo los administradores Master deben usar esta función.")
+#       - Add a "Guardar Contenido HTML" button.
+#     - **Submit Action:** On submit, call API `PUT /api/settings/developer-html` with the raw HTML content from the textarea.
+#     - **All UI text (title, labels, button, warning) must be in Spanish.**
+
+# 3.  **API Route (`app/api/settings/developer-html/route.ts`) [master]:**
+#     - Create the API route `app/api/settings/developer-html/route.ts`.
+#     - Implement a `PUT` handler.
+#     - **CRITICAL:** Protect the endpoint strictly for the [master] role ONLY using Core auth helpers.
+#     - Receive the raw HTML content (e.g., `{ htmlContent: string }`) in the request body.
+#     - Update the `developerHtmlContent` field in the `GlobalConfig` record using the Core `updateGlobalConfig` function or direct Prisma update.
+#     - Call `Core_Module.logAdminAction`, clearly indicating that developer HTML was modified.
+#     - Return success status or error.
+
+# 4.  **Widget Definition (`lib/constants.ts`):**
+#     - Open the `lib/constants.ts` file (or wherever `WIDGET_TYPES` was defined in Module 4).
+#     - Add a new entry to the `WIDGET_TYPES` array:
+#       ```typescript
+#       // Example addition to WIDGET_TYPES array in lib/constants.ts
+#       { id: 'WidgetDeveloperHTML', name: 'HTML Personalizado (Master)' }, // Name in Spanish
+#       ```
+
+# 5.  **Public Widget Component (`components/public/widgets/WidgetDeveloperHTML.tsx`):**
+#     - Create the React component `components/public/widgets/WidgetDeveloperHTML.tsx`.
+#     - This component will be rendered by the Footer/Sidebar components (from Module 4) when `WidgetDeveloperHTML` is selected in their configuration.
+#     - **Fetch Data:** The component needs to fetch the `developerHtmlContent` from `GlobalConfig`. This can be done:
+#       - **Option A (Server Component):** If the widget can be a Server Component, directly call the Core `getGlobalConfig` function within the component.
+#       - **Option B (Client Component):** If it needs to be a Client Component, either fetch the data via a dedicated (potentially cached) API route or receive the `developerHtmlContent` as a prop passed down from the parent layout (which already fetches `GlobalConfig`). Passing as a prop is generally preferred if the layout already has the data.
+#     - **Render HTML:**
+#       - Get the `htmlString = globalConfig.developerHtmlContent`.
+#       - **CRITICAL:** Render the fetched HTML string using `dangerouslySetInnerHTML`.
+#         ```jsx
+#         // Inside the component's return statement:
+#         {htmlString && (
+#           <div dangerouslySetInnerHTML={{ __html: htmlString }} />
+#         )}
+#         ```
+#       - Add clear comments in the code emphasizing the security risk and that protection relies on the [master] role restriction during input.
+
+# **Dependencies:**
+# - Core_Module: Auth (role checks [master]), DB/Prisma client, GlobalConfig access (`getGlobalConfig`, `updateGlobalConfig`), logAdminAction.
+# - UI_Framework_Module: AdminLayout, potentially Footer/Sidebar components (for rendering the widget).
+# - Module 4: Needs the `WIDGET_TYPES` constant to be updated.
+
+# **Completion Criteria:**
+# - Master user can access the `/admin/developer-html` page. Lower roles cannot.
+# - A clear security warning regarding XSS is displayed on the admin page.
+# - Master user can input and save raw HTML content via the textarea and API.
+# - The API endpoint `/api/settings/developer-html` is strictly protected [master] and logs the action.
+# - The `WidgetDeveloperHTML` type is added to the global `WIDGET_TYPES` list.
+# - The `WidgetDeveloperHTML.tsx` component correctly fetches the saved HTML content.
+# - The widget component renders the raw HTML using `dangerouslySetInnerHTML`.
+# - Code comments highlight the use of `dangerouslySetInnerHTML` and the reliance on input access control.
+# - All admin UI text is in Spanish.
+
+# ############################################################################
+# End of Chapter 14                                                         #
+# ############################################################################

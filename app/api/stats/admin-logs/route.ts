@@ -1,33 +1,117 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { auth } from '@/lib/auth';
+import { Role } from '@prisma/client';
 
-const LOGS_PER_PAGE = 5;
+/**
+ * Verifica si el usuario tiene el rol requerido o superior
+ * 
+ * @param currentRole Rol actual del usuario
+ * @param requiredRole Rol mínimo requerido
+ * @returns true si el usuario tiene permisos suficientes, false en caso contrario
+ */
+function hasRequiredRole(currentRole: Role | null, requiredRole: Role): boolean {
+  if (!currentRole) return false;
 
-const allLogs = [
-  { id: 1, usuario: "admin", accion: "Inicio de sesión", fecha: "2025-04-14 09:00" },
-  { id: 2, usuario: "master", accion: "Actualizó configuración", fecha: "2025-04-14 08:45" },
-  { id: 3, usuario: "admin", accion: "Exportó logs", fecha: "2025-04-13 17:30" },
-  { id: 4, usuario: "editor", accion: "Editó página", fecha: "2025-04-13 16:10" },
-  { id: 5, usuario: "admin", accion: "Reinició estadísticas", fecha: "2025-04-13 15:00" },
-  { id: 6, usuario: "collaborator", accion: "Creó publicación", fecha: "2025-04-12 12:00" },
-  { id: 7, usuario: "admin", accion: "Eliminó usuario", fecha: "2025-04-12 10:30" },
-  { id: 8, usuario: "master", accion: "Agregó usuario", fecha: "2025-04-11 18:00" },
-  { id: 9, usuario: "editor", accion: "Editó proyecto", fecha: "2025-04-11 14:20" },
-  { id: 10, usuario: "admin", accion: "Cerró sesión", fecha: "2025-04-10 20:00" },
-];
+  const roleHierarchy: Record<Role, number> = {
+    COLLABORATOR: 1,
+    EDITOR: 2,
+    ADMIN: 3,
+    MASTER: 4,
+  };
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const page = parseInt(searchParams.get("page") || "1", 10);
+  return (roleHierarchy[currentRole] || 0) >= (roleHierarchy[requiredRole] || Infinity);
+}
 
-  const start = (page - 1) * LOGS_PER_PAGE;
-  const end = start + LOGS_PER_PAGE;
-  const logs = allLogs.slice(start, end);
-
-  return NextResponse.json({
-    logs,
-    total: allLogs.length,
-    page,
-    perPage: LOGS_PER_PAGE,
-    totalPages: Math.ceil(allLogs.length / LOGS_PER_PAGE),
-  });
+/**
+ * API para obtener registros de actividad administrativa
+ * 
+ * Este endpoint está protegido y solo accesible para usuarios con rol ADMIN o superior.
+ * Devuelve un listado paginado de las acciones administrativas registradas.
+ * 
+ * @param request Objeto Request de NextJS
+ * @returns Listado paginado de logs administrativos
+ */
+export async function GET(request: Request) {
+  try {
+    // Verificar autenticación
+    const session = await auth();
+    
+    // Si el usuario no está autenticado, devolver 401 Unauthorized
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    // Verificar que el usuario tenga rol ADMIN o superior
+    if (!hasRequiredRole(session.user.role as Role, Role.ADMIN)) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    
+    // Obtener parámetros de paginación
+    const url = new URL(request.url);
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '20');
+    
+    // Validar parámetros
+    const validPage = isNaN(page) || page <= 0 ? 1 : page;
+    const validLimit = isNaN(limit) || limit <= 0 ? 20 : Math.min(limit, 100);
+    const offset = (validPage - 1) * validLimit;
+    
+    // Obtener total de registros para paginación
+    const totalCountResult = await prisma.$queryRaw<[{count: BigInt}]>`
+      SELECT COUNT(*) as count FROM AdminLog
+    `;
+    const totalCount = Number(totalCountResult[0]?.count || 0);
+    
+    // Si no hay resultados, devolver array vacío
+    if (totalCount === 0) {
+      return NextResponse.json({
+        logs: [],
+        totalCount: 0,
+        page: validPage,
+        limit: validLimit,
+        totalPages: 0
+      });
+    }
+    
+    // Obtener registros paginados
+    const logs = await prisma.$queryRaw`
+      SELECT 
+        id, 
+        userId, 
+        userEmail, 
+        action, 
+        details, 
+        timestamp 
+      FROM AdminLog 
+      ORDER BY timestamp DESC 
+      LIMIT ${offset}, ${validLimit}
+    `;
+    
+    // Procesar los resultados para asegurar compatibilidad JSON
+    const formattedLogs = Array.isArray(logs) ? logs.map(log => ({
+      id: log.id,
+      userId: log.userId,
+      userEmail: log.userEmail,
+      action: log.action,
+      details: log.details,
+      timestamp: new Date(log.timestamp).toISOString()
+    })) : [];
+    
+    // Calcular número total de páginas
+    const totalPages = Math.ceil(totalCount / validLimit);
+    
+    // Devolver resultados paginados
+    return NextResponse.json({
+      logs: formattedLogs,
+      totalCount,
+      page: validPage,
+      limit: validLimit,
+      totalPages
+    });
+    
+  } catch (error) {
+    console.error('Error getting admin logs:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

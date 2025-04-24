@@ -11,5 +11,6 @@ export const WIDGET_TYPES = [
   { value: "map", label: "Mapa interactivo" },
   { value: "custom_html", label: "HTML personalizado" },
   { value: "logo", label: "Logo del sitio con texto personalizado" },
-  { value: "navigation", label: "Navegación" }
+  { value: "navigation", label: "Navegación" },
+  { value: "WidgetDeveloperHTML", label: "HTML Personalizado (Master)" }  
 ];

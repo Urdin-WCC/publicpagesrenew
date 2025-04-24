@@ -71,6 +71,20 @@ La refactorización incluyó:
 
 Para más detalles, consulta la [documentación completa del sistema de temas](./docs/theme-system-refactoring.md).
 
+## Módulo 14: HTML Wrapper (Developer Custom Content Widget)
+
+Este módulo permite a los administradores con rol [MASTER] insertar contenido HTML personalizado que puede ser mostrado en diferentes secciones del sitio público como widgets. Características principales:
+
+- **Interfaz Admin exclusiva para [MASTER]**: Panel protegido para edición de HTML personalizado.
+- **Seguridad XSS controlada**: Uso consciente de `dangerouslySetInnerHTML` con estricto control de acceso.
+- **Widget para renderizar HTML**: Componente para mostrar el HTML personalizado en el sitio.
+- **Navegación exclusiva**: Menú de acceso visible solo para usuarios [MASTER].
+- **Almacenamiento en GlobalConfig**: Campo `developerHtmlContent` para almacenar el HTML.
+
+Este módulo está diseñado para casos de uso avanzados donde se requiere insertar HTML/JavaScript personalizado sin necesidad de actualizar el código de la aplicación.
+
+Para más detalles, consulta la [documentación completa del HTML Wrapper Module](./README-html-wrapper-module.md).
+
 ## Primeros Pasos
 
 ### Requisitos Previos

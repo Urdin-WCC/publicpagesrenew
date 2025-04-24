@@ -160,6 +160,14 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
 exports.Prisma.GlobalConfigScalarFieldEnum = {
   id: 'id',
   siteName: 'siteName',
+  description: 'description',
+  globalMetaTitle: 'globalMetaTitle',
+  globalMetaDescription: 'globalMetaDescription',
+  globalKeywords: 'globalKeywords',
+  defaultSocialShareImage: 'defaultSocialShareImage',
+  robotsTxtContent: 'robotsTxtContent',
+  googleAnalyticsId: 'googleAnalyticsId',
+  googleTagManagerId: 'googleTagManagerId',
   siteUrl: 'siteUrl',
   logoUrl: 'logoUrl',
   faviconUrl: 'faviconUrl',
@@ -180,8 +188,20 @@ exports.Prisma.GlobalConfigScalarFieldEnum = {
   loadingSpinnerConfig: 'loadingSpinnerConfig',
   themeSwitcherConfig: 'themeSwitcherConfig',
   stickyElementsConfig: 'stickyElementsConfig',
+  cookieBannerLinkPageId: 'cookieBannerLinkPageId',
+  developerHtmlContent: 'developerHtmlContent',
   cookieBannerText: 'cookieBannerText',
-  cookieBannerLinkPageId: 'cookieBannerLinkPageId'
+  activeThemeId: 'activeThemeId',
+  passwordMinLength: 'passwordMinLength',
+  passwordRequireUppercase: 'passwordRequireUppercase',
+  passwordRequireNumber: 'passwordRequireNumber',
+  passwordRequireSymbol: 'passwordRequireSymbol',
+  sessionDuration: 'sessionDuration',
+  maxLoginAttempts: 'maxLoginAttempts',
+  captchaEnabled: 'captchaEnabled',
+  accountLockoutDuration: 'accountLockoutDuration',
+  globalSeoTitle: 'globalSeoTitle',
+  navigationMenu: 'navigationMenu'
 };
 
 exports.Prisma.AdminActionScalarFieldEnum = {
@@ -241,9 +261,11 @@ exports.Prisma.VisitScalarFieldEnum = {
 
 exports.Prisma.PageViewScalarFieldEnum = {
   id: 'id',
-  page: 'page',
-  date: 'date',
-  count: 'count'
+  url: 'url',
+  referrer: 'referrer',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  timestamp: 'timestamp'
 };
 
 exports.Prisma.ReferrerScalarFieldEnum = {
@@ -313,12 +335,25 @@ exports.Prisma.StaticPageScalarFieldEnum = {
   title: 'title',
   slug: 'slug',
   contentHtml: 'contentHtml',
-  menuOrder: 'menuOrder',
-  includeInMenu: 'includeInMenu',
   isHomePage: 'isHomePage',
-  isVisible: 'isVisible',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  showHeader: 'showHeader',
+  showFooter: 'showFooter',
+  showSidebar: 'showSidebar',
+  sidebarPosition: 'sidebarPosition',
+  metaTitle: 'metaTitle',
+  metaDescription: 'metaDescription',
+  metaKeywords: 'metaKeywords'
+};
+
+exports.Prisma.AdminLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  userEmail: 'userEmail',
+  action: 'action',
+  details: 'details',
+  timestamp: 'timestamp'
 };
 
 exports.Prisma.SortOrder = {
@@ -367,6 +402,14 @@ exports.Prisma.VerificationTokenOrderByRelevanceFieldEnum = {
 exports.Prisma.GlobalConfigOrderByRelevanceFieldEnum = {
   id: 'id',
   siteName: 'siteName',
+  description: 'description',
+  globalMetaTitle: 'globalMetaTitle',
+  globalMetaDescription: 'globalMetaDescription',
+  globalKeywords: 'globalKeywords',
+  defaultSocialShareImage: 'defaultSocialShareImage',
+  robotsTxtContent: 'robotsTxtContent',
+  googleAnalyticsId: 'googleAnalyticsId',
+  googleTagManagerId: 'googleTagManagerId',
   siteUrl: 'siteUrl',
   logoUrl: 'logoUrl',
   faviconUrl: 'faviconUrl',
@@ -382,7 +425,11 @@ exports.Prisma.GlobalConfigOrderByRelevanceFieldEnum = {
   loadingSpinnerConfig: 'loadingSpinnerConfig',
   themeSwitcherConfig: 'themeSwitcherConfig',
   stickyElementsConfig: 'stickyElementsConfig',
-  cookieBannerText: 'cookieBannerText'
+  developerHtmlContent: 'developerHtmlContent',
+  cookieBannerText: 'cookieBannerText',
+  activeThemeId: 'activeThemeId',
+  globalSeoTitle: 'globalSeoTitle',
+  navigationMenu: 'navigationMenu'
 };
 
 exports.Prisma.AdminActionOrderByRelevanceFieldEnum = {
@@ -424,8 +471,10 @@ exports.Prisma.VisitOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.PageViewOrderByRelevanceFieldEnum = {
-  id: 'id',
-  page: 'page'
+  url: 'url',
+  referrer: 'referrer',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent'
 };
 
 exports.Prisma.ReferrerOrderByRelevanceFieldEnum = {
@@ -474,7 +523,18 @@ exports.Prisma.ProjectOrderByRelevanceFieldEnum = {
 exports.Prisma.StaticPageOrderByRelevanceFieldEnum = {
   title: 'title',
   slug: 'slug',
-  contentHtml: 'contentHtml'
+  contentHtml: 'contentHtml',
+  sidebarPosition: 'sidebarPosition',
+  metaTitle: 'metaTitle',
+  metaDescription: 'metaDescription',
+  metaKeywords: 'metaKeywords'
+};
+
+exports.Prisma.AdminLogOrderByRelevanceFieldEnum = {
+  userId: 'userId',
+  userEmail: 'userEmail',
+  action: 'action',
+  details: 'details'
 };
 exports.Role = exports.$Enums.Role = {
   MASTER: 'MASTER',
@@ -538,7 +598,8 @@ exports.Prisma.ModelName = {
   Category: 'Category',
   Tag: 'Tag',
   Project: 'Project',
-  StaticPage: 'StaticPage'
+  StaticPage: 'StaticPage',
+  AdminLog: 'AdminLog'
 };
 
 /**

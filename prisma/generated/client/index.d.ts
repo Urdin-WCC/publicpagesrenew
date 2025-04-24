@@ -103,6 +103,11 @@ export type Project = $Result.DefaultSelection<Prisma.$ProjectPayload>
  * 
  */
 export type StaticPage = $Result.DefaultSelection<Prisma.$StaticPagePayload>
+/**
+ * Model AdminLog
+ * 
+ */
+export type AdminLog = $Result.DefaultSelection<Prisma.$AdminLogPayload>
 
 /**
  * Enums
@@ -499,6 +504,16 @@ export class PrismaClient<
     * ```
     */
   get staticPage(): Prisma.StaticPageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.adminLog`: Exposes CRUD operations for the **AdminLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AdminLogs
+    * const adminLogs = await prisma.adminLog.findMany()
+    * ```
+    */
+  get adminLog(): Prisma.AdminLogDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -956,7 +971,8 @@ export namespace Prisma {
     Category: 'Category',
     Tag: 'Tag',
     Project: 'Project',
-    StaticPage: 'StaticPage'
+    StaticPage: 'StaticPage',
+    AdminLog: 'AdminLog'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -975,7 +991,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "globalConfig" | "adminAction" | "themePreset" | "widget" | "siteSection" | "menuItem" | "visit" | "pageView" | "referrer" | "post" | "category" | "tag" | "project" | "staticPage"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "globalConfig" | "adminAction" | "themePreset" | "widget" | "siteSection" | "menuItem" | "visit" | "pageView" | "referrer" | "post" | "category" | "tag" | "project" | "staticPage" | "adminLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2167,6 +2183,72 @@ export namespace Prisma {
           }
         }
       }
+      AdminLog: {
+        payload: Prisma.$AdminLogPayload<ExtArgs>
+        fields: Prisma.AdminLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AdminLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AdminLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload>
+          }
+          findFirst: {
+            args: Prisma.AdminLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AdminLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload>
+          }
+          findMany: {
+            args: Prisma.AdminLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload>[]
+          }
+          create: {
+            args: Prisma.AdminLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload>
+          }
+          createMany: {
+            args: Prisma.AdminLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          delete: {
+            args: Prisma.AdminLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload>
+          }
+          update: {
+            args: Prisma.AdminLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.AdminLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AdminLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AdminLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AdminLogPayload>
+          }
+          aggregate: {
+            args: Prisma.AdminLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAdminLog>
+          }
+          groupBy: {
+            args: Prisma.AdminLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AdminLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AdminLogCountArgs<ExtArgs>
+            result: $Utils.Optional<AdminLogCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2269,6 +2351,7 @@ export namespace Prisma {
     tag?: TagOmit
     project?: ProjectOmit
     staticPage?: StaticPageOmit
+    adminLog?: AdminLogOmit
   }
 
   /* Types for Logging */
@@ -6448,17 +6531,33 @@ export namespace Prisma {
     defaultLightThemePresetId: number | null
     defaultDarkThemePresetId: number | null
     cookieBannerLinkPageId: number | null
+    passwordMinLength: number | null
+    sessionDuration: number | null
+    maxLoginAttempts: number | null
+    accountLockoutDuration: number | null
   }
 
   export type GlobalConfigSumAggregateOutputType = {
     defaultLightThemePresetId: number | null
     defaultDarkThemePresetId: number | null
     cookieBannerLinkPageId: number | null
+    passwordMinLength: number | null
+    sessionDuration: number | null
+    maxLoginAttempts: number | null
+    accountLockoutDuration: number | null
   }
 
   export type GlobalConfigMinAggregateOutputType = {
     id: string | null
     siteName: string | null
+    description: string | null
+    globalMetaTitle: string | null
+    globalMetaDescription: string | null
+    globalKeywords: string | null
+    defaultSocialShareImage: string | null
+    robotsTxtContent: string | null
+    googleAnalyticsId: string | null
+    googleTagManagerId: string | null
     siteUrl: string | null
     logoUrl: string | null
     faviconUrl: string | null
@@ -6479,13 +6578,33 @@ export namespace Prisma {
     loadingSpinnerConfig: string | null
     themeSwitcherConfig: string | null
     stickyElementsConfig: string | null
-    cookieBannerText: string | null
     cookieBannerLinkPageId: number | null
+    developerHtmlContent: string | null
+    cookieBannerText: string | null
+    activeThemeId: string | null
+    passwordMinLength: number | null
+    passwordRequireUppercase: boolean | null
+    passwordRequireNumber: boolean | null
+    passwordRequireSymbol: boolean | null
+    sessionDuration: number | null
+    maxLoginAttempts: number | null
+    captchaEnabled: boolean | null
+    accountLockoutDuration: number | null
+    globalSeoTitle: string | null
+    navigationMenu: string | null
   }
 
   export type GlobalConfigMaxAggregateOutputType = {
     id: string | null
     siteName: string | null
+    description: string | null
+    globalMetaTitle: string | null
+    globalMetaDescription: string | null
+    globalKeywords: string | null
+    defaultSocialShareImage: string | null
+    robotsTxtContent: string | null
+    googleAnalyticsId: string | null
+    googleTagManagerId: string | null
     siteUrl: string | null
     logoUrl: string | null
     faviconUrl: string | null
@@ -6506,13 +6625,33 @@ export namespace Prisma {
     loadingSpinnerConfig: string | null
     themeSwitcherConfig: string | null
     stickyElementsConfig: string | null
-    cookieBannerText: string | null
     cookieBannerLinkPageId: number | null
+    developerHtmlContent: string | null
+    cookieBannerText: string | null
+    activeThemeId: string | null
+    passwordMinLength: number | null
+    passwordRequireUppercase: boolean | null
+    passwordRequireNumber: boolean | null
+    passwordRequireSymbol: boolean | null
+    sessionDuration: number | null
+    maxLoginAttempts: number | null
+    captchaEnabled: boolean | null
+    accountLockoutDuration: number | null
+    globalSeoTitle: string | null
+    navigationMenu: string | null
   }
 
   export type GlobalConfigCountAggregateOutputType = {
     id: number
     siteName: number
+    description: number
+    globalMetaTitle: number
+    globalMetaDescription: number
+    globalKeywords: number
+    defaultSocialShareImage: number
+    robotsTxtContent: number
+    googleAnalyticsId: number
+    googleTagManagerId: number
     siteUrl: number
     logoUrl: number
     faviconUrl: number
@@ -6533,8 +6672,20 @@ export namespace Prisma {
     loadingSpinnerConfig: number
     themeSwitcherConfig: number
     stickyElementsConfig: number
-    cookieBannerText: number
     cookieBannerLinkPageId: number
+    developerHtmlContent: number
+    cookieBannerText: number
+    activeThemeId: number
+    passwordMinLength: number
+    passwordRequireUppercase: number
+    passwordRequireNumber: number
+    passwordRequireSymbol: number
+    sessionDuration: number
+    maxLoginAttempts: number
+    captchaEnabled: number
+    accountLockoutDuration: number
+    globalSeoTitle: number
+    navigationMenu: number
     _all: number
   }
 
@@ -6543,17 +6694,33 @@ export namespace Prisma {
     defaultLightThemePresetId?: true
     defaultDarkThemePresetId?: true
     cookieBannerLinkPageId?: true
+    passwordMinLength?: true
+    sessionDuration?: true
+    maxLoginAttempts?: true
+    accountLockoutDuration?: true
   }
 
   export type GlobalConfigSumAggregateInputType = {
     defaultLightThemePresetId?: true
     defaultDarkThemePresetId?: true
     cookieBannerLinkPageId?: true
+    passwordMinLength?: true
+    sessionDuration?: true
+    maxLoginAttempts?: true
+    accountLockoutDuration?: true
   }
 
   export type GlobalConfigMinAggregateInputType = {
     id?: true
     siteName?: true
+    description?: true
+    globalMetaTitle?: true
+    globalMetaDescription?: true
+    globalKeywords?: true
+    defaultSocialShareImage?: true
+    robotsTxtContent?: true
+    googleAnalyticsId?: true
+    googleTagManagerId?: true
     siteUrl?: true
     logoUrl?: true
     faviconUrl?: true
@@ -6574,13 +6741,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: true
     themeSwitcherConfig?: true
     stickyElementsConfig?: true
-    cookieBannerText?: true
     cookieBannerLinkPageId?: true
+    developerHtmlContent?: true
+    cookieBannerText?: true
+    activeThemeId?: true
+    passwordMinLength?: true
+    passwordRequireUppercase?: true
+    passwordRequireNumber?: true
+    passwordRequireSymbol?: true
+    sessionDuration?: true
+    maxLoginAttempts?: true
+    captchaEnabled?: true
+    accountLockoutDuration?: true
+    globalSeoTitle?: true
+    navigationMenu?: true
   }
 
   export type GlobalConfigMaxAggregateInputType = {
     id?: true
     siteName?: true
+    description?: true
+    globalMetaTitle?: true
+    globalMetaDescription?: true
+    globalKeywords?: true
+    defaultSocialShareImage?: true
+    robotsTxtContent?: true
+    googleAnalyticsId?: true
+    googleTagManagerId?: true
     siteUrl?: true
     logoUrl?: true
     faviconUrl?: true
@@ -6601,13 +6788,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: true
     themeSwitcherConfig?: true
     stickyElementsConfig?: true
-    cookieBannerText?: true
     cookieBannerLinkPageId?: true
+    developerHtmlContent?: true
+    cookieBannerText?: true
+    activeThemeId?: true
+    passwordMinLength?: true
+    passwordRequireUppercase?: true
+    passwordRequireNumber?: true
+    passwordRequireSymbol?: true
+    sessionDuration?: true
+    maxLoginAttempts?: true
+    captchaEnabled?: true
+    accountLockoutDuration?: true
+    globalSeoTitle?: true
+    navigationMenu?: true
   }
 
   export type GlobalConfigCountAggregateInputType = {
     id?: true
     siteName?: true
+    description?: true
+    globalMetaTitle?: true
+    globalMetaDescription?: true
+    globalKeywords?: true
+    defaultSocialShareImage?: true
+    robotsTxtContent?: true
+    googleAnalyticsId?: true
+    googleTagManagerId?: true
     siteUrl?: true
     logoUrl?: true
     faviconUrl?: true
@@ -6628,8 +6835,20 @@ export namespace Prisma {
     loadingSpinnerConfig?: true
     themeSwitcherConfig?: true
     stickyElementsConfig?: true
-    cookieBannerText?: true
     cookieBannerLinkPageId?: true
+    developerHtmlContent?: true
+    cookieBannerText?: true
+    activeThemeId?: true
+    passwordMinLength?: true
+    passwordRequireUppercase?: true
+    passwordRequireNumber?: true
+    passwordRequireSymbol?: true
+    sessionDuration?: true
+    maxLoginAttempts?: true
+    captchaEnabled?: true
+    accountLockoutDuration?: true
+    globalSeoTitle?: true
+    navigationMenu?: true
     _all?: true
   }
 
@@ -6722,6 +6941,14 @@ export namespace Prisma {
   export type GlobalConfigGroupByOutputType = {
     id: string
     siteName: string
+    description: string | null
+    globalMetaTitle: string | null
+    globalMetaDescription: string | null
+    globalKeywords: string | null
+    defaultSocialShareImage: string | null
+    robotsTxtContent: string | null
+    googleAnalyticsId: string | null
+    googleTagManagerId: string | null
     siteUrl: string
     logoUrl: string | null
     faviconUrl: string | null
@@ -6742,8 +6969,20 @@ export namespace Prisma {
     loadingSpinnerConfig: string
     themeSwitcherConfig: string
     stickyElementsConfig: string
-    cookieBannerText: string | null
     cookieBannerLinkPageId: number | null
+    developerHtmlContent: string | null
+    cookieBannerText: string | null
+    activeThemeId: string | null
+    passwordMinLength: number | null
+    passwordRequireUppercase: boolean | null
+    passwordRequireNumber: boolean | null
+    passwordRequireSymbol: boolean | null
+    sessionDuration: number | null
+    maxLoginAttempts: number | null
+    captchaEnabled: boolean | null
+    accountLockoutDuration: number | null
+    globalSeoTitle: string | null
+    navigationMenu: string | null
     _count: GlobalConfigCountAggregateOutputType | null
     _avg: GlobalConfigAvgAggregateOutputType | null
     _sum: GlobalConfigSumAggregateOutputType | null
@@ -6768,6 +7007,14 @@ export namespace Prisma {
   export type GlobalConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     siteName?: boolean
+    description?: boolean
+    globalMetaTitle?: boolean
+    globalMetaDescription?: boolean
+    globalKeywords?: boolean
+    defaultSocialShareImage?: boolean
+    robotsTxtContent?: boolean
+    googleAnalyticsId?: boolean
+    googleTagManagerId?: boolean
     siteUrl?: boolean
     logoUrl?: boolean
     faviconUrl?: boolean
@@ -6788,8 +7035,20 @@ export namespace Prisma {
     loadingSpinnerConfig?: boolean
     themeSwitcherConfig?: boolean
     stickyElementsConfig?: boolean
-    cookieBannerText?: boolean
     cookieBannerLinkPageId?: boolean
+    developerHtmlContent?: boolean
+    cookieBannerText?: boolean
+    activeThemeId?: boolean
+    passwordMinLength?: boolean
+    passwordRequireUppercase?: boolean
+    passwordRequireNumber?: boolean
+    passwordRequireSymbol?: boolean
+    sessionDuration?: boolean
+    maxLoginAttempts?: boolean
+    captchaEnabled?: boolean
+    accountLockoutDuration?: boolean
+    globalSeoTitle?: boolean
+    navigationMenu?: boolean
   }, ExtArgs["result"]["globalConfig"]>
 
 
@@ -6797,6 +7056,14 @@ export namespace Prisma {
   export type GlobalConfigSelectScalar = {
     id?: boolean
     siteName?: boolean
+    description?: boolean
+    globalMetaTitle?: boolean
+    globalMetaDescription?: boolean
+    globalKeywords?: boolean
+    defaultSocialShareImage?: boolean
+    robotsTxtContent?: boolean
+    googleAnalyticsId?: boolean
+    googleTagManagerId?: boolean
     siteUrl?: boolean
     logoUrl?: boolean
     faviconUrl?: boolean
@@ -6817,11 +7084,23 @@ export namespace Prisma {
     loadingSpinnerConfig?: boolean
     themeSwitcherConfig?: boolean
     stickyElementsConfig?: boolean
-    cookieBannerText?: boolean
     cookieBannerLinkPageId?: boolean
+    developerHtmlContent?: boolean
+    cookieBannerText?: boolean
+    activeThemeId?: boolean
+    passwordMinLength?: boolean
+    passwordRequireUppercase?: boolean
+    passwordRequireNumber?: boolean
+    passwordRequireSymbol?: boolean
+    sessionDuration?: boolean
+    maxLoginAttempts?: boolean
+    captchaEnabled?: boolean
+    accountLockoutDuration?: boolean
+    globalSeoTitle?: boolean
+    navigationMenu?: boolean
   }
 
-  export type GlobalConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "siteName" | "siteUrl" | "logoUrl" | "faviconUrl" | "themeColor" | "header" | "footer" | "sidebar" | "social" | "sharing" | "createdAt" | "updatedAt" | "maintenanceMode" | "blogConfig" | "portfolioConfig" | "defaultLightThemePresetId" | "defaultDarkThemePresetId" | "themeAssignments" | "loadingSpinnerConfig" | "themeSwitcherConfig" | "stickyElementsConfig" | "cookieBannerText" | "cookieBannerLinkPageId", ExtArgs["result"]["globalConfig"]>
+  export type GlobalConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "siteName" | "description" | "globalMetaTitle" | "globalMetaDescription" | "globalKeywords" | "defaultSocialShareImage" | "robotsTxtContent" | "googleAnalyticsId" | "googleTagManagerId" | "siteUrl" | "logoUrl" | "faviconUrl" | "themeColor" | "header" | "footer" | "sidebar" | "social" | "sharing" | "createdAt" | "updatedAt" | "maintenanceMode" | "blogConfig" | "portfolioConfig" | "defaultLightThemePresetId" | "defaultDarkThemePresetId" | "themeAssignments" | "loadingSpinnerConfig" | "themeSwitcherConfig" | "stickyElementsConfig" | "cookieBannerLinkPageId" | "developerHtmlContent" | "cookieBannerText" | "activeThemeId" | "passwordMinLength" | "passwordRequireUppercase" | "passwordRequireNumber" | "passwordRequireSymbol" | "sessionDuration" | "maxLoginAttempts" | "captchaEnabled" | "accountLockoutDuration" | "globalSeoTitle" | "navigationMenu", ExtArgs["result"]["globalConfig"]>
 
   export type $GlobalConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "GlobalConfig"
@@ -6829,6 +7108,14 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       siteName: string
+      description: string | null
+      globalMetaTitle: string | null
+      globalMetaDescription: string | null
+      globalKeywords: string | null
+      defaultSocialShareImage: string | null
+      robotsTxtContent: string | null
+      googleAnalyticsId: string | null
+      googleTagManagerId: string | null
       siteUrl: string
       logoUrl: string | null
       faviconUrl: string | null
@@ -6849,8 +7136,20 @@ export namespace Prisma {
       loadingSpinnerConfig: string
       themeSwitcherConfig: string
       stickyElementsConfig: string
-      cookieBannerText: string | null
       cookieBannerLinkPageId: number | null
+      developerHtmlContent: string | null
+      cookieBannerText: string | null
+      activeThemeId: string | null
+      passwordMinLength: number | null
+      passwordRequireUppercase: boolean | null
+      passwordRequireNumber: boolean | null
+      passwordRequireSymbol: boolean | null
+      sessionDuration: number | null
+      maxLoginAttempts: number | null
+      captchaEnabled: boolean | null
+      accountLockoutDuration: number | null
+      globalSeoTitle: string | null
+      navigationMenu: string | null
     }, ExtArgs["result"]["globalConfig"]>
     composites: {}
   }
@@ -7222,6 +7521,14 @@ export namespace Prisma {
   interface GlobalConfigFieldRefs {
     readonly id: FieldRef<"GlobalConfig", 'String'>
     readonly siteName: FieldRef<"GlobalConfig", 'String'>
+    readonly description: FieldRef<"GlobalConfig", 'String'>
+    readonly globalMetaTitle: FieldRef<"GlobalConfig", 'String'>
+    readonly globalMetaDescription: FieldRef<"GlobalConfig", 'String'>
+    readonly globalKeywords: FieldRef<"GlobalConfig", 'String'>
+    readonly defaultSocialShareImage: FieldRef<"GlobalConfig", 'String'>
+    readonly robotsTxtContent: FieldRef<"GlobalConfig", 'String'>
+    readonly googleAnalyticsId: FieldRef<"GlobalConfig", 'String'>
+    readonly googleTagManagerId: FieldRef<"GlobalConfig", 'String'>
     readonly siteUrl: FieldRef<"GlobalConfig", 'String'>
     readonly logoUrl: FieldRef<"GlobalConfig", 'String'>
     readonly faviconUrl: FieldRef<"GlobalConfig", 'String'>
@@ -7242,8 +7549,20 @@ export namespace Prisma {
     readonly loadingSpinnerConfig: FieldRef<"GlobalConfig", 'String'>
     readonly themeSwitcherConfig: FieldRef<"GlobalConfig", 'String'>
     readonly stickyElementsConfig: FieldRef<"GlobalConfig", 'String'>
-    readonly cookieBannerText: FieldRef<"GlobalConfig", 'String'>
     readonly cookieBannerLinkPageId: FieldRef<"GlobalConfig", 'Int'>
+    readonly developerHtmlContent: FieldRef<"GlobalConfig", 'String'>
+    readonly cookieBannerText: FieldRef<"GlobalConfig", 'String'>
+    readonly activeThemeId: FieldRef<"GlobalConfig", 'String'>
+    readonly passwordMinLength: FieldRef<"GlobalConfig", 'Int'>
+    readonly passwordRequireUppercase: FieldRef<"GlobalConfig", 'Boolean'>
+    readonly passwordRequireNumber: FieldRef<"GlobalConfig", 'Boolean'>
+    readonly passwordRequireSymbol: FieldRef<"GlobalConfig", 'Boolean'>
+    readonly sessionDuration: FieldRef<"GlobalConfig", 'Int'>
+    readonly maxLoginAttempts: FieldRef<"GlobalConfig", 'Int'>
+    readonly captchaEnabled: FieldRef<"GlobalConfig", 'Boolean'>
+    readonly accountLockoutDuration: FieldRef<"GlobalConfig", 'Int'>
+    readonly globalSeoTitle: FieldRef<"GlobalConfig", 'String'>
+    readonly navigationMenu: FieldRef<"GlobalConfig", 'String'>
   }
     
 
@@ -13331,63 +13650,75 @@ export namespace Prisma {
   }
 
   export type PageViewAvgAggregateOutputType = {
-    count: number | null
+    id: number | null
   }
 
   export type PageViewSumAggregateOutputType = {
-    count: number | null
+    id: number | null
   }
 
   export type PageViewMinAggregateOutputType = {
-    id: string | null
-    page: string | null
-    date: Date | null
-    count: number | null
+    id: number | null
+    url: string | null
+    referrer: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    timestamp: Date | null
   }
 
   export type PageViewMaxAggregateOutputType = {
-    id: string | null
-    page: string | null
-    date: Date | null
-    count: number | null
+    id: number | null
+    url: string | null
+    referrer: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    timestamp: Date | null
   }
 
   export type PageViewCountAggregateOutputType = {
     id: number
-    page: number
-    date: number
-    count: number
+    url: number
+    referrer: number
+    ipAddress: number
+    userAgent: number
+    timestamp: number
     _all: number
   }
 
 
   export type PageViewAvgAggregateInputType = {
-    count?: true
+    id?: true
   }
 
   export type PageViewSumAggregateInputType = {
-    count?: true
+    id?: true
   }
 
   export type PageViewMinAggregateInputType = {
     id?: true
-    page?: true
-    date?: true
-    count?: true
+    url?: true
+    referrer?: true
+    ipAddress?: true
+    userAgent?: true
+    timestamp?: true
   }
 
   export type PageViewMaxAggregateInputType = {
     id?: true
-    page?: true
-    date?: true
-    count?: true
+    url?: true
+    referrer?: true
+    ipAddress?: true
+    userAgent?: true
+    timestamp?: true
   }
 
   export type PageViewCountAggregateInputType = {
     id?: true
-    page?: true
-    date?: true
-    count?: true
+    url?: true
+    referrer?: true
+    ipAddress?: true
+    userAgent?: true
+    timestamp?: true
     _all?: true
   }
 
@@ -13478,10 +13809,12 @@ export namespace Prisma {
   }
 
   export type PageViewGroupByOutputType = {
-    id: string
-    page: string
-    date: Date
-    count: number
+    id: number
+    url: string
+    referrer: string | null
+    ipAddress: string | null
+    userAgent: string | null
+    timestamp: Date | null
     _count: PageViewCountAggregateOutputType | null
     _avg: PageViewAvgAggregateOutputType | null
     _sum: PageViewSumAggregateOutputType | null
@@ -13505,30 +13838,36 @@ export namespace Prisma {
 
   export type PageViewSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    page?: boolean
-    date?: boolean
-    count?: boolean
+    url?: boolean
+    referrer?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    timestamp?: boolean
   }, ExtArgs["result"]["pageView"]>
 
 
 
   export type PageViewSelectScalar = {
     id?: boolean
-    page?: boolean
-    date?: boolean
-    count?: boolean
+    url?: boolean
+    referrer?: boolean
+    ipAddress?: boolean
+    userAgent?: boolean
+    timestamp?: boolean
   }
 
-  export type PageViewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "page" | "date" | "count", ExtArgs["result"]["pageView"]>
+  export type PageViewOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "url" | "referrer" | "ipAddress" | "userAgent" | "timestamp", ExtArgs["result"]["pageView"]>
 
   export type $PageViewPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "PageView"
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
-      id: string
-      page: string
-      date: Date
-      count: number
+      id: number
+      url: string
+      referrer: string | null
+      ipAddress: string | null
+      userAgent: string | null
+      timestamp: Date | null
     }, ExtArgs["result"]["pageView"]>
     composites: {}
   }
@@ -13898,10 +14237,12 @@ export namespace Prisma {
    * Fields of the PageView model
    */
   interface PageViewFieldRefs {
-    readonly id: FieldRef<"PageView", 'String'>
-    readonly page: FieldRef<"PageView", 'String'>
-    readonly date: FieldRef<"PageView", 'DateTime'>
-    readonly count: FieldRef<"PageView", 'Int'>
+    readonly id: FieldRef<"PageView", 'Int'>
+    readonly url: FieldRef<"PageView", 'String'>
+    readonly referrer: FieldRef<"PageView", 'String'>
+    readonly ipAddress: FieldRef<"PageView", 'String'>
+    readonly userAgent: FieldRef<"PageView", 'String'>
+    readonly timestamp: FieldRef<"PageView", 'DateTime'>
   }
     
 
@@ -19202,12 +19543,10 @@ export namespace Prisma {
 
   export type StaticPageAvgAggregateOutputType = {
     id: number | null
-    menuOrder: number | null
   }
 
   export type StaticPageSumAggregateOutputType = {
     id: number | null
-    menuOrder: number | null
   }
 
   export type StaticPageMinAggregateOutputType = {
@@ -19215,12 +19554,16 @@ export namespace Prisma {
     title: string | null
     slug: string | null
     contentHtml: string | null
-    menuOrder: number | null
-    includeInMenu: boolean | null
     isHomePage: boolean | null
-    isVisible: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    showHeader: boolean | null
+    showFooter: boolean | null
+    showSidebar: boolean | null
+    sidebarPosition: string | null
+    metaTitle: string | null
+    metaDescription: string | null
+    metaKeywords: string | null
   }
 
   export type StaticPageMaxAggregateOutputType = {
@@ -19228,12 +19571,16 @@ export namespace Prisma {
     title: string | null
     slug: string | null
     contentHtml: string | null
-    menuOrder: number | null
-    includeInMenu: boolean | null
     isHomePage: boolean | null
-    isVisible: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
+    showHeader: boolean | null
+    showFooter: boolean | null
+    showSidebar: boolean | null
+    sidebarPosition: string | null
+    metaTitle: string | null
+    metaDescription: string | null
+    metaKeywords: string | null
   }
 
   export type StaticPageCountAggregateOutputType = {
@@ -19241,24 +19588,26 @@ export namespace Prisma {
     title: number
     slug: number
     contentHtml: number
-    menuOrder: number
-    includeInMenu: number
     isHomePage: number
-    isVisible: number
     createdAt: number
     updatedAt: number
+    showHeader: number
+    showFooter: number
+    showSidebar: number
+    sidebarPosition: number
+    metaTitle: number
+    metaDescription: number
+    metaKeywords: number
     _all: number
   }
 
 
   export type StaticPageAvgAggregateInputType = {
     id?: true
-    menuOrder?: true
   }
 
   export type StaticPageSumAggregateInputType = {
     id?: true
-    menuOrder?: true
   }
 
   export type StaticPageMinAggregateInputType = {
@@ -19266,12 +19615,16 @@ export namespace Prisma {
     title?: true
     slug?: true
     contentHtml?: true
-    menuOrder?: true
-    includeInMenu?: true
     isHomePage?: true
-    isVisible?: true
     createdAt?: true
     updatedAt?: true
+    showHeader?: true
+    showFooter?: true
+    showSidebar?: true
+    sidebarPosition?: true
+    metaTitle?: true
+    metaDescription?: true
+    metaKeywords?: true
   }
 
   export type StaticPageMaxAggregateInputType = {
@@ -19279,12 +19632,16 @@ export namespace Prisma {
     title?: true
     slug?: true
     contentHtml?: true
-    menuOrder?: true
-    includeInMenu?: true
     isHomePage?: true
-    isVisible?: true
     createdAt?: true
     updatedAt?: true
+    showHeader?: true
+    showFooter?: true
+    showSidebar?: true
+    sidebarPosition?: true
+    metaTitle?: true
+    metaDescription?: true
+    metaKeywords?: true
   }
 
   export type StaticPageCountAggregateInputType = {
@@ -19292,12 +19649,16 @@ export namespace Prisma {
     title?: true
     slug?: true
     contentHtml?: true
-    menuOrder?: true
-    includeInMenu?: true
     isHomePage?: true
-    isVisible?: true
     createdAt?: true
     updatedAt?: true
+    showHeader?: true
+    showFooter?: true
+    showSidebar?: true
+    sidebarPosition?: true
+    metaTitle?: true
+    metaDescription?: true
+    metaKeywords?: true
     _all?: true
   }
 
@@ -19392,12 +19753,16 @@ export namespace Prisma {
     title: string
     slug: string
     contentHtml: string
-    menuOrder: number
-    includeInMenu: boolean
     isHomePage: boolean
-    isVisible: boolean
     createdAt: Date
     updatedAt: Date
+    showHeader: boolean | null
+    showFooter: boolean | null
+    showSidebar: boolean | null
+    sidebarPosition: string | null
+    metaTitle: string | null
+    metaDescription: string | null
+    metaKeywords: string | null
     _count: StaticPageCountAggregateOutputType | null
     _avg: StaticPageAvgAggregateOutputType | null
     _sum: StaticPageSumAggregateOutputType | null
@@ -19424,12 +19789,16 @@ export namespace Prisma {
     title?: boolean
     slug?: boolean
     contentHtml?: boolean
-    menuOrder?: boolean
-    includeInMenu?: boolean
     isHomePage?: boolean
-    isVisible?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    showHeader?: boolean
+    showFooter?: boolean
+    showSidebar?: boolean
+    sidebarPosition?: boolean
+    metaTitle?: boolean
+    metaDescription?: boolean
+    metaKeywords?: boolean
   }, ExtArgs["result"]["staticPage"]>
 
 
@@ -19439,15 +19808,19 @@ export namespace Prisma {
     title?: boolean
     slug?: boolean
     contentHtml?: boolean
-    menuOrder?: boolean
-    includeInMenu?: boolean
     isHomePage?: boolean
-    isVisible?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    showHeader?: boolean
+    showFooter?: boolean
+    showSidebar?: boolean
+    sidebarPosition?: boolean
+    metaTitle?: boolean
+    metaDescription?: boolean
+    metaKeywords?: boolean
   }
 
-  export type StaticPageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "contentHtml" | "menuOrder" | "includeInMenu" | "isHomePage" | "isVisible" | "createdAt" | "updatedAt", ExtArgs["result"]["staticPage"]>
+  export type StaticPageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "contentHtml" | "isHomePage" | "createdAt" | "updatedAt" | "showHeader" | "showFooter" | "showSidebar" | "sidebarPosition" | "metaTitle" | "metaDescription" | "metaKeywords", ExtArgs["result"]["staticPage"]>
 
   export type $StaticPagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "StaticPage"
@@ -19457,12 +19830,16 @@ export namespace Prisma {
       title: string
       slug: string
       contentHtml: string
-      menuOrder: number
-      includeInMenu: boolean
       isHomePage: boolean
-      isVisible: boolean
       createdAt: Date
       updatedAt: Date
+      showHeader: boolean | null
+      showFooter: boolean | null
+      showSidebar: boolean | null
+      sidebarPosition: string | null
+      metaTitle: string | null
+      metaDescription: string | null
+      metaKeywords: string | null
     }, ExtArgs["result"]["staticPage"]>
     composites: {}
   }
@@ -19836,12 +20213,16 @@ export namespace Prisma {
     readonly title: FieldRef<"StaticPage", 'String'>
     readonly slug: FieldRef<"StaticPage", 'String'>
     readonly contentHtml: FieldRef<"StaticPage", 'String'>
-    readonly menuOrder: FieldRef<"StaticPage", 'Int'>
-    readonly includeInMenu: FieldRef<"StaticPage", 'Boolean'>
     readonly isHomePage: FieldRef<"StaticPage", 'Boolean'>
-    readonly isVisible: FieldRef<"StaticPage", 'Boolean'>
     readonly createdAt: FieldRef<"StaticPage", 'DateTime'>
     readonly updatedAt: FieldRef<"StaticPage", 'DateTime'>
+    readonly showHeader: FieldRef<"StaticPage", 'Boolean'>
+    readonly showFooter: FieldRef<"StaticPage", 'Boolean'>
+    readonly showSidebar: FieldRef<"StaticPage", 'Boolean'>
+    readonly sidebarPosition: FieldRef<"StaticPage", 'String'>
+    readonly metaTitle: FieldRef<"StaticPage", 'String'>
+    readonly metaDescription: FieldRef<"StaticPage", 'String'>
+    readonly metaKeywords: FieldRef<"StaticPage", 'String'>
   }
     
 
@@ -20164,6 +20545,933 @@ export namespace Prisma {
 
 
   /**
+   * Model AdminLog
+   */
+
+  export type AggregateAdminLog = {
+    _count: AdminLogCountAggregateOutputType | null
+    _avg: AdminLogAvgAggregateOutputType | null
+    _sum: AdminLogSumAggregateOutputType | null
+    _min: AdminLogMinAggregateOutputType | null
+    _max: AdminLogMaxAggregateOutputType | null
+  }
+
+  export type AdminLogAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type AdminLogSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type AdminLogMinAggregateOutputType = {
+    id: number | null
+    userId: string | null
+    userEmail: string | null
+    action: string | null
+    details: string | null
+    timestamp: Date | null
+  }
+
+  export type AdminLogMaxAggregateOutputType = {
+    id: number | null
+    userId: string | null
+    userEmail: string | null
+    action: string | null
+    details: string | null
+    timestamp: Date | null
+  }
+
+  export type AdminLogCountAggregateOutputType = {
+    id: number
+    userId: number
+    userEmail: number
+    action: number
+    details: number
+    timestamp: number
+    _all: number
+  }
+
+
+  export type AdminLogAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type AdminLogSumAggregateInputType = {
+    id?: true
+  }
+
+  export type AdminLogMinAggregateInputType = {
+    id?: true
+    userId?: true
+    userEmail?: true
+    action?: true
+    details?: true
+    timestamp?: true
+  }
+
+  export type AdminLogMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    userEmail?: true
+    action?: true
+    details?: true
+    timestamp?: true
+  }
+
+  export type AdminLogCountAggregateInputType = {
+    id?: true
+    userId?: true
+    userEmail?: true
+    action?: true
+    details?: true
+    timestamp?: true
+    _all?: true
+  }
+
+  export type AdminLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminLog to aggregate.
+     */
+    where?: AdminLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminLogs to fetch.
+     */
+    orderBy?: AdminLogOrderByWithRelationInput | AdminLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AdminLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AdminLogs
+    **/
+    _count?: true | AdminLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AdminLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AdminLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AdminLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AdminLogMaxAggregateInputType
+  }
+
+  export type GetAdminLogAggregateType<T extends AdminLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateAdminLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAdminLog[P]>
+      : GetScalarType<T[P], AggregateAdminLog[P]>
+  }
+
+
+
+
+  export type AdminLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AdminLogWhereInput
+    orderBy?: AdminLogOrderByWithAggregationInput | AdminLogOrderByWithAggregationInput[]
+    by: AdminLogScalarFieldEnum[] | AdminLogScalarFieldEnum
+    having?: AdminLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AdminLogCountAggregateInputType | true
+    _avg?: AdminLogAvgAggregateInputType
+    _sum?: AdminLogSumAggregateInputType
+    _min?: AdminLogMinAggregateInputType
+    _max?: AdminLogMaxAggregateInputType
+  }
+
+  export type AdminLogGroupByOutputType = {
+    id: number
+    userId: string | null
+    userEmail: string | null
+    action: string
+    details: string | null
+    timestamp: Date | null
+    _count: AdminLogCountAggregateOutputType | null
+    _avg: AdminLogAvgAggregateOutputType | null
+    _sum: AdminLogSumAggregateOutputType | null
+    _min: AdminLogMinAggregateOutputType | null
+    _max: AdminLogMaxAggregateOutputType | null
+  }
+
+  type GetAdminLogGroupByPayload<T extends AdminLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AdminLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AdminLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AdminLogGroupByOutputType[P]>
+            : GetScalarType<T[P], AdminLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AdminLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    userEmail?: boolean
+    action?: boolean
+    details?: boolean
+    timestamp?: boolean
+  }, ExtArgs["result"]["adminLog"]>
+
+
+
+  export type AdminLogSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    userEmail?: boolean
+    action?: boolean
+    details?: boolean
+    timestamp?: boolean
+  }
+
+  export type AdminLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "userEmail" | "action" | "details" | "timestamp", ExtArgs["result"]["adminLog"]>
+
+  export type $AdminLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AdminLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: string | null
+      userEmail: string | null
+      action: string
+      details: string | null
+      timestamp: Date | null
+    }, ExtArgs["result"]["adminLog"]>
+    composites: {}
+  }
+
+  type AdminLogGetPayload<S extends boolean | null | undefined | AdminLogDefaultArgs> = $Result.GetResult<Prisma.$AdminLogPayload, S>
+
+  type AdminLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<AdminLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: AdminLogCountAggregateInputType | true
+    }
+
+  export interface AdminLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AdminLog'], meta: { name: 'AdminLog' } }
+    /**
+     * Find zero or one AdminLog that matches the filter.
+     * @param {AdminLogFindUniqueArgs} args - Arguments to find a AdminLog
+     * @example
+     * // Get one AdminLog
+     * const adminLog = await prisma.adminLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AdminLogFindUniqueArgs>(args: SelectSubset<T, AdminLogFindUniqueArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one AdminLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {AdminLogFindUniqueOrThrowArgs} args - Arguments to find a AdminLog
+     * @example
+     * // Get one AdminLog
+     * const adminLog = await prisma.adminLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AdminLogFindUniqueOrThrowArgs>(args: SelectSubset<T, AdminLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminLogFindFirstArgs} args - Arguments to find a AdminLog
+     * @example
+     * // Get one AdminLog
+     * const adminLog = await prisma.adminLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AdminLogFindFirstArgs>(args?: SelectSubset<T, AdminLogFindFirstArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first AdminLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminLogFindFirstOrThrowArgs} args - Arguments to find a AdminLog
+     * @example
+     * // Get one AdminLog
+     * const adminLog = await prisma.adminLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AdminLogFindFirstOrThrowArgs>(args?: SelectSubset<T, AdminLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more AdminLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AdminLogs
+     * const adminLogs = await prisma.adminLog.findMany()
+     * 
+     * // Get first 10 AdminLogs
+     * const adminLogs = await prisma.adminLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const adminLogWithIdOnly = await prisma.adminLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AdminLogFindManyArgs>(args?: SelectSubset<T, AdminLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a AdminLog.
+     * @param {AdminLogCreateArgs} args - Arguments to create a AdminLog.
+     * @example
+     * // Create one AdminLog
+     * const AdminLog = await prisma.adminLog.create({
+     *   data: {
+     *     // ... data to create a AdminLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends AdminLogCreateArgs>(args: SelectSubset<T, AdminLogCreateArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many AdminLogs.
+     * @param {AdminLogCreateManyArgs} args - Arguments to create many AdminLogs.
+     * @example
+     * // Create many AdminLogs
+     * const adminLog = await prisma.adminLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AdminLogCreateManyArgs>(args?: SelectSubset<T, AdminLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a AdminLog.
+     * @param {AdminLogDeleteArgs} args - Arguments to delete one AdminLog.
+     * @example
+     * // Delete one AdminLog
+     * const AdminLog = await prisma.adminLog.delete({
+     *   where: {
+     *     // ... filter to delete one AdminLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AdminLogDeleteArgs>(args: SelectSubset<T, AdminLogDeleteArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one AdminLog.
+     * @param {AdminLogUpdateArgs} args - Arguments to update one AdminLog.
+     * @example
+     * // Update one AdminLog
+     * const adminLog = await prisma.adminLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AdminLogUpdateArgs>(args: SelectSubset<T, AdminLogUpdateArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more AdminLogs.
+     * @param {AdminLogDeleteManyArgs} args - Arguments to filter AdminLogs to delete.
+     * @example
+     * // Delete a few AdminLogs
+     * const { count } = await prisma.adminLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AdminLogDeleteManyArgs>(args?: SelectSubset<T, AdminLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AdminLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AdminLogs
+     * const adminLog = await prisma.adminLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AdminLogUpdateManyArgs>(args: SelectSubset<T, AdminLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AdminLog.
+     * @param {AdminLogUpsertArgs} args - Arguments to update or create a AdminLog.
+     * @example
+     * // Update or create a AdminLog
+     * const adminLog = await prisma.adminLog.upsert({
+     *   create: {
+     *     // ... data to create a AdminLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AdminLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AdminLogUpsertArgs>(args: SelectSubset<T, AdminLogUpsertArgs<ExtArgs>>): Prisma__AdminLogClient<$Result.GetResult<Prisma.$AdminLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of AdminLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminLogCountArgs} args - Arguments to filter AdminLogs to count.
+     * @example
+     * // Count the number of AdminLogs
+     * const count = await prisma.adminLog.count({
+     *   where: {
+     *     // ... the filter for the AdminLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends AdminLogCountArgs>(
+      args?: Subset<T, AdminLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AdminLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AdminLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AdminLogAggregateArgs>(args: Subset<T, AdminLogAggregateArgs>): Prisma.PrismaPromise<GetAdminLogAggregateType<T>>
+
+    /**
+     * Group by AdminLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AdminLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AdminLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AdminLogGroupByArgs['orderBy'] }
+        : { orderBy?: AdminLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AdminLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAdminLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AdminLog model
+   */
+  readonly fields: AdminLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AdminLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AdminLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AdminLog model
+   */
+  interface AdminLogFieldRefs {
+    readonly id: FieldRef<"AdminLog", 'Int'>
+    readonly userId: FieldRef<"AdminLog", 'String'>
+    readonly userEmail: FieldRef<"AdminLog", 'String'>
+    readonly action: FieldRef<"AdminLog", 'String'>
+    readonly details: FieldRef<"AdminLog", 'String'>
+    readonly timestamp: FieldRef<"AdminLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AdminLog findUnique
+   */
+  export type AdminLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminLog to fetch.
+     */
+    where: AdminLogWhereUniqueInput
+  }
+
+  /**
+   * AdminLog findUniqueOrThrow
+   */
+  export type AdminLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminLog to fetch.
+     */
+    where: AdminLogWhereUniqueInput
+  }
+
+  /**
+   * AdminLog findFirst
+   */
+  export type AdminLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminLog to fetch.
+     */
+    where?: AdminLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminLogs to fetch.
+     */
+    orderBy?: AdminLogOrderByWithRelationInput | AdminLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminLogs.
+     */
+    cursor?: AdminLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminLogs.
+     */
+    distinct?: AdminLogScalarFieldEnum | AdminLogScalarFieldEnum[]
+  }
+
+  /**
+   * AdminLog findFirstOrThrow
+   */
+  export type AdminLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminLog to fetch.
+     */
+    where?: AdminLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminLogs to fetch.
+     */
+    orderBy?: AdminLogOrderByWithRelationInput | AdminLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AdminLogs.
+     */
+    cursor?: AdminLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AdminLogs.
+     */
+    distinct?: AdminLogScalarFieldEnum | AdminLogScalarFieldEnum[]
+  }
+
+  /**
+   * AdminLog findMany
+   */
+  export type AdminLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * Filter, which AdminLogs to fetch.
+     */
+    where?: AdminLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AdminLogs to fetch.
+     */
+    orderBy?: AdminLogOrderByWithRelationInput | AdminLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AdminLogs.
+     */
+    cursor?: AdminLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AdminLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AdminLogs.
+     */
+    skip?: number
+    distinct?: AdminLogScalarFieldEnum | AdminLogScalarFieldEnum[]
+  }
+
+  /**
+   * AdminLog create
+   */
+  export type AdminLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * The data needed to create a AdminLog.
+     */
+    data: XOR<AdminLogCreateInput, AdminLogUncheckedCreateInput>
+  }
+
+  /**
+   * AdminLog createMany
+   */
+  export type AdminLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AdminLogs.
+     */
+    data: AdminLogCreateManyInput | AdminLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AdminLog update
+   */
+  export type AdminLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * The data needed to update a AdminLog.
+     */
+    data: XOR<AdminLogUpdateInput, AdminLogUncheckedUpdateInput>
+    /**
+     * Choose, which AdminLog to update.
+     */
+    where: AdminLogWhereUniqueInput
+  }
+
+  /**
+   * AdminLog updateMany
+   */
+  export type AdminLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AdminLogs.
+     */
+    data: XOR<AdminLogUpdateManyMutationInput, AdminLogUncheckedUpdateManyInput>
+    /**
+     * Filter which AdminLogs to update
+     */
+    where?: AdminLogWhereInput
+    /**
+     * Limit how many AdminLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminLog upsert
+   */
+  export type AdminLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * The filter to search for the AdminLog to update in case it exists.
+     */
+    where: AdminLogWhereUniqueInput
+    /**
+     * In case the AdminLog found by the `where` argument doesn't exist, create a new AdminLog with this data.
+     */
+    create: XOR<AdminLogCreateInput, AdminLogUncheckedCreateInput>
+    /**
+     * In case the AdminLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AdminLogUpdateInput, AdminLogUncheckedUpdateInput>
+  }
+
+  /**
+   * AdminLog delete
+   */
+  export type AdminLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+    /**
+     * Filter which AdminLog to delete.
+     */
+    where: AdminLogWhereUniqueInput
+  }
+
+  /**
+   * AdminLog deleteMany
+   */
+  export type AdminLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AdminLogs to delete
+     */
+    where?: AdminLogWhereInput
+    /**
+     * Limit how many AdminLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * AdminLog without action
+   */
+  export type AdminLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AdminLog
+     */
+    select?: AdminLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the AdminLog
+     */
+    omit?: AdminLogOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -20232,6 +21540,14 @@ export namespace Prisma {
   export const GlobalConfigScalarFieldEnum: {
     id: 'id',
     siteName: 'siteName',
+    description: 'description',
+    globalMetaTitle: 'globalMetaTitle',
+    globalMetaDescription: 'globalMetaDescription',
+    globalKeywords: 'globalKeywords',
+    defaultSocialShareImage: 'defaultSocialShareImage',
+    robotsTxtContent: 'robotsTxtContent',
+    googleAnalyticsId: 'googleAnalyticsId',
+    googleTagManagerId: 'googleTagManagerId',
     siteUrl: 'siteUrl',
     logoUrl: 'logoUrl',
     faviconUrl: 'faviconUrl',
@@ -20252,8 +21568,20 @@ export namespace Prisma {
     loadingSpinnerConfig: 'loadingSpinnerConfig',
     themeSwitcherConfig: 'themeSwitcherConfig',
     stickyElementsConfig: 'stickyElementsConfig',
+    cookieBannerLinkPageId: 'cookieBannerLinkPageId',
+    developerHtmlContent: 'developerHtmlContent',
     cookieBannerText: 'cookieBannerText',
-    cookieBannerLinkPageId: 'cookieBannerLinkPageId'
+    activeThemeId: 'activeThemeId',
+    passwordMinLength: 'passwordMinLength',
+    passwordRequireUppercase: 'passwordRequireUppercase',
+    passwordRequireNumber: 'passwordRequireNumber',
+    passwordRequireSymbol: 'passwordRequireSymbol',
+    sessionDuration: 'sessionDuration',
+    maxLoginAttempts: 'maxLoginAttempts',
+    captchaEnabled: 'captchaEnabled',
+    accountLockoutDuration: 'accountLockoutDuration',
+    globalSeoTitle: 'globalSeoTitle',
+    navigationMenu: 'navigationMenu'
   };
 
   export type GlobalConfigScalarFieldEnum = (typeof GlobalConfigScalarFieldEnum)[keyof typeof GlobalConfigScalarFieldEnum]
@@ -20334,9 +21662,11 @@ export namespace Prisma {
 
   export const PageViewScalarFieldEnum: {
     id: 'id',
-    page: 'page',
-    date: 'date',
-    count: 'count'
+    url: 'url',
+    referrer: 'referrer',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent',
+    timestamp: 'timestamp'
   };
 
   export type PageViewScalarFieldEnum = (typeof PageViewScalarFieldEnum)[keyof typeof PageViewScalarFieldEnum]
@@ -20424,15 +21754,31 @@ export namespace Prisma {
     title: 'title',
     slug: 'slug',
     contentHtml: 'contentHtml',
-    menuOrder: 'menuOrder',
-    includeInMenu: 'includeInMenu',
     isHomePage: 'isHomePage',
-    isVisible: 'isVisible',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    showHeader: 'showHeader',
+    showFooter: 'showFooter',
+    showSidebar: 'showSidebar',
+    sidebarPosition: 'sidebarPosition',
+    metaTitle: 'metaTitle',
+    metaDescription: 'metaDescription',
+    metaKeywords: 'metaKeywords'
   };
 
   export type StaticPageScalarFieldEnum = (typeof StaticPageScalarFieldEnum)[keyof typeof StaticPageScalarFieldEnum]
+
+
+  export const AdminLogScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    userEmail: 'userEmail',
+    action: 'action',
+    details: 'details',
+    timestamp: 'timestamp'
+  };
+
+  export type AdminLogScalarFieldEnum = (typeof AdminLogScalarFieldEnum)[keyof typeof AdminLogScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -20499,6 +21845,14 @@ export namespace Prisma {
   export const GlobalConfigOrderByRelevanceFieldEnum: {
     id: 'id',
     siteName: 'siteName',
+    description: 'description',
+    globalMetaTitle: 'globalMetaTitle',
+    globalMetaDescription: 'globalMetaDescription',
+    globalKeywords: 'globalKeywords',
+    defaultSocialShareImage: 'defaultSocialShareImage',
+    robotsTxtContent: 'robotsTxtContent',
+    googleAnalyticsId: 'googleAnalyticsId',
+    googleTagManagerId: 'googleTagManagerId',
     siteUrl: 'siteUrl',
     logoUrl: 'logoUrl',
     faviconUrl: 'faviconUrl',
@@ -20514,7 +21868,11 @@ export namespace Prisma {
     loadingSpinnerConfig: 'loadingSpinnerConfig',
     themeSwitcherConfig: 'themeSwitcherConfig',
     stickyElementsConfig: 'stickyElementsConfig',
-    cookieBannerText: 'cookieBannerText'
+    developerHtmlContent: 'developerHtmlContent',
+    cookieBannerText: 'cookieBannerText',
+    activeThemeId: 'activeThemeId',
+    globalSeoTitle: 'globalSeoTitle',
+    navigationMenu: 'navigationMenu'
   };
 
   export type GlobalConfigOrderByRelevanceFieldEnum = (typeof GlobalConfigOrderByRelevanceFieldEnum)[keyof typeof GlobalConfigOrderByRelevanceFieldEnum]
@@ -20577,8 +21935,10 @@ export namespace Prisma {
 
 
   export const PageViewOrderByRelevanceFieldEnum: {
-    id: 'id',
-    page: 'page'
+    url: 'url',
+    referrer: 'referrer',
+    ipAddress: 'ipAddress',
+    userAgent: 'userAgent'
   };
 
   export type PageViewOrderByRelevanceFieldEnum = (typeof PageViewOrderByRelevanceFieldEnum)[keyof typeof PageViewOrderByRelevanceFieldEnum]
@@ -20645,10 +22005,24 @@ export namespace Prisma {
   export const StaticPageOrderByRelevanceFieldEnum: {
     title: 'title',
     slug: 'slug',
-    contentHtml: 'contentHtml'
+    contentHtml: 'contentHtml',
+    sidebarPosition: 'sidebarPosition',
+    metaTitle: 'metaTitle',
+    metaDescription: 'metaDescription',
+    metaKeywords: 'metaKeywords'
   };
 
   export type StaticPageOrderByRelevanceFieldEnum = (typeof StaticPageOrderByRelevanceFieldEnum)[keyof typeof StaticPageOrderByRelevanceFieldEnum]
+
+
+  export const AdminLogOrderByRelevanceFieldEnum: {
+    userId: 'userId',
+    userEmail: 'userEmail',
+    action: 'action',
+    details: 'details'
+  };
+
+  export type AdminLogOrderByRelevanceFieldEnum = (typeof AdminLogOrderByRelevanceFieldEnum)[keyof typeof AdminLogOrderByRelevanceFieldEnum]
 
 
   /**
@@ -21016,6 +22390,14 @@ export namespace Prisma {
     NOT?: GlobalConfigWhereInput | GlobalConfigWhereInput[]
     id?: StringFilter<"GlobalConfig"> | string
     siteName?: StringFilter<"GlobalConfig"> | string
+    description?: StringNullableFilter<"GlobalConfig"> | string | null
+    globalMetaTitle?: StringNullableFilter<"GlobalConfig"> | string | null
+    globalMetaDescription?: StringNullableFilter<"GlobalConfig"> | string | null
+    globalKeywords?: StringNullableFilter<"GlobalConfig"> | string | null
+    defaultSocialShareImage?: StringNullableFilter<"GlobalConfig"> | string | null
+    robotsTxtContent?: StringNullableFilter<"GlobalConfig"> | string | null
+    googleAnalyticsId?: StringNullableFilter<"GlobalConfig"> | string | null
+    googleTagManagerId?: StringNullableFilter<"GlobalConfig"> | string | null
     siteUrl?: StringFilter<"GlobalConfig"> | string
     logoUrl?: StringNullableFilter<"GlobalConfig"> | string | null
     faviconUrl?: StringNullableFilter<"GlobalConfig"> | string | null
@@ -21036,13 +22418,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: StringFilter<"GlobalConfig"> | string
     themeSwitcherConfig?: StringFilter<"GlobalConfig"> | string
     stickyElementsConfig?: StringFilter<"GlobalConfig"> | string
-    cookieBannerText?: StringNullableFilter<"GlobalConfig"> | string | null
     cookieBannerLinkPageId?: IntNullableFilter<"GlobalConfig"> | number | null
+    developerHtmlContent?: StringNullableFilter<"GlobalConfig"> | string | null
+    cookieBannerText?: StringNullableFilter<"GlobalConfig"> | string | null
+    activeThemeId?: StringNullableFilter<"GlobalConfig"> | string | null
+    passwordMinLength?: IntNullableFilter<"GlobalConfig"> | number | null
+    passwordRequireUppercase?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    passwordRequireNumber?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    passwordRequireSymbol?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    sessionDuration?: IntNullableFilter<"GlobalConfig"> | number | null
+    maxLoginAttempts?: IntNullableFilter<"GlobalConfig"> | number | null
+    captchaEnabled?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    accountLockoutDuration?: IntNullableFilter<"GlobalConfig"> | number | null
+    globalSeoTitle?: StringNullableFilter<"GlobalConfig"> | string | null
+    navigationMenu?: StringNullableFilter<"GlobalConfig"> | string | null
   }
 
   export type GlobalConfigOrderByWithRelationInput = {
     id?: SortOrder
     siteName?: SortOrder
+    description?: SortOrderInput | SortOrder
+    globalMetaTitle?: SortOrderInput | SortOrder
+    globalMetaDescription?: SortOrderInput | SortOrder
+    globalKeywords?: SortOrderInput | SortOrder
+    defaultSocialShareImage?: SortOrderInput | SortOrder
+    robotsTxtContent?: SortOrderInput | SortOrder
+    googleAnalyticsId?: SortOrderInput | SortOrder
+    googleTagManagerId?: SortOrderInput | SortOrder
     siteUrl?: SortOrder
     logoUrl?: SortOrderInput | SortOrder
     faviconUrl?: SortOrderInput | SortOrder
@@ -21063,8 +22465,20 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
-    cookieBannerText?: SortOrderInput | SortOrder
     cookieBannerLinkPageId?: SortOrderInput | SortOrder
+    developerHtmlContent?: SortOrderInput | SortOrder
+    cookieBannerText?: SortOrderInput | SortOrder
+    activeThemeId?: SortOrderInput | SortOrder
+    passwordMinLength?: SortOrderInput | SortOrder
+    passwordRequireUppercase?: SortOrderInput | SortOrder
+    passwordRequireNumber?: SortOrderInput | SortOrder
+    passwordRequireSymbol?: SortOrderInput | SortOrder
+    sessionDuration?: SortOrderInput | SortOrder
+    maxLoginAttempts?: SortOrderInput | SortOrder
+    captchaEnabled?: SortOrderInput | SortOrder
+    accountLockoutDuration?: SortOrderInput | SortOrder
+    globalSeoTitle?: SortOrderInput | SortOrder
+    navigationMenu?: SortOrderInput | SortOrder
     _relevance?: GlobalConfigOrderByRelevanceInput
   }
 
@@ -21074,6 +22488,14 @@ export namespace Prisma {
     OR?: GlobalConfigWhereInput[]
     NOT?: GlobalConfigWhereInput | GlobalConfigWhereInput[]
     siteName?: StringFilter<"GlobalConfig"> | string
+    description?: StringNullableFilter<"GlobalConfig"> | string | null
+    globalMetaTitle?: StringNullableFilter<"GlobalConfig"> | string | null
+    globalMetaDescription?: StringNullableFilter<"GlobalConfig"> | string | null
+    globalKeywords?: StringNullableFilter<"GlobalConfig"> | string | null
+    defaultSocialShareImage?: StringNullableFilter<"GlobalConfig"> | string | null
+    robotsTxtContent?: StringNullableFilter<"GlobalConfig"> | string | null
+    googleAnalyticsId?: StringNullableFilter<"GlobalConfig"> | string | null
+    googleTagManagerId?: StringNullableFilter<"GlobalConfig"> | string | null
     siteUrl?: StringFilter<"GlobalConfig"> | string
     logoUrl?: StringNullableFilter<"GlobalConfig"> | string | null
     faviconUrl?: StringNullableFilter<"GlobalConfig"> | string | null
@@ -21094,13 +22516,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: StringFilter<"GlobalConfig"> | string
     themeSwitcherConfig?: StringFilter<"GlobalConfig"> | string
     stickyElementsConfig?: StringFilter<"GlobalConfig"> | string
-    cookieBannerText?: StringNullableFilter<"GlobalConfig"> | string | null
     cookieBannerLinkPageId?: IntNullableFilter<"GlobalConfig"> | number | null
+    developerHtmlContent?: StringNullableFilter<"GlobalConfig"> | string | null
+    cookieBannerText?: StringNullableFilter<"GlobalConfig"> | string | null
+    activeThemeId?: StringNullableFilter<"GlobalConfig"> | string | null
+    passwordMinLength?: IntNullableFilter<"GlobalConfig"> | number | null
+    passwordRequireUppercase?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    passwordRequireNumber?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    passwordRequireSymbol?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    sessionDuration?: IntNullableFilter<"GlobalConfig"> | number | null
+    maxLoginAttempts?: IntNullableFilter<"GlobalConfig"> | number | null
+    captchaEnabled?: BoolNullableFilter<"GlobalConfig"> | boolean | null
+    accountLockoutDuration?: IntNullableFilter<"GlobalConfig"> | number | null
+    globalSeoTitle?: StringNullableFilter<"GlobalConfig"> | string | null
+    navigationMenu?: StringNullableFilter<"GlobalConfig"> | string | null
   }, "id">
 
   export type GlobalConfigOrderByWithAggregationInput = {
     id?: SortOrder
     siteName?: SortOrder
+    description?: SortOrderInput | SortOrder
+    globalMetaTitle?: SortOrderInput | SortOrder
+    globalMetaDescription?: SortOrderInput | SortOrder
+    globalKeywords?: SortOrderInput | SortOrder
+    defaultSocialShareImage?: SortOrderInput | SortOrder
+    robotsTxtContent?: SortOrderInput | SortOrder
+    googleAnalyticsId?: SortOrderInput | SortOrder
+    googleTagManagerId?: SortOrderInput | SortOrder
     siteUrl?: SortOrder
     logoUrl?: SortOrderInput | SortOrder
     faviconUrl?: SortOrderInput | SortOrder
@@ -21121,8 +22563,20 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
-    cookieBannerText?: SortOrderInput | SortOrder
     cookieBannerLinkPageId?: SortOrderInput | SortOrder
+    developerHtmlContent?: SortOrderInput | SortOrder
+    cookieBannerText?: SortOrderInput | SortOrder
+    activeThemeId?: SortOrderInput | SortOrder
+    passwordMinLength?: SortOrderInput | SortOrder
+    passwordRequireUppercase?: SortOrderInput | SortOrder
+    passwordRequireNumber?: SortOrderInput | SortOrder
+    passwordRequireSymbol?: SortOrderInput | SortOrder
+    sessionDuration?: SortOrderInput | SortOrder
+    maxLoginAttempts?: SortOrderInput | SortOrder
+    captchaEnabled?: SortOrderInput | SortOrder
+    accountLockoutDuration?: SortOrderInput | SortOrder
+    globalSeoTitle?: SortOrderInput | SortOrder
+    navigationMenu?: SortOrderInput | SortOrder
     _count?: GlobalConfigCountOrderByAggregateInput
     _avg?: GlobalConfigAvgOrderByAggregateInput
     _max?: GlobalConfigMaxOrderByAggregateInput
@@ -21136,6 +22590,14 @@ export namespace Prisma {
     NOT?: GlobalConfigScalarWhereWithAggregatesInput | GlobalConfigScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"GlobalConfig"> | string
     siteName?: StringWithAggregatesFilter<"GlobalConfig"> | string
+    description?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    globalMetaTitle?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    globalMetaDescription?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    globalKeywords?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    defaultSocialShareImage?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    robotsTxtContent?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    googleAnalyticsId?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    googleTagManagerId?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
     siteUrl?: StringWithAggregatesFilter<"GlobalConfig"> | string
     logoUrl?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
     faviconUrl?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
@@ -21156,8 +22618,20 @@ export namespace Prisma {
     loadingSpinnerConfig?: StringWithAggregatesFilter<"GlobalConfig"> | string
     themeSwitcherConfig?: StringWithAggregatesFilter<"GlobalConfig"> | string
     stickyElementsConfig?: StringWithAggregatesFilter<"GlobalConfig"> | string
-    cookieBannerText?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
     cookieBannerLinkPageId?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
+    developerHtmlContent?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    cookieBannerText?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    activeThemeId?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    passwordMinLength?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
+    passwordRequireUppercase?: BoolNullableWithAggregatesFilter<"GlobalConfig"> | boolean | null
+    passwordRequireNumber?: BoolNullableWithAggregatesFilter<"GlobalConfig"> | boolean | null
+    passwordRequireSymbol?: BoolNullableWithAggregatesFilter<"GlobalConfig"> | boolean | null
+    sessionDuration?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
+    maxLoginAttempts?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
+    captchaEnabled?: BoolNullableWithAggregatesFilter<"GlobalConfig"> | boolean | null
+    accountLockoutDuration?: IntNullableWithAggregatesFilter<"GlobalConfig"> | number | null
+    globalSeoTitle?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
+    navigationMenu?: StringNullableWithAggregatesFilter<"GlobalConfig"> | string | null
   }
 
   export type AdminActionWhereInput = {
@@ -21543,35 +23017,43 @@ export namespace Prisma {
     AND?: PageViewWhereInput | PageViewWhereInput[]
     OR?: PageViewWhereInput[]
     NOT?: PageViewWhereInput | PageViewWhereInput[]
-    id?: StringFilter<"PageView"> | string
-    page?: StringFilter<"PageView"> | string
-    date?: DateTimeFilter<"PageView"> | Date | string
-    count?: IntFilter<"PageView"> | number
+    id?: IntFilter<"PageView"> | number
+    url?: StringFilter<"PageView"> | string
+    referrer?: StringNullableFilter<"PageView"> | string | null
+    ipAddress?: StringNullableFilter<"PageView"> | string | null
+    userAgent?: StringNullableFilter<"PageView"> | string | null
+    timestamp?: DateTimeNullableFilter<"PageView"> | Date | string | null
   }
 
   export type PageViewOrderByWithRelationInput = {
     id?: SortOrder
-    page?: SortOrder
-    date?: SortOrder
-    count?: SortOrder
+    url?: SortOrder
+    referrer?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    timestamp?: SortOrderInput | SortOrder
     _relevance?: PageViewOrderByRelevanceInput
   }
 
   export type PageViewWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
+    id?: number
     AND?: PageViewWhereInput | PageViewWhereInput[]
     OR?: PageViewWhereInput[]
     NOT?: PageViewWhereInput | PageViewWhereInput[]
-    page?: StringFilter<"PageView"> | string
-    date?: DateTimeFilter<"PageView"> | Date | string
-    count?: IntFilter<"PageView"> | number
+    url?: StringFilter<"PageView"> | string
+    referrer?: StringNullableFilter<"PageView"> | string | null
+    ipAddress?: StringNullableFilter<"PageView"> | string | null
+    userAgent?: StringNullableFilter<"PageView"> | string | null
+    timestamp?: DateTimeNullableFilter<"PageView"> | Date | string | null
   }, "id">
 
   export type PageViewOrderByWithAggregationInput = {
     id?: SortOrder
-    page?: SortOrder
-    date?: SortOrder
-    count?: SortOrder
+    url?: SortOrder
+    referrer?: SortOrderInput | SortOrder
+    ipAddress?: SortOrderInput | SortOrder
+    userAgent?: SortOrderInput | SortOrder
+    timestamp?: SortOrderInput | SortOrder
     _count?: PageViewCountOrderByAggregateInput
     _avg?: PageViewAvgOrderByAggregateInput
     _max?: PageViewMaxOrderByAggregateInput
@@ -21583,10 +23065,12 @@ export namespace Prisma {
     AND?: PageViewScalarWhereWithAggregatesInput | PageViewScalarWhereWithAggregatesInput[]
     OR?: PageViewScalarWhereWithAggregatesInput[]
     NOT?: PageViewScalarWhereWithAggregatesInput | PageViewScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter<"PageView"> | string
-    page?: StringWithAggregatesFilter<"PageView"> | string
-    date?: DateTimeWithAggregatesFilter<"PageView"> | Date | string
-    count?: IntWithAggregatesFilter<"PageView"> | number
+    id?: IntWithAggregatesFilter<"PageView"> | number
+    url?: StringWithAggregatesFilter<"PageView"> | string
+    referrer?: StringNullableWithAggregatesFilter<"PageView"> | string | null
+    ipAddress?: StringNullableWithAggregatesFilter<"PageView"> | string | null
+    userAgent?: StringNullableWithAggregatesFilter<"PageView"> | string | null
+    timestamp?: DateTimeNullableWithAggregatesFilter<"PageView"> | Date | string | null
   }
 
   export type ReferrerWhereInput = {
@@ -21992,12 +23476,16 @@ export namespace Prisma {
     title?: StringFilter<"StaticPage"> | string
     slug?: StringFilter<"StaticPage"> | string
     contentHtml?: StringFilter<"StaticPage"> | string
-    menuOrder?: IntFilter<"StaticPage"> | number
-    includeInMenu?: BoolFilter<"StaticPage"> | boolean
     isHomePage?: BoolFilter<"StaticPage"> | boolean
-    isVisible?: BoolFilter<"StaticPage"> | boolean
     createdAt?: DateTimeFilter<"StaticPage"> | Date | string
     updatedAt?: DateTimeFilter<"StaticPage"> | Date | string
+    showHeader?: BoolNullableFilter<"StaticPage"> | boolean | null
+    showFooter?: BoolNullableFilter<"StaticPage"> | boolean | null
+    showSidebar?: BoolNullableFilter<"StaticPage"> | boolean | null
+    sidebarPosition?: StringNullableFilter<"StaticPage"> | string | null
+    metaTitle?: StringNullableFilter<"StaticPage"> | string | null
+    metaDescription?: StringNullableFilter<"StaticPage"> | string | null
+    metaKeywords?: StringNullableFilter<"StaticPage"> | string | null
   }
 
   export type StaticPageOrderByWithRelationInput = {
@@ -22005,12 +23493,16 @@ export namespace Prisma {
     title?: SortOrder
     slug?: SortOrder
     contentHtml?: SortOrder
-    menuOrder?: SortOrder
-    includeInMenu?: SortOrder
     isHomePage?: SortOrder
-    isVisible?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    showHeader?: SortOrderInput | SortOrder
+    showFooter?: SortOrderInput | SortOrder
+    showSidebar?: SortOrderInput | SortOrder
+    sidebarPosition?: SortOrderInput | SortOrder
+    metaTitle?: SortOrderInput | SortOrder
+    metaDescription?: SortOrderInput | SortOrder
+    metaKeywords?: SortOrderInput | SortOrder
     _relevance?: StaticPageOrderByRelevanceInput
   }
 
@@ -22022,12 +23514,16 @@ export namespace Prisma {
     NOT?: StaticPageWhereInput | StaticPageWhereInput[]
     title?: StringFilter<"StaticPage"> | string
     contentHtml?: StringFilter<"StaticPage"> | string
-    menuOrder?: IntFilter<"StaticPage"> | number
-    includeInMenu?: BoolFilter<"StaticPage"> | boolean
     isHomePage?: BoolFilter<"StaticPage"> | boolean
-    isVisible?: BoolFilter<"StaticPage"> | boolean
     createdAt?: DateTimeFilter<"StaticPage"> | Date | string
     updatedAt?: DateTimeFilter<"StaticPage"> | Date | string
+    showHeader?: BoolNullableFilter<"StaticPage"> | boolean | null
+    showFooter?: BoolNullableFilter<"StaticPage"> | boolean | null
+    showSidebar?: BoolNullableFilter<"StaticPage"> | boolean | null
+    sidebarPosition?: StringNullableFilter<"StaticPage"> | string | null
+    metaTitle?: StringNullableFilter<"StaticPage"> | string | null
+    metaDescription?: StringNullableFilter<"StaticPage"> | string | null
+    metaKeywords?: StringNullableFilter<"StaticPage"> | string | null
   }, "id" | "slug">
 
   export type StaticPageOrderByWithAggregationInput = {
@@ -22035,12 +23531,16 @@ export namespace Prisma {
     title?: SortOrder
     slug?: SortOrder
     contentHtml?: SortOrder
-    menuOrder?: SortOrder
-    includeInMenu?: SortOrder
     isHomePage?: SortOrder
-    isVisible?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    showHeader?: SortOrderInput | SortOrder
+    showFooter?: SortOrderInput | SortOrder
+    showSidebar?: SortOrderInput | SortOrder
+    sidebarPosition?: SortOrderInput | SortOrder
+    metaTitle?: SortOrderInput | SortOrder
+    metaDescription?: SortOrderInput | SortOrder
+    metaKeywords?: SortOrderInput | SortOrder
     _count?: StaticPageCountOrderByAggregateInput
     _avg?: StaticPageAvgOrderByAggregateInput
     _max?: StaticPageMaxOrderByAggregateInput
@@ -22056,12 +23556,76 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter<"StaticPage"> | string
     slug?: StringWithAggregatesFilter<"StaticPage"> | string
     contentHtml?: StringWithAggregatesFilter<"StaticPage"> | string
-    menuOrder?: IntWithAggregatesFilter<"StaticPage"> | number
-    includeInMenu?: BoolWithAggregatesFilter<"StaticPage"> | boolean
     isHomePage?: BoolWithAggregatesFilter<"StaticPage"> | boolean
-    isVisible?: BoolWithAggregatesFilter<"StaticPage"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"StaticPage"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"StaticPage"> | Date | string
+    showHeader?: BoolNullableWithAggregatesFilter<"StaticPage"> | boolean | null
+    showFooter?: BoolNullableWithAggregatesFilter<"StaticPage"> | boolean | null
+    showSidebar?: BoolNullableWithAggregatesFilter<"StaticPage"> | boolean | null
+    sidebarPosition?: StringNullableWithAggregatesFilter<"StaticPage"> | string | null
+    metaTitle?: StringNullableWithAggregatesFilter<"StaticPage"> | string | null
+    metaDescription?: StringNullableWithAggregatesFilter<"StaticPage"> | string | null
+    metaKeywords?: StringNullableWithAggregatesFilter<"StaticPage"> | string | null
+  }
+
+  export type AdminLogWhereInput = {
+    AND?: AdminLogWhereInput | AdminLogWhereInput[]
+    OR?: AdminLogWhereInput[]
+    NOT?: AdminLogWhereInput | AdminLogWhereInput[]
+    id?: IntFilter<"AdminLog"> | number
+    userId?: StringNullableFilter<"AdminLog"> | string | null
+    userEmail?: StringNullableFilter<"AdminLog"> | string | null
+    action?: StringFilter<"AdminLog"> | string
+    details?: StringNullableFilter<"AdminLog"> | string | null
+    timestamp?: DateTimeNullableFilter<"AdminLog"> | Date | string | null
+  }
+
+  export type AdminLogOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    userEmail?: SortOrderInput | SortOrder
+    action?: SortOrder
+    details?: SortOrderInput | SortOrder
+    timestamp?: SortOrderInput | SortOrder
+    _relevance?: AdminLogOrderByRelevanceInput
+  }
+
+  export type AdminLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: AdminLogWhereInput | AdminLogWhereInput[]
+    OR?: AdminLogWhereInput[]
+    NOT?: AdminLogWhereInput | AdminLogWhereInput[]
+    userId?: StringNullableFilter<"AdminLog"> | string | null
+    userEmail?: StringNullableFilter<"AdminLog"> | string | null
+    action?: StringFilter<"AdminLog"> | string
+    details?: StringNullableFilter<"AdminLog"> | string | null
+    timestamp?: DateTimeNullableFilter<"AdminLog"> | Date | string | null
+  }, "id">
+
+  export type AdminLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    userEmail?: SortOrderInput | SortOrder
+    action?: SortOrder
+    details?: SortOrderInput | SortOrder
+    timestamp?: SortOrderInput | SortOrder
+    _count?: AdminLogCountOrderByAggregateInput
+    _avg?: AdminLogAvgOrderByAggregateInput
+    _max?: AdminLogMaxOrderByAggregateInput
+    _min?: AdminLogMinOrderByAggregateInput
+    _sum?: AdminLogSumOrderByAggregateInput
+  }
+
+  export type AdminLogScalarWhereWithAggregatesInput = {
+    AND?: AdminLogScalarWhereWithAggregatesInput | AdminLogScalarWhereWithAggregatesInput[]
+    OR?: AdminLogScalarWhereWithAggregatesInput[]
+    NOT?: AdminLogScalarWhereWithAggregatesInput | AdminLogScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"AdminLog"> | number
+    userId?: StringNullableWithAggregatesFilter<"AdminLog"> | string | null
+    userEmail?: StringNullableWithAggregatesFilter<"AdminLog"> | string | null
+    action?: StringWithAggregatesFilter<"AdminLog"> | string
+    details?: StringNullableWithAggregatesFilter<"AdminLog"> | string | null
+    timestamp?: DateTimeNullableWithAggregatesFilter<"AdminLog"> | Date | string | null
   }
 
   export type UserCreateInput = {
@@ -22361,6 +23925,14 @@ export namespace Prisma {
   export type GlobalConfigCreateInput = {
     id?: string
     siteName?: string
+    description?: string | null
+    globalMetaTitle?: string | null
+    globalMetaDescription?: string | null
+    globalKeywords?: string | null
+    defaultSocialShareImage?: string | null
+    robotsTxtContent?: string | null
+    googleAnalyticsId?: string | null
+    googleTagManagerId?: string | null
     siteUrl?: string
     logoUrl?: string | null
     faviconUrl?: string | null
@@ -22381,13 +23953,33 @@ export namespace Prisma {
     loadingSpinnerConfig: string
     themeSwitcherConfig: string
     stickyElementsConfig: string
-    cookieBannerText?: string | null
     cookieBannerLinkPageId?: number | null
+    developerHtmlContent?: string | null
+    cookieBannerText?: string | null
+    activeThemeId?: string | null
+    passwordMinLength?: number | null
+    passwordRequireUppercase?: boolean | null
+    passwordRequireNumber?: boolean | null
+    passwordRequireSymbol?: boolean | null
+    sessionDuration?: number | null
+    maxLoginAttempts?: number | null
+    captchaEnabled?: boolean | null
+    accountLockoutDuration?: number | null
+    globalSeoTitle?: string | null
+    navigationMenu?: string | null
   }
 
   export type GlobalConfigUncheckedCreateInput = {
     id?: string
     siteName?: string
+    description?: string | null
+    globalMetaTitle?: string | null
+    globalMetaDescription?: string | null
+    globalKeywords?: string | null
+    defaultSocialShareImage?: string | null
+    robotsTxtContent?: string | null
+    googleAnalyticsId?: string | null
+    googleTagManagerId?: string | null
     siteUrl?: string
     logoUrl?: string | null
     faviconUrl?: string | null
@@ -22408,13 +24000,33 @@ export namespace Prisma {
     loadingSpinnerConfig: string
     themeSwitcherConfig: string
     stickyElementsConfig: string
-    cookieBannerText?: string | null
     cookieBannerLinkPageId?: number | null
+    developerHtmlContent?: string | null
+    cookieBannerText?: string | null
+    activeThemeId?: string | null
+    passwordMinLength?: number | null
+    passwordRequireUppercase?: boolean | null
+    passwordRequireNumber?: boolean | null
+    passwordRequireSymbol?: boolean | null
+    sessionDuration?: number | null
+    maxLoginAttempts?: number | null
+    captchaEnabled?: boolean | null
+    accountLockoutDuration?: number | null
+    globalSeoTitle?: string | null
+    navigationMenu?: string | null
   }
 
   export type GlobalConfigUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     siteName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    globalKeywords?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultSocialShareImage?: NullableStringFieldUpdateOperationsInput | string | null
+    robotsTxtContent?: NullableStringFieldUpdateOperationsInput | string | null
+    googleAnalyticsId?: NullableStringFieldUpdateOperationsInput | string | null
+    googleTagManagerId?: NullableStringFieldUpdateOperationsInput | string | null
     siteUrl?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     faviconUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22435,13 +24047,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
     themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
     stickyElementsConfig?: StringFieldUpdateOperationsInput | string
-    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
     cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
+    developerHtmlContent?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordMinLength?: NullableIntFieldUpdateOperationsInput | number | null
+    passwordRequireUppercase?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireNumber?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireSymbol?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sessionDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    maxLoginAttempts?: NullableIntFieldUpdateOperationsInput | number | null
+    captchaEnabled?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    accountLockoutDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    globalSeoTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    navigationMenu?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GlobalConfigUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     siteName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    globalKeywords?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultSocialShareImage?: NullableStringFieldUpdateOperationsInput | string | null
+    robotsTxtContent?: NullableStringFieldUpdateOperationsInput | string | null
+    googleAnalyticsId?: NullableStringFieldUpdateOperationsInput | string | null
+    googleTagManagerId?: NullableStringFieldUpdateOperationsInput | string | null
     siteUrl?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     faviconUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22462,13 +24094,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
     themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
     stickyElementsConfig?: StringFieldUpdateOperationsInput | string
-    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
     cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
+    developerHtmlContent?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordMinLength?: NullableIntFieldUpdateOperationsInput | number | null
+    passwordRequireUppercase?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireNumber?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireSymbol?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sessionDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    maxLoginAttempts?: NullableIntFieldUpdateOperationsInput | number | null
+    captchaEnabled?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    accountLockoutDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    globalSeoTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    navigationMenu?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GlobalConfigCreateManyInput = {
     id?: string
     siteName?: string
+    description?: string | null
+    globalMetaTitle?: string | null
+    globalMetaDescription?: string | null
+    globalKeywords?: string | null
+    defaultSocialShareImage?: string | null
+    robotsTxtContent?: string | null
+    googleAnalyticsId?: string | null
+    googleTagManagerId?: string | null
     siteUrl?: string
     logoUrl?: string | null
     faviconUrl?: string | null
@@ -22489,13 +24141,33 @@ export namespace Prisma {
     loadingSpinnerConfig: string
     themeSwitcherConfig: string
     stickyElementsConfig: string
-    cookieBannerText?: string | null
     cookieBannerLinkPageId?: number | null
+    developerHtmlContent?: string | null
+    cookieBannerText?: string | null
+    activeThemeId?: string | null
+    passwordMinLength?: number | null
+    passwordRequireUppercase?: boolean | null
+    passwordRequireNumber?: boolean | null
+    passwordRequireSymbol?: boolean | null
+    sessionDuration?: number | null
+    maxLoginAttempts?: number | null
+    captchaEnabled?: boolean | null
+    accountLockoutDuration?: number | null
+    globalSeoTitle?: string | null
+    navigationMenu?: string | null
   }
 
   export type GlobalConfigUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     siteName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    globalKeywords?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultSocialShareImage?: NullableStringFieldUpdateOperationsInput | string | null
+    robotsTxtContent?: NullableStringFieldUpdateOperationsInput | string | null
+    googleAnalyticsId?: NullableStringFieldUpdateOperationsInput | string | null
+    googleTagManagerId?: NullableStringFieldUpdateOperationsInput | string | null
     siteUrl?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     faviconUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22516,13 +24188,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
     themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
     stickyElementsConfig?: StringFieldUpdateOperationsInput | string
-    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
     cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
+    developerHtmlContent?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordMinLength?: NullableIntFieldUpdateOperationsInput | number | null
+    passwordRequireUppercase?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireNumber?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireSymbol?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sessionDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    maxLoginAttempts?: NullableIntFieldUpdateOperationsInput | number | null
+    captchaEnabled?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    accountLockoutDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    globalSeoTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    navigationMenu?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type GlobalConfigUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     siteName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    globalMetaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    globalKeywords?: NullableStringFieldUpdateOperationsInput | string | null
+    defaultSocialShareImage?: NullableStringFieldUpdateOperationsInput | string | null
+    robotsTxtContent?: NullableStringFieldUpdateOperationsInput | string | null
+    googleAnalyticsId?: NullableStringFieldUpdateOperationsInput | string | null
+    googleTagManagerId?: NullableStringFieldUpdateOperationsInput | string | null
     siteUrl?: StringFieldUpdateOperationsInput | string
     logoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     faviconUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22543,8 +24235,20 @@ export namespace Prisma {
     loadingSpinnerConfig?: StringFieldUpdateOperationsInput | string
     themeSwitcherConfig?: StringFieldUpdateOperationsInput | string
     stickyElementsConfig?: StringFieldUpdateOperationsInput | string
-    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
     cookieBannerLinkPageId?: NullableIntFieldUpdateOperationsInput | number | null
+    developerHtmlContent?: NullableStringFieldUpdateOperationsInput | string | null
+    cookieBannerText?: NullableStringFieldUpdateOperationsInput | string | null
+    activeThemeId?: NullableStringFieldUpdateOperationsInput | string | null
+    passwordMinLength?: NullableIntFieldUpdateOperationsInput | number | null
+    passwordRequireUppercase?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireNumber?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    passwordRequireSymbol?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sessionDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    maxLoginAttempts?: NullableIntFieldUpdateOperationsInput | number | null
+    captchaEnabled?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    accountLockoutDuration?: NullableIntFieldUpdateOperationsInput | number | null
+    globalSeoTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    navigationMenu?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type AdminActionCreateInput = {
@@ -22939,52 +24643,63 @@ export namespace Prisma {
   }
 
   export type PageViewCreateInput = {
-    id?: string
-    page: string
-    date: Date | string
-    count?: number
+    url: string
+    referrer?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    timestamp?: Date | string | null
   }
 
   export type PageViewUncheckedCreateInput = {
-    id?: string
-    page: string
-    date: Date | string
-    count?: number
+    id?: number
+    url: string
+    referrer?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    timestamp?: Date | string | null
   }
 
   export type PageViewUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    page?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    count?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    referrer?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type PageViewUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    page?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    count?: IntFieldUpdateOperationsInput | number
+    id?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    referrer?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type PageViewCreateManyInput = {
-    id?: string
-    page: string
-    date: Date | string
-    count?: number
+    id?: number
+    url: string
+    referrer?: string | null
+    ipAddress?: string | null
+    userAgent?: string | null
+    timestamp?: Date | string | null
   }
 
   export type PageViewUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    page?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    count?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    referrer?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type PageViewUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    page?: StringFieldUpdateOperationsInput | string
-    date?: DateTimeFieldUpdateOperationsInput | Date | string
-    count?: IntFieldUpdateOperationsInput | number
+    id?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    referrer?: NullableStringFieldUpdateOperationsInput | string | null
+    ipAddress?: NullableStringFieldUpdateOperationsInput | string | null
+    userAgent?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type ReferrerCreateInput = {
@@ -23429,12 +25144,16 @@ export namespace Prisma {
     title: string
     slug: string
     contentHtml: string
-    menuOrder?: number
-    includeInMenu?: boolean
     isHomePage?: boolean
-    isVisible?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    showHeader?: boolean | null
+    showFooter?: boolean | null
+    showSidebar?: boolean | null
+    sidebarPosition?: string | null
+    metaTitle?: string | null
+    metaDescription?: string | null
+    metaKeywords?: string | null
   }
 
   export type StaticPageUncheckedCreateInput = {
@@ -23442,24 +25161,32 @@ export namespace Prisma {
     title: string
     slug: string
     contentHtml: string
-    menuOrder?: number
-    includeInMenu?: boolean
     isHomePage?: boolean
-    isVisible?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    showHeader?: boolean | null
+    showFooter?: boolean | null
+    showSidebar?: boolean | null
+    sidebarPosition?: string | null
+    metaTitle?: string | null
+    metaDescription?: string | null
+    metaKeywords?: string | null
   }
 
   export type StaticPageUpdateInput = {
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     contentHtml?: StringFieldUpdateOperationsInput | string
-    menuOrder?: IntFieldUpdateOperationsInput | number
-    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
     isHomePage?: BoolFieldUpdateOperationsInput | boolean
-    isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    showHeader?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showFooter?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showSidebar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sidebarPosition?: NullableStringFieldUpdateOperationsInput | string | null
+    metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    metaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    metaKeywords?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type StaticPageUncheckedUpdateInput = {
@@ -23467,12 +25194,16 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     contentHtml?: StringFieldUpdateOperationsInput | string
-    menuOrder?: IntFieldUpdateOperationsInput | number
-    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
     isHomePage?: BoolFieldUpdateOperationsInput | boolean
-    isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    showHeader?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showFooter?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showSidebar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sidebarPosition?: NullableStringFieldUpdateOperationsInput | string | null
+    metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    metaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    metaKeywords?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type StaticPageCreateManyInput = {
@@ -23480,24 +25211,32 @@ export namespace Prisma {
     title: string
     slug: string
     contentHtml: string
-    menuOrder?: number
-    includeInMenu?: boolean
     isHomePage?: boolean
-    isVisible?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    showHeader?: boolean | null
+    showFooter?: boolean | null
+    showSidebar?: boolean | null
+    sidebarPosition?: string | null
+    metaTitle?: string | null
+    metaDescription?: string | null
+    metaKeywords?: string | null
   }
 
   export type StaticPageUpdateManyMutationInput = {
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     contentHtml?: StringFieldUpdateOperationsInput | string
-    menuOrder?: IntFieldUpdateOperationsInput | number
-    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
     isHomePage?: BoolFieldUpdateOperationsInput | boolean
-    isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    showHeader?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showFooter?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showSidebar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sidebarPosition?: NullableStringFieldUpdateOperationsInput | string | null
+    metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    metaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    metaKeywords?: NullableStringFieldUpdateOperationsInput | string | null
   }
 
   export type StaticPageUncheckedUpdateManyInput = {
@@ -23505,12 +25244,76 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     contentHtml?: StringFieldUpdateOperationsInput | string
-    menuOrder?: IntFieldUpdateOperationsInput | number
-    includeInMenu?: BoolFieldUpdateOperationsInput | boolean
     isHomePage?: BoolFieldUpdateOperationsInput | boolean
-    isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    showHeader?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showFooter?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    showSidebar?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    sidebarPosition?: NullableStringFieldUpdateOperationsInput | string | null
+    metaTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    metaDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    metaKeywords?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type AdminLogCreateInput = {
+    userId?: string | null
+    userEmail?: string | null
+    action: string
+    details?: string | null
+    timestamp?: Date | string | null
+  }
+
+  export type AdminLogUncheckedCreateInput = {
+    id?: number
+    userId?: string | null
+    userEmail?: string | null
+    action: string
+    details?: string | null
+    timestamp?: Date | string | null
+  }
+
+  export type AdminLogUpdateInput = {
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    userEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminLogUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    userEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminLogCreateManyInput = {
+    id?: number
+    userId?: string | null
+    userEmail?: string | null
+    action: string
+    details?: string | null
+    timestamp?: Date | string | null
+  }
+
+  export type AdminLogUpdateManyMutationInput = {
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    userEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AdminLogUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    userEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    action?: StringFieldUpdateOperationsInput | string
+    details?: NullableStringFieldUpdateOperationsInput | string | null
+    timestamp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -23890,6 +25693,11 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type BoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+
   export type GlobalConfigOrderByRelevanceInput = {
     fields: GlobalConfigOrderByRelevanceFieldEnum | GlobalConfigOrderByRelevanceFieldEnum[]
     sort: SortOrder
@@ -23899,6 +25707,14 @@ export namespace Prisma {
   export type GlobalConfigCountOrderByAggregateInput = {
     id?: SortOrder
     siteName?: SortOrder
+    description?: SortOrder
+    globalMetaTitle?: SortOrder
+    globalMetaDescription?: SortOrder
+    globalKeywords?: SortOrder
+    defaultSocialShareImage?: SortOrder
+    robotsTxtContent?: SortOrder
+    googleAnalyticsId?: SortOrder
+    googleTagManagerId?: SortOrder
     siteUrl?: SortOrder
     logoUrl?: SortOrder
     faviconUrl?: SortOrder
@@ -23919,19 +25735,43 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
-    cookieBannerText?: SortOrder
     cookieBannerLinkPageId?: SortOrder
+    developerHtmlContent?: SortOrder
+    cookieBannerText?: SortOrder
+    activeThemeId?: SortOrder
+    passwordMinLength?: SortOrder
+    passwordRequireUppercase?: SortOrder
+    passwordRequireNumber?: SortOrder
+    passwordRequireSymbol?: SortOrder
+    sessionDuration?: SortOrder
+    maxLoginAttempts?: SortOrder
+    captchaEnabled?: SortOrder
+    accountLockoutDuration?: SortOrder
+    globalSeoTitle?: SortOrder
+    navigationMenu?: SortOrder
   }
 
   export type GlobalConfigAvgOrderByAggregateInput = {
     defaultLightThemePresetId?: SortOrder
     defaultDarkThemePresetId?: SortOrder
     cookieBannerLinkPageId?: SortOrder
+    passwordMinLength?: SortOrder
+    sessionDuration?: SortOrder
+    maxLoginAttempts?: SortOrder
+    accountLockoutDuration?: SortOrder
   }
 
   export type GlobalConfigMaxOrderByAggregateInput = {
     id?: SortOrder
     siteName?: SortOrder
+    description?: SortOrder
+    globalMetaTitle?: SortOrder
+    globalMetaDescription?: SortOrder
+    globalKeywords?: SortOrder
+    defaultSocialShareImage?: SortOrder
+    robotsTxtContent?: SortOrder
+    googleAnalyticsId?: SortOrder
+    googleTagManagerId?: SortOrder
     siteUrl?: SortOrder
     logoUrl?: SortOrder
     faviconUrl?: SortOrder
@@ -23952,13 +25792,33 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
-    cookieBannerText?: SortOrder
     cookieBannerLinkPageId?: SortOrder
+    developerHtmlContent?: SortOrder
+    cookieBannerText?: SortOrder
+    activeThemeId?: SortOrder
+    passwordMinLength?: SortOrder
+    passwordRequireUppercase?: SortOrder
+    passwordRequireNumber?: SortOrder
+    passwordRequireSymbol?: SortOrder
+    sessionDuration?: SortOrder
+    maxLoginAttempts?: SortOrder
+    captchaEnabled?: SortOrder
+    accountLockoutDuration?: SortOrder
+    globalSeoTitle?: SortOrder
+    navigationMenu?: SortOrder
   }
 
   export type GlobalConfigMinOrderByAggregateInput = {
     id?: SortOrder
     siteName?: SortOrder
+    description?: SortOrder
+    globalMetaTitle?: SortOrder
+    globalMetaDescription?: SortOrder
+    globalKeywords?: SortOrder
+    defaultSocialShareImage?: SortOrder
+    robotsTxtContent?: SortOrder
+    googleAnalyticsId?: SortOrder
+    googleTagManagerId?: SortOrder
     siteUrl?: SortOrder
     logoUrl?: SortOrder
     faviconUrl?: SortOrder
@@ -23979,14 +25839,30 @@ export namespace Prisma {
     loadingSpinnerConfig?: SortOrder
     themeSwitcherConfig?: SortOrder
     stickyElementsConfig?: SortOrder
-    cookieBannerText?: SortOrder
     cookieBannerLinkPageId?: SortOrder
+    developerHtmlContent?: SortOrder
+    cookieBannerText?: SortOrder
+    activeThemeId?: SortOrder
+    passwordMinLength?: SortOrder
+    passwordRequireUppercase?: SortOrder
+    passwordRequireNumber?: SortOrder
+    passwordRequireSymbol?: SortOrder
+    sessionDuration?: SortOrder
+    maxLoginAttempts?: SortOrder
+    captchaEnabled?: SortOrder
+    accountLockoutDuration?: SortOrder
+    globalSeoTitle?: SortOrder
+    navigationMenu?: SortOrder
   }
 
   export type GlobalConfigSumOrderByAggregateInput = {
     defaultLightThemePresetId?: SortOrder
     defaultDarkThemePresetId?: SortOrder
     cookieBannerLinkPageId?: SortOrder
+    passwordMinLength?: SortOrder
+    sessionDuration?: SortOrder
+    maxLoginAttempts?: SortOrder
+    accountLockoutDuration?: SortOrder
   }
 
   export type BoolWithAggregatesFilter<$PrismaModel = never> = {
@@ -23995,6 +25871,14 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
   export type AdminActionOrderByRelevanceInput = {
@@ -24329,31 +26213,37 @@ export namespace Prisma {
 
   export type PageViewCountOrderByAggregateInput = {
     id?: SortOrder
-    page?: SortOrder
-    date?: SortOrder
-    count?: SortOrder
+    url?: SortOrder
+    referrer?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    timestamp?: SortOrder
   }
 
   export type PageViewAvgOrderByAggregateInput = {
-    count?: SortOrder
+    id?: SortOrder
   }
 
   export type PageViewMaxOrderByAggregateInput = {
     id?: SortOrder
-    page?: SortOrder
-    date?: SortOrder
-    count?: SortOrder
+    url?: SortOrder
+    referrer?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    timestamp?: SortOrder
   }
 
   export type PageViewMinOrderByAggregateInput = {
     id?: SortOrder
-    page?: SortOrder
-    date?: SortOrder
-    count?: SortOrder
+    url?: SortOrder
+    referrer?: SortOrder
+    ipAddress?: SortOrder
+    userAgent?: SortOrder
+    timestamp?: SortOrder
   }
 
   export type PageViewSumOrderByAggregateInput = {
-    count?: SortOrder
+    id?: SortOrder
   }
 
   export type ReferrerOrderByRelevanceInput = {
@@ -24652,17 +26542,20 @@ export namespace Prisma {
     title?: SortOrder
     slug?: SortOrder
     contentHtml?: SortOrder
-    menuOrder?: SortOrder
-    includeInMenu?: SortOrder
     isHomePage?: SortOrder
-    isVisible?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    showHeader?: SortOrder
+    showFooter?: SortOrder
+    showSidebar?: SortOrder
+    sidebarPosition?: SortOrder
+    metaTitle?: SortOrder
+    metaDescription?: SortOrder
+    metaKeywords?: SortOrder
   }
 
   export type StaticPageAvgOrderByAggregateInput = {
     id?: SortOrder
-    menuOrder?: SortOrder
   }
 
   export type StaticPageMaxOrderByAggregateInput = {
@@ -24670,12 +26563,16 @@ export namespace Prisma {
     title?: SortOrder
     slug?: SortOrder
     contentHtml?: SortOrder
-    menuOrder?: SortOrder
-    includeInMenu?: SortOrder
     isHomePage?: SortOrder
-    isVisible?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    showHeader?: SortOrder
+    showFooter?: SortOrder
+    showSidebar?: SortOrder
+    sidebarPosition?: SortOrder
+    metaTitle?: SortOrder
+    metaDescription?: SortOrder
+    metaKeywords?: SortOrder
   }
 
   export type StaticPageMinOrderByAggregateInput = {
@@ -24683,17 +26580,61 @@ export namespace Prisma {
     title?: SortOrder
     slug?: SortOrder
     contentHtml?: SortOrder
-    menuOrder?: SortOrder
-    includeInMenu?: SortOrder
     isHomePage?: SortOrder
-    isVisible?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    showHeader?: SortOrder
+    showFooter?: SortOrder
+    showSidebar?: SortOrder
+    sidebarPosition?: SortOrder
+    metaTitle?: SortOrder
+    metaDescription?: SortOrder
+    metaKeywords?: SortOrder
   }
 
   export type StaticPageSumOrderByAggregateInput = {
     id?: SortOrder
-    menuOrder?: SortOrder
+  }
+
+  export type AdminLogOrderByRelevanceInput = {
+    fields: AdminLogOrderByRelevanceFieldEnum | AdminLogOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
+  export type AdminLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
+    details?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type AdminLogAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type AdminLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
+    details?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type AdminLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    userEmail?: SortOrder
+    action?: SortOrder
+    details?: SortOrder
+    timestamp?: SortOrder
+  }
+
+  export type AdminLogSumOrderByAggregateInput = {
+    id?: SortOrder
   }
 
   export type AccountCreateNestedManyWithoutUserInput = {
@@ -24922,6 +26863,10 @@ export namespace Prisma {
 
   export type BoolFieldUpdateOperationsInput = {
     set?: boolean
+  }
+
+  export type NullableBoolFieldUpdateOperationsInput = {
+    set?: boolean | null
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -25457,12 +27402,25 @@ export namespace Prisma {
     not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
+  export type NestedBoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+  }
+
   export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel>
     not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBoolFilter<$PrismaModel>
     _max?: NestedBoolFilter<$PrismaModel>
+  }
+
+  export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {

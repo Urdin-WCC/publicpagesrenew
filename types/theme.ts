@@ -10,15 +10,30 @@ export interface ThemeConfig {
     heading?: { 
       fontFamily?: string; 
       color?: string;
+      fontSize?: string;
+      fontWeight?: string;
+      fontStyle?: string; // normal, italic
+      textDecoration?: string; // none, underline, line-through
+      textTransform?: string; // none, uppercase, lowercase, capitalize
     };
     paragraph?: { 
       fontFamily?: string; 
       color?: string;
+      fontSize?: string;
+      fontWeight?: string;
+      fontStyle?: string;
+      textDecoration?: string;
+      lineHeight?: string;
     };
     link?: { 
       fontFamily?: string; 
       color?: string; 
       hoverColor?: string;
+      fontSize?: string;
+      fontWeight?: string;
+      fontStyle?: string;
+      textDecoration?: string;
+      hoverTextDecoration?: string;
     };
     button?: { 
       fontFamily?: string; 

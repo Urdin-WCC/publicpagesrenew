@@ -1,20 +1,84 @@
 import { prisma } from './prisma';
-import { GlobalConfig, ThemePreset, SiteSection, MenuItem, Widget, SectionType } from '@prisma/client';
+import { ThemePreset, SiteSection, MenuItem, Widget, SectionType } from '@prisma/client';
+import type { GlobalConfig } from './config-server';
 
 /**
  * Fetches the global configuration settings from the database.
  * Assumes a single configuration record with id 'global'.
+ * Includes fallback mechanism for handling invalid datetime values.
  * @returns Promise<GlobalConfig | null>
  */
 export async function getGlobalConfig(): Promise<GlobalConfig | null> {
   try {
-    const config = await prisma.globalConfig.findUnique({
-      where: { id: 'global' },
-    });
-    return config;
+    // Intentar obtener toda la configuración con una consulta SQL directa
+    // Incluir los campos específicos de tema
+    try {
+      const config = await prisma.$queryRaw`
+        SELECT 
+          id, siteName, description, maintenanceMode, 
+          defaultLightThemePresetId, defaultDarkThemePresetId,
+          themeAssignments, loadingSpinnerConfig, 
+          themeSwitcherConfig, stickyElementsConfig, sharing,
+          navigationMenu
+        FROM GlobalConfig 
+        WHERE id = 'global'
+      `;
+      
+      if (Array.isArray(config) && config.length > 0) {
+        // Devolver la primera fila de resultados con fechas por defecto
+        return {
+          ...config[0],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        } as any;
+      }
+    } catch (mainQueryError) {
+      console.error("Error en consulta principal:", mainQueryError);
+      
+      // Si falla la consulta principal, intentar con una consulta más simple
+      try {
+        // Get manually with a simpler query - but include navigationMenu
+        const basicConfig = await prisma.$queryRaw`
+          SELECT id, siteName, description, maintenanceMode, navigationMenu
+          FROM GlobalConfig 
+          WHERE id = 'global'
+        `;
+        
+        if (Array.isArray(basicConfig) && basicConfig.length > 0) {
+          // Build a config object with default dates
+          return {
+            ...basicConfig[0],
+            createdAt: new Date(),
+            updatedAt: new Date()
+          } as any;
+        }
+      } catch (simpleQueryError) {
+        console.error("Error en consulta simple:", simpleQueryError);
+      }
+    }
+    
+    // Final fallback: create a default config
+    console.log("Creating default GlobalConfig object");
+    return {
+      id: 'global',
+      siteName: 'Neurowitch',
+      description: 'Sitio web',
+      navigationMenu: '[]',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any;
   } catch (error) {
     console.error("Error fetching global config:", error);
-    return null; // Or throw error depending on desired handling
+    
+    // Return minimal default config as last resort
+    return {
+      id: 'global',
+      siteName: 'Neurowitch',
+      description: 'Sitio web',
+      navigationMenu: '[]',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any;
   }
 }
 
@@ -30,19 +94,47 @@ export async function getActiveTheme(): Promise<ThemePreset | null> {
     const config = await getGlobalConfig();
     let theme = null;
     
-    // 2. If config exists and has defaultLightThemePresetId
-    // Usar type assertion para evitar el error de TypeScript
-    if (config && (config as any).defaultLightThemePresetId) {
-      theme = await prisma.themePreset.findUnique({
-        where: { id: (config as any).defaultLightThemePresetId },
-      });
+    // 2. Check if config exists and has defaultLightThemePresetId
+    if (config) {
+      // Usar consulta directa para evitar problemas con el schema
+      // Acceder al campo de forma segura con la notación as any
+      const themeId = (config as any).defaultLightThemePresetId;
+      
+      if (themeId) {
+        try {
+          // Usar queryRaw para evitar problemas de tipo
+          const result = await prisma.$queryRaw`
+            SELECT id, name, config 
+            FROM ThemePreset 
+            WHERE id = ${themeId}
+          `;
+          
+          // Convertir resultado a objeto ThemePreset
+          if (Array.isArray(result) && result.length > 0) {
+            theme = result[0] as ThemePreset;
+          }
+        } catch (fetchError) {
+          console.error("Error fetching theme by ID:", fetchError);
+        }
+      }
     }
 
     // 3. If still no theme, try fetching any theme
     if (!theme) {
-      theme = await prisma.themePreset.findFirst({
-        orderBy: { id: 'asc' },
-      });
+      try {
+        const result = await prisma.$queryRaw`
+          SELECT id, name, config 
+          FROM ThemePreset 
+          ORDER BY id ASC 
+          LIMIT 1
+        `;
+        
+        if (Array.isArray(result) && result.length > 0) {
+          theme = result[0] as ThemePreset;
+        }
+      } catch (fallbackError) {
+        console.error("Error fetching fallback theme:", fallbackError);
+      }
     }
 
     return theme;

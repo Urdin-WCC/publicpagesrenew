@@ -4,40 +4,19 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { toast } from "sonner";
-import useSWR from "swr";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import HtmlEditor from "@/components/core/HtmlEditor";
+import { Textarea } from "@/components/ui/textarea";
 
-// Interfaz para el tema
-interface ThemePreset {
-  id: number;
-  name: string;
-}
-
-// Fetcher para SWR
-const fetcher = (url: string) => fetch(url).then(async res => {
-    if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Error al cargar los datos');
-    }
-    return res.json();
-});
-
-// Type for the form data
-interface PageFormData {
-  title: string;
-  slug: string;
-  contentHtml: string;
-  isVisible: boolean;
-  includeInMenu: boolean;
-  lightThemeId?: number | null;
-  darkThemeId?: number | null;
-}
+// Importar las acciones del servidor
+import { createPage, updatePage, PageFormData } from "@/actions/page-actions";
 
 // Props for the component
 interface PageFormProps {
@@ -48,11 +27,6 @@ interface PageFormProps {
 export default function PageForm({ pageId, initialData }: PageFormProps) {
   const router = useRouter();
   const isEditMode = !!pageId;
-  
-  // Cargar lista de temas disponibles
-  const { data: themes } = useSWR<ThemePreset[]>('/api/theme/presets', fetcher, {
-      revalidateOnFocus: false,
-  });
 
   // Form setup
   const {
@@ -67,8 +41,13 @@ export default function PageForm({ pageId, initialData }: PageFormProps) {
       title: "",
       slug: "",
       contentHtml: "",
-      isVisible: true,
-      includeInMenu: false,
+      showHeader: true,
+      showFooter: true,
+      showSidebar: false,
+      sidebarPosition: "left",
+      metaTitle: "",
+      metaDescription: "",
+      metaKeywords: ""
     },
   });
 
@@ -117,106 +96,34 @@ export default function PageForm({ pageId, initialData }: PageFormProps) {
     }
   }, [title, setValue, isEditMode, initialData?.slug]);
 
-  // Manejar cambios en selección de tema claro
-  const handleLightThemeChange = (value: string) => {
-    // Si es "default" o cadena vacía, establecer como null
-    setValue('lightThemeId', value && value !== 'default' ? parseInt(value) : null);
-  };
-
-  // Manejar cambios en selección de tema oscuro
-  const handleDarkThemeChange = (value: string) => {
-    // Si es "default" o cadena vacía, establecer como null  
-    setValue('darkThemeId', value && value !== 'default' ? parseInt(value) : null);
-  };
-
   // Handle form submission
   const onSubmit = async (data: PageFormData) => {
     try {
       // Include the editor content
       data.contentHtml = editorContent;
       
-      // Extraer IDs de temas para manejarlos separadamente
-      const { lightThemeId, darkThemeId, ...pageData } = data;
-
-      const url = isEditMode ? `/api/pages/${pageId}` : "/api/pages";
-      const method = isEditMode ? "PUT" : "POST";
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(pageData),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al guardar la página");
-      }
-
-      // Si la creación/actualización de la página fue exitosa, guardar los temas
-      if (response.ok) {
-        // Obtener el ID de la página recién creada o la existente
-        const responseData = await response.json();
-        const currentPageId = responseData.id || pageId;
-        
-        // Actualizar asignaciones de temas si se proporcionaron
-        if (lightThemeId !== undefined || darkThemeId !== undefined) {
-          try {
-            // Crear/actualizar asignaciones de temas
-            let themeAssignments = {};
-            
-            // Si existe, intenta cargar themeAssignments actual
-            const globalConfigRes = await fetch('/api/settings/global');
-            if (globalConfigRes.ok) {
-              const globalConfig = await globalConfigRes.json();
-              if (globalConfig && globalConfig.themeAssignments) {
-                try {
-                  themeAssignments = JSON.parse(globalConfig.themeAssignments);
-                } catch (e) {
-                  console.error('Error parsing theme assignments', e);
-                }
-              }
-            }
-            
-            // Actualizar asignación para esta página específica
-            themeAssignments = {
-              ...themeAssignments,
-              pages: {
-                ...(themeAssignments as any).pages,
-                [currentPageId]: {
-                  light: lightThemeId,
-                  dark: darkThemeId
-                }
-              }
-            };
-            
-            // Guardar asignaciones de temas en configuración global
-            const themeResponse = await fetch('/api/settings/global', {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                themeAssignments: JSON.stringify(themeAssignments)
-              }),
-            });
-            
-            if (!themeResponse.ok) {
-              console.warn('Página guardada, pero hubo un error al guardar las asignaciones de tema');
-            }
-          } catch (themeError) {
-            console.error('Error guardando asignaciones de tema:', themeError);
-          }
-        }
-        
-        toast.success(
-          isEditMode ? "Página actualizada correctamente" : "Página creada correctamente"
-        );
-        router.push("/admin/pages");
-        router.refresh();
+      let result;
+      
+      // Usar acciones del servidor en lugar de la API
+      if (isEditMode && pageId) {
+        result = await updatePage(pageId, data);
       } else {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al guardar la página");
+        result = await createPage(data);
       }
+
+      // Verificar si hubo errores
+      if (!result.success) {
+        throw new Error(result.error || "Error al guardar la página");
+      }
+      
+      // Mostrar mensaje de éxito
+      toast.success(
+        isEditMode ? "Página actualizada correctamente" : "Página creada correctamente"
+      );
+      
+      // Redirigir al listado de páginas
+      router.push("/admin/pages");
+      router.refresh();
     } catch (error: any) {
       toast.error(error.message || "Error al guardar la página");
       console.error(error);
@@ -227,6 +134,8 @@ export default function PageForm({ pageId, initialData }: PageFormProps) {
   const handleEditorChange = (content: string) => {
     setEditorContent(content);
   };
+
+  const showSidebar = watch("showSidebar");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
@@ -274,85 +183,131 @@ export default function PageForm({ pageId, initialData }: PageFormProps) {
           )}
         </div>
 
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="isVisible"
-            {...register("isVisible")}
-            defaultChecked={initialData?.isVisible ?? true}
-          />
-          <Label htmlFor="isVisible">Página visible públicamente</Label>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="includeInMenu"
-            {...register("includeInMenu")}
-            defaultChecked={initialData?.includeInMenu ?? false}
-          />
-          <Label htmlFor="includeInMenu">Incluir en el menú de navegación</Label>
+        <div className="space-y-4 pt-4 border-t">
+          <h3 className="text-lg font-medium">Opciones de Visualización</h3>
+          
+          <Alert className="bg-blue-50 mb-4">
+            <InfoIcon className="h-4 w-4" />
+            <AlertDescription>
+              Las asignaciones de tema para esta página se configuran en 
+              <strong>' Administración → Configuración → Apariencia → Asignaciones Específicas '</strong>
+            </AlertDescription>
+          </Alert>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="showHeader"
+                control={control}
+                defaultValue={initialData?.showHeader ?? true}
+                render={({ field }) => (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="showHeader"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    <Label htmlFor="showHeader">Mostrar Cabecera</Label>
+                  </div>
+                )}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="showFooter"
+                control={control}
+                defaultValue={initialData?.showFooter ?? true}
+                render={({ field }) => (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="showFooter"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    <Label htmlFor="showFooter">Mostrar Pie de Página</Label>
+                  </div>
+                )}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Controller
+                name="showSidebar"
+                control={control}
+                defaultValue={initialData?.showSidebar ?? false}
+                render={({ field }) => (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="showSidebar"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                    <Label htmlFor="showSidebar">Mostrar Barra Lateral</Label>
+                  </div>
+                )}
+              />
+            </div>
+            
+            {showSidebar && (
+              <div className="space-y-2">
+                <Label htmlFor="sidebarPosition">Posición de la Barra Lateral</Label>
+                <Controller
+                  name="sidebarPosition"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      value={field.value}
+                      onValueChange={(value: "left" | "right") => field.onChange(value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona una posición" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="left">Izquierda</SelectItem>
+                        <SelectItem value="right">Derecha</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+            )}
+          </div>
         </div>
         
         <div className="space-y-4 pt-4 border-t">
-          <h3 className="text-lg font-medium">Tema Visual</h3>
+          <h3 className="text-lg font-medium">Opciones SEO</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Estos campos son opcionales. Si se dejan vacíos, se utilizarán los valores predeterminados
+            configurados en la sección de SEO.
+          </p>
           
-          {/* Tema para Modo Claro */}
           <div className="space-y-2">
-            <Label htmlFor="lightThemeId">Tema para Modo Claro</Label>
-            <Controller
-              name="lightThemeId"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value?.toString() || ""}
-                  onValueChange={handleLightThemeChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un tema..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="default">Tema por defecto del sitio</SelectItem>
-                    {themes?.map((theme) => (
-                      <SelectItem key={theme.id} value={theme.id.toString()}>
-                        {theme.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+            <Label htmlFor="metaTitle">Título Meta</Label>
+            <Input
+              id="metaTitle"
+              {...register("metaTitle")}
+              placeholder="Título para SEO (opcional)"
             />
-            <p className="text-sm text-muted-foreground">
-              Tema personalizado para el modo claro (opcional)
-            </p>
           </div>
           
-          {/* Tema para Modo Oscuro */}
           <div className="space-y-2">
-            <Label htmlFor="darkThemeId">Tema para Modo Oscuro</Label>
-            <Controller
-              name="darkThemeId"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  value={field.value?.toString() || ""}
-                  onValueChange={handleDarkThemeChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona un tema..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="default">Tema por defecto del sitio</SelectItem>
-                    {themes?.map((theme) => (
-                      <SelectItem key={theme.id} value={theme.id.toString()}>
-                        {theme.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+            <Label htmlFor="metaDescription">Descripción Meta</Label>
+            <Textarea
+              id="metaDescription"
+              {...register("metaDescription")}
+              placeholder="Descripción breve para motores de búsqueda (opcional)"
+              rows={3}
             />
-            <p className="text-sm text-muted-foreground">
-              Tema personalizado para el modo oscuro (opcional)
-            </p>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="metaKeywords">Palabras Clave</Label>
+            <Input
+              id="metaKeywords"
+              {...register("metaKeywords")}
+              placeholder="Palabras clave separadas por comas (opcional)"
+            />
           </div>
         </div>
       </div>

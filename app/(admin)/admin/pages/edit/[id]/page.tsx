@@ -14,7 +14,7 @@ async function getPageById(id: number) {
   try {
     console.log(`Buscando página con ID: ${id}`);
     const result = await prisma.$queryRaw`
-      SELECT id, title, slug, contentHtml, isVisible, includeInMenu
+      SELECT id, title, slug, contentHtml, showHeader, showFooter, showSidebar, sidebarPosition, metaTitle, metaDescription, metaKeywords
       FROM StaticPage
       WHERE id = ${id}
       LIMIT 1
@@ -62,10 +62,15 @@ async function getPageById(id: number) {
       title: page.title,
       slug: page.slug,
       contentHtml: page.contentHtml,
-      isVisible: page.isVisible,
-      includeInMenu: page.includeInMenu,
-      lightThemeId,
-      darkThemeId,
+      // Opciones de visualización
+      showHeader: page.showHeader ?? true,
+      showFooter: page.showFooter ?? true,
+      showSidebar: page.showSidebar ?? false,
+      sidebarPosition: page.sidebarPosition || "left",
+      // Campos SEO
+      metaTitle: page.metaTitle || "",
+      metaDescription: page.metaDescription || "",
+      metaKeywords: page.metaKeywords || "",
     };
   } catch (error) {
     console.error(`Error al buscar la página con ID ${id}:`, error);

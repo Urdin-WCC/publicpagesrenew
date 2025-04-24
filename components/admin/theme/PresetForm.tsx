@@ -1,16 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
-import { SketchPicker, ColorResult } from 'react-color';
 import { ThemeConfig } from '@/types/theme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ImageUploader } from '@/components/core/ImageUploader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
+// Componentes del formulario
+import { BackgroundSection } from './components/BackgroundSection';
+import { TypographySection } from './components/TypographySection';
+import { ButtonsSection } from './components/ButtonsSection';
+import { CardsSection } from './components/CardsSection';
+import { FormsSection } from './components/FormsSection';
+import { SpacingSection } from './components/SpacingSection';
+import { EffectsSection } from './components/EffectsSection';
 
 interface FormData {
   name: string;
@@ -27,27 +33,6 @@ interface PresetFormProps {
 }
 
 export default function PresetForm({ preset, isEditing = false }: PresetFormProps) {
-  // Opciones de fuentes comunes
-  const commonFonts = [
-    "Arial, sans-serif",
-    "Helvetica, Arial, sans-serif",
-    "Georgia, serif",
-    "Times New Roman, serif",
-    "Courier New, monospace",
-    "Verdana, sans-serif",
-    "Tahoma, sans-serif",
-    "Trebuchet MS, sans-serif",
-    "Impact, sans-serif",
-    "Comic Sans MS, cursive",
-    "Roboto, sans-serif",
-    "Open Sans, sans-serif",
-    "Lato, sans-serif",
-    "Montserrat, sans-serif",
-    "Raleway, sans-serif",
-    "Poppins, sans-serif",
-    "Merriweather, serif",
-    "Playfair Display, serif"
-  ];
   const router = useRouter();
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     defaultValues: preset ? {
@@ -110,57 +95,18 @@ export default function PresetForm({ preset, isEditing = false }: PresetFormProp
         },
         effects: {
           transitions: true,
+          animation: 'none',
+          customAnimation: '',
         },
       },
     },
   });
 
   const watchedConfig = watch('config');
+  const [activeTab, setActiveTab] = useState<string>("general");
 
-  // Function to update color in the form data
-  const handleColorChange = (colorPath: string, color: ColorResult) => {
-    const rgba = `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`;
-    const pathArray = colorPath.split('.');
-    
-    // Create a deep copy of the config
-    const newConfig = { ...watchedConfig };
-    
-    // Navigate to the right nested property
-    let current: any = newConfig;
-    for (let i = 0; i < pathArray.length - 1; i++) {
-      if (!current[pathArray[i]]) {
-        current[pathArray[i]] = {};
-      }
-      current = current[pathArray[i]];
-    }
-    
-    // Set the color value
-    current[pathArray[pathArray.length - 1]] = rgba;
-    
-    // Update the form
-    setValue('config', newConfig, { shouldValidate: true });
-  };
-
-  // Handle image upload
-  const handleImageUpload = (imagePath: string, url: string) => {
-    const pathArray = imagePath.split('.');
-    
-    // Create a deep copy of the config
-    const newConfig = { ...watchedConfig };
-    
-    // Navigate to the right nested property
-    let current: any = newConfig;
-    for (let i = 0; i < pathArray.length - 1; i++) {
-      if (!current[pathArray[i]]) {
-        current[pathArray[i]] = {};
-      }
-      current = current[pathArray[i]];
-    }
-    
-    // Set the image URL
-    current[pathArray[pathArray.length - 1]] = url;
-    
-    // Update the form
+  // Manejador para actualizar la configuración
+  const handleConfigChange = (newConfig: ThemeConfig) => {
     setValue('config', newConfig, { shouldValidate: true });
   };
 
@@ -202,77 +148,6 @@ export default function PresetForm({ preset, isEditing = false }: PresetFormProp
     }
   };
 
-  // Helper function to get a nested value from an object using a path string
-  const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((prev, curr) => {
-      return prev ? prev[curr] : null;
-    }, obj);
-  };
-
-  // Color picker component with label
-  const ColorPicker = ({ label, path }: { label: string; path: string }) => {
-    const [showPicker, setShowPicker] = useState(false);
-    const [tempColor, setTempColor] = useState<ColorResult | null>(null);
-    const colorValue = getNestedValue(watchedConfig, path) || '#ffffff';
-
-    const handleColorConfirm = () => {
-      if (tempColor) {
-        handleColorChange(path, tempColor);
-      }
-      setShowPicker(false);
-      setTempColor(null);
-    };
-
-    return (
-      <div className="space-y-2 mb-4">
-        <Label>{label}</Label>
-        <div className="flex items-center space-x-2">
-          <div 
-            className="w-10 h-10 rounded border cursor-pointer"
-            style={{ backgroundColor: colorValue }}
-            onClick={() => setShowPicker(!showPicker)}
-          />
-          <Input
-            value={colorValue}
-            readOnly
-            onClick={() => setShowPicker(!showPicker)}
-            className="cursor-pointer"
-          />
-        </div>
-        {showPicker && (
-          <div className="absolute z-10">
-            <div className="p-4 rounded-md shadow-lg bg-white">
-              <SketchPicker
-                color={colorValue}
-                onChange={(color) => setTempColor(color)}
-              />
-              <div className="mt-3 flex justify-end gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setShowPicker(false);
-                    setTempColor(null);
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  type="button" 
-                  onClick={handleColorConfirm}
-                  size="sm"
-                >
-                  Confirmar
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       <div className="space-y-2">
@@ -285,669 +160,100 @@ export default function PresetForm({ preset, isEditing = false }: PresetFormProp
         {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Background Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Fondo</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Tipo de Fondo</Label>
-              <div className="flex space-x-2">
-                <Button 
-                  type="button"
-                  variant={watchedConfig.background?.type === 'color' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.background) newConfig.background = { type: 'color', value: '#ffffff' };
-                    newConfig.background.type = 'color';
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                >
-                  Color
-                </Button>
-                <Button 
-                  type="button"
-                  variant={watchedConfig.background?.type === 'gradient' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.background) newConfig.background = { type: 'gradient', value: 'linear-gradient(to right, #007bff, #00bcd4)' };
-                    newConfig.background.type = 'gradient';
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                >
-                  Gradiente
-                </Button>
-                <Button 
-                  type="button"
-                  variant={watchedConfig.background?.type === 'image' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.background) newConfig.background = { type: 'image', value: 'rgba(255,255,255,0.8)', imageUrl: '' };
-                    newConfig.background.type = 'image';
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                >
-                  Imagen
-                </Button>
-              </div>
-            </div>
-            
-            {watchedConfig.background?.type === 'color' && (
-              <ColorPicker 
-                label="Color de Fondo" 
-                path="background.value" 
-              />
-            )}
-            
-            {watchedConfig.background?.type === 'gradient' && (
-              <div className="space-y-2">
-                <Label>Gradiente</Label>
-                <Input
-                  value={watchedConfig.background?.value || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.background) newConfig.background = { type: 'gradient', value: e.target.value };
-                    newConfig.background.value = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="linear-gradient(to right, #007bff, #00bcd4)"
-                />
-              </div>
-            )}
-            
-            {watchedConfig.background?.type === 'image' && (
-              <>
-                <ColorPicker 
-                  label="Color de Fondo (Debajo de la imagen)" 
-                  path="background.value" 
-                />
-                <div className="space-y-2">
-                  <Label>Imagen de Fondo</Label>
-                  <div className="mb-2">
-                    {watchedConfig.background?.imageUrl && (
-                      <div className="h-32 w-full bg-gray-100 rounded-md overflow-hidden relative mb-2">
-                        <div 
-                          className="absolute inset-0 bg-cover bg-center" 
-                          style={{ backgroundImage: `url(${watchedConfig.background.imageUrl})` }}
-                        />
-                      </div>
-                    )}
-                  </div>
-                  <ImageUploader
-                    onChange={(url) => handleImageUpload("background.imageUrl", url)}
-                    label="Seleccionar Imagen"
-                  />
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Typography Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tipografía</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Fuente de Títulos</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={watchedConfig.typography?.heading?.fontFamily || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.typography) newConfig.typography = {};
-                    if (!newConfig.typography.heading) newConfig.typography.heading = {};
-                    newConfig.typography.heading.fontFamily = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                >
-                  <option value="">-- Seleccionar Fuente --</option>
-                  {commonFonts.map(font => (
-                    <option key={font} value={font} style={{ fontFamily: font }}>{font.split(',')[0]}</option>
-                  ))}
-                </select>
-                
-                <Input
-                  placeholder="o escribe una fuente personalizada"
-                  value={watchedConfig.typography?.heading?.fontFamily || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.typography) newConfig.typography = {};
-                    if (!newConfig.typography.heading) newConfig.typography.heading = {};
-                    newConfig.typography.heading.fontFamily = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                />
-              </div>
-              <div className="text-sm mt-1" style={{ fontFamily: watchedConfig.typography?.heading?.fontFamily || 'inherit' }}>
-                Vista previa del texto
-              </div>
-            </div>
-            <ColorPicker 
-              label="Color de Títulos" 
-              path="typography.heading.color" 
-            />
-            
-            <div className="space-y-2">
-              <Label>Fuente de Párrafos</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  value={watchedConfig.typography?.paragraph?.fontFamily || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.typography) newConfig.typography = {};
-                    if (!newConfig.typography.paragraph) newConfig.typography.paragraph = {};
-                    newConfig.typography.paragraph.fontFamily = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                >
-                  <option value="">-- Seleccionar Fuente --</option>
-                  {commonFonts.map(font => (
-                    <option key={font} value={font} style={{ fontFamily: font }}>{font.split(',')[0]}</option>
-                  ))}
-                </select>
-                
-                <Input
-                  placeholder="o escribe una fuente personalizada"
-                  value={watchedConfig.typography?.paragraph?.fontFamily || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.typography) newConfig.typography = {};
-                    if (!newConfig.typography.paragraph) newConfig.typography.paragraph = {};
-                    newConfig.typography.paragraph.fontFamily = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                />
-              </div>
-              <div className="text-sm mt-1" style={{ fontFamily: watchedConfig.typography?.paragraph?.fontFamily || 'inherit' }}>
-                Vista previa del texto
-              </div>
-            </div>
-            <ColorPicker 
-              label="Color de Párrafos" 
-              path="typography.paragraph.color" 
-            />
-            
-            <ColorPicker 
-              label="Color de Enlaces" 
-              path="typography.link.color" 
-            />
-            
-            <ColorPicker 
-              label="Color de Enlaces (Hover)" 
-              path="typography.link.hoverColor" 
-            />
-          </CardContent>
-        </Card>
-
-        {/* Buttons Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Botones</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <h3 className="font-medium">Botón Primario</h3>
-            <ColorPicker 
-              label="Color de Fondo" 
-              path="buttons.primary.backgroundColor" 
-            />
-            <ColorPicker 
-              label="Color de Texto" 
-              path="buttons.primary.textColor" 
-            />
-            <div className="space-y-2">
-              <Label>Radio de Borde</Label>
-              <Input
-                value={watchedConfig.buttons?.primary?.borderRadius || ''}
-                onChange={(e) => {
-                  const newConfig = { ...watchedConfig };
-                  if (!newConfig.buttons) newConfig.buttons = {};
-                  if (!newConfig.buttons.primary) newConfig.buttons.primary = {};
-                  newConfig.buttons.primary.borderRadius = e.target.value;
-                  setValue('config', newConfig, { shouldValidate: true });
-                }}
-              />
-            </div>
-
-            <h3 className="font-medium mt-4">Botón Secundario</h3>
-            <ColorPicker 
-              label="Color de Fondo" 
-              path="buttons.secondary.backgroundColor" 
-            />
-            <ColorPicker 
-              label="Color de Texto" 
-              path="buttons.secondary.textColor" 
-            />
-          </CardContent>
-        </Card>
-
-        {/* Cards Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Tarjetas</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Radio de Borde</Label>
-              <Input
-                value={watchedConfig.cards?.borderRadius || ''}
-                onChange={(e) => {
-                  const newConfig = { ...watchedConfig };
-                  if (!newConfig.cards) newConfig.cards = {};
-                  newConfig.cards.borderRadius = e.target.value;
-                  setValue('config', newConfig, { shouldValidate: true });
-                }}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Ancho de Borde</Label>
-              <Input
-                value={watchedConfig.cards?.borderWidth || ''}
-                onChange={(e) => {
-                  const newConfig = { ...watchedConfig };
-                  if (!newConfig.cards) newConfig.cards = {};
-                  newConfig.cards.borderWidth = e.target.value;
-                  setValue('config', newConfig, { shouldValidate: true });
-                }}
-              />
-            </div>
-            <ColorPicker 
-              label="Color de Borde" 
-              path="cards.borderColor" 
-            />
-            <h3 className="font-medium mt-4">Configuración de Sombra</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Desplazamiento X</Label>
-                <Input
-                  value={(watchedConfig.cards?.shadow as any)?.x || '0px'}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.cards) newConfig.cards = {};
-                    if (!newConfig.cards.shadow || typeof newConfig.cards.shadow === 'string') {
-                      newConfig.cards.shadow = {
-                        x: '0px',
-                        y: '4px',
-                        blur: '6px',
-                        spread: '0px',
-                        color: 'rgba(0,0,0,0.1)'
-                      };
-                    }
-                    (newConfig.cards.shadow as any).x = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="0px"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Desplazamiento Y</Label>
-                <Input
-                  value={(watchedConfig.cards?.shadow as any)?.y || '4px'}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.cards) newConfig.cards = {};
-                    if (!newConfig.cards.shadow || typeof newConfig.cards.shadow === 'string') {
-                      newConfig.cards.shadow = {
-                        x: '0px',
-                        y: '4px',
-                        blur: '6px',
-                        spread: '0px',
-                        color: 'rgba(0,0,0,0.1)'
-                      };
-                    }
-                    (newConfig.cards.shadow as any).y = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="4px"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Desenfoque</Label>
-                <Input
-                  value={(watchedConfig.cards?.shadow as any)?.blur || '6px'}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.cards) newConfig.cards = {};
-                    if (!newConfig.cards.shadow || typeof newConfig.cards.shadow === 'string') {
-                      newConfig.cards.shadow = {
-                        x: '0px',
-                        y: '4px',
-                        blur: '6px',
-                        spread: '0px',
-                        color: 'rgba(0,0,0,0.1)'
-                      };
-                    }
-                    (newConfig.cards.shadow as any).blur = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="6px"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Expansión</Label>
-                <Input
-                  value={(watchedConfig.cards?.shadow as any)?.spread || '0px'}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.cards) newConfig.cards = {};
-                    if (!newConfig.cards.shadow || typeof newConfig.cards.shadow === 'string') {
-                      newConfig.cards.shadow = {
-                        x: '0px',
-                        y: '4px',
-                        blur: '6px',
-                        spread: '0px',
-                        color: 'rgba(0,0,0,0.1)'
-                      };
-                    }
-                    (newConfig.cards.shadow as any).spread = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="0px"
-                />
-              </div>
-            </div>
-            
-            <div className="mt-2">
-              <ColorPicker 
-                label="Color de Sombra" 
-                path="cards.shadow.color" 
-              />
-            </div>
-            <ColorPicker 
-              label="Color de Fondo" 
-              path="cards.background.value" 
-            />
-          </CardContent>
-        </Card>
-
-        {/* Forms Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Formularios</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <h3 className="font-medium">Campos de Entrada</h3>
-            
-            <ColorPicker 
-              label="Color de Fondo" 
-              path="forms.input.backgroundColor" 
-            />
-            
-            <ColorPicker 
-              label="Color de Texto" 
-              path="forms.input.textColor" 
-            />
-            
-            <ColorPicker 
-              label="Color de Borde" 
-              path="forms.input.borderColor" 
-            />
-            
-            <ColorPicker 
-              label="Color de Borde al Enfocar" 
-              path="forms.input.focusBorderColor" 
-            />
-            
-            <div className="space-y-2">
-              <Label>Radio de Borde</Label>
-              <Input
-                value={watchedConfig.forms?.input?.borderRadius || ''}
-                onChange={(e) => {
-                  const newConfig = { ...watchedConfig };
-                  if (!newConfig.forms) newConfig.forms = {};
-                  if (!newConfig.forms.input) newConfig.forms.input = {};
-                  newConfig.forms.input.borderRadius = e.target.value;
-                  setValue('config', newConfig, { shouldValidate: true });
-                }}
-              />
-            </div>
-            
-            <h3 className="font-medium mt-4">Etiquetas</h3>
-            
-            <ColorPicker 
-              label="Color de Texto" 
-              path="forms.label.textColor" 
-            />
-            
-            <div className="space-y-2">
-              <Label>Peso de Fuente</Label>
-              <Input
-                value={watchedConfig.forms?.label?.fontWeight || ''}
-                onChange={(e) => {
-                  const newConfig = { ...watchedConfig };
-                  if (!newConfig.forms) newConfig.forms = {};
-                  if (!newConfig.forms.label) newConfig.forms.label = {};
-                  newConfig.forms.label.fontWeight = e.target.value;
-                  setValue('config', newConfig, { shouldValidate: true });
-                }}
-                placeholder="bold, normal, 500, etc."
-              />
-            </div>
-          </CardContent>
-        </Card>
+      {/* Pestañas para secciones de temas */}
+      <Tabs defaultValue="general" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="typography">Tipografía</TabsTrigger>
+          <TabsTrigger value="buttons">Botones</TabsTrigger>
+          <TabsTrigger value="cards">Tarjetas</TabsTrigger>
+          <TabsTrigger value="forms">Formularios</TabsTrigger>
+          <TabsTrigger value="spacing">Espaciado</TabsTrigger>
+          <TabsTrigger value="effects">Efectos</TabsTrigger>
+        </TabsList>
         
-        {/* Spacing Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Espaciado</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <h3 className="font-medium">Márgenes</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Margen Superior</Label>
-                <Input
-                  value={watchedConfig.spacing?.margin?.top || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.margin) newConfig.spacing.margin = {};
-                    newConfig.spacing.margin.top = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Margen Derecho</Label>
-                <Input
-                  value={watchedConfig.spacing?.margin?.right || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.margin) newConfig.spacing.margin = {};
-                    newConfig.spacing.margin.right = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Margen Inferior</Label>
-                <Input
-                  value={watchedConfig.spacing?.margin?.bottom || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.margin) newConfig.spacing.margin = {};
-                    newConfig.spacing.margin.bottom = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Margen Izquierdo</Label>
-                <Input
-                  value={watchedConfig.spacing?.margin?.left || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.margin) newConfig.spacing.margin = {};
-                    newConfig.spacing.margin.left = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-            </div>
-            
-            <h3 className="font-medium mt-6">Padding</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Padding Superior</Label>
-                <Input
-                  value={watchedConfig.spacing?.padding?.top || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.padding) newConfig.spacing.padding = {};
-                    newConfig.spacing.padding.top = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Padding Derecho</Label>
-                <Input
-                  value={watchedConfig.spacing?.padding?.right || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.padding) newConfig.spacing.padding = {};
-                    newConfig.spacing.padding.right = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Padding Inferior</Label>
-                <Input
-                  value={watchedConfig.spacing?.padding?.bottom || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.padding) newConfig.spacing.padding = {};
-                    newConfig.spacing.padding.bottom = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Padding Izquierdo</Label>
-                <Input
-                  value={watchedConfig.spacing?.padding?.left || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.spacing) newConfig.spacing = {};
-                    if (!newConfig.spacing.padding) newConfig.spacing.padding = {};
-                    newConfig.spacing.padding.left = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="1rem, 16px, etc."
-                />
-              </div>
-            </div>
-            
-            
-          </CardContent>
-        </Card>
-        
-        {/* Effects Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Efectos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="transitions">Transiciones</Label>
-              <Switch
-                id="transitions"
-                checked={watchedConfig.effects?.transitions || false}
-                onCheckedChange={(checked) => {
-                  const newConfig = { ...watchedConfig };
-                  if (!newConfig.effects) newConfig.effects = {};
-                  newConfig.effects.transitions = checked;
-                  setValue('config', newConfig, { shouldValidate: true });
-                }}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Animaciones</Label>
-              <select
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={(watchedConfig.effects?.animation as any) || 'none'}
-                onChange={(e) => {
-                  const newConfig = { ...watchedConfig };
-                  if (!newConfig.effects) newConfig.effects = {};
-                  (newConfig.effects as any).animation = e.target.value;
-                  setValue('config', newConfig, { shouldValidate: true });
-                }}
-              >
-                <option value="none">Ninguna</option>
-                <option value="zoomin">Zoom In</option>
-                <option value="zoomout">Zoom Out</option>
-                <option value="scale">Escalar</option>
-                <option value="glow">Brillo</option>
-                <option value="bounce">Rebotar</option>
-                <option value="pulse">Pulsar</option>
-                <option value="shake">Agitar</option>
-                <option value="slide">Deslizar</option>
-                <option value="custom">Personalizada</option>
-              </select>
-            </div>
-            
-            {watchedConfig.effects?.animation === 'custom' && (
-              <div className="space-y-2 mt-4">
-                <Label>Animación Personalizada</Label>
-                <Input
-                  value={watchedConfig.effects?.customAnimation || ''}
-                  onChange={(e) => {
-                    const newConfig = { ...watchedConfig };
-                    if (!newConfig.effects) newConfig.effects = {};
-                    newConfig.effects.customAnimation = e.target.value;
-                    setValue('config', newConfig, { shouldValidate: true });
-                  }}
-                  placeholder="keyframes..."
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        <div className="mt-6">
+          {/* Sección General (Fondo) */}
+          <TabsContent value="general">
+            <BackgroundSection config={watchedConfig} onChange={handleConfigChange} />
+          </TabsContent>
+          
+          {/* Sección Tipografía */}
+          <TabsContent value="typography">
+            <TypographySection config={watchedConfig} onChange={handleConfigChange} />
+          </TabsContent>
+          
+          {/* Sección Botones */}
+          <TabsContent value="buttons">
+            <ButtonsSection config={watchedConfig} onChange={handleConfigChange} />
+          </TabsContent>
+          
+          {/* Sección Tarjetas */}
+          <TabsContent value="cards">
+            <CardsSection config={watchedConfig} onChange={handleConfigChange} />
+          </TabsContent>
+          
+          {/* Sección Formularios */}
+          <TabsContent value="forms">
+            <FormsSection config={watchedConfig} onChange={handleConfigChange} />
+          </TabsContent>
+          
+          {/* Sección Espaciado */}
+          <TabsContent value="spacing">
+            <SpacingSection config={watchedConfig} onChange={handleConfigChange} />
+          </TabsContent>
+          
+          {/* Sección Efectos */}
+          <TabsContent value="effects">
+            <EffectsSection config={watchedConfig} onChange={handleConfigChange} />
+          </TabsContent>
+        </div>
+      </Tabs>
 
-      <div className="flex justify-end">
+      {/* Botones de control */}
+      <div className="flex justify-end space-x-2 pt-6">
         <Button 
           type="button" 
           variant="outline" 
-          className="mr-2"
           onClick={() => router.push('/admin/theme')}
         >
           Cancelar
         </Button>
         <Button type="submit" disabled={isSubmitting}>
           {isEditing ? 'Guardar Cambios' : 'Crear Tema'}
+        </Button>
+      </div>
+      
+      {/* Navegación entre pestañas */}
+      <div className="flex justify-between pt-4 pb-8">
+        <Button 
+          type="button"
+          variant="ghost"
+          disabled={activeTab === "general"}
+          onClick={() => {
+            const tabs = ["general", "typography", "buttons", "cards", "forms", "spacing", "effects"];
+            const currentIndex = tabs.indexOf(activeTab);
+            if (currentIndex > 0) {
+              setActiveTab(tabs[currentIndex - 1]);
+            }
+          }}
+        >
+          ← Anterior
+        </Button>
+        
+        <Button 
+          type="button"
+          variant="ghost"
+          disabled={activeTab === "effects"}
+          onClick={() => {
+            const tabs = ["general", "typography", "buttons", "cards", "forms", "spacing", "effects"];
+            const currentIndex = tabs.indexOf(activeTab);
+            if (currentIndex < tabs.length - 1) {
+              setActiveTab(tabs[currentIndex + 1]);
+            }
+          }}
+        >
+          Siguiente →
         </Button>
       </div>
     </form>

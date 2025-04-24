@@ -45,21 +45,49 @@ export async function GET(request: NextRequest) {
       sqlQuery = `
         SELECT id, title, slug
         FROM StaticPage 
-        ORDER BY menuOrder ASC
+        ORDER BY id ASC
       `;
     } else {
       sqlQuery = `
-        SELECT id, title, slug, contentHtml, menuOrder, includeInMenu, isHomePage, isVisible, createdAt, updatedAt
+        SELECT id, title, slug, contentHtml, 
+               isHomePage, 
+               showHeader, showFooter, showSidebar, sidebarPosition,
+               metaTitle, metaDescription, metaKeywords,
+               createdAt, updatedAt
         FROM StaticPage 
-        ORDER BY menuOrder ASC
+        ORDER BY id ASC
       `;
     }
     
     const pages = await prisma.$queryRawUnsafe(sqlQuery);
     
-    console.log(`Obtenidas ${Array.isArray(pages) ? pages.length : 0} páginas estáticas`);
+    // Asegurar que la respuesta es un array
+    const pagesArray = Array.isArray(pages) ? pages : [];
+    
+    console.log(`Obtenidas ${pagesArray.length} páginas estáticas`);
 
-    return NextResponse.json(pages);
+    // Procesar y formatear los datos para la respuesta
+    const processedPages = pagesArray.map(page => ({
+      id: page.id,
+      title: page.title || '',
+      slug: page.slug || '',
+      isHomePage: page.isHomePage === true,
+      // Incluir los campos adicionales solo si no es una consulta minimal
+      ...(minimal ? {} : {
+        contentHtml: page.contentHtml || '',
+        showHeader: page.showHeader === true,
+        showFooter: page.showFooter === true, 
+        showSidebar: page.showSidebar === true,
+        sidebarPosition: page.sidebarPosition || 'left',
+        metaTitle: page.metaTitle || '',
+        metaDescription: page.metaDescription || '',
+        metaKeywords: page.metaKeywords || '',
+        createdAt: page.createdAt,
+        updatedAt: page.updatedAt
+      })
+    }));
+
+    return NextResponse.json(processedPages);
   } catch (error) {
     console.error("Error fetching pages:", error);
     return NextResponse.json(
@@ -119,28 +147,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Obtener el valor máximo actual de menuOrder
-    const maxOrderResult = await prisma.$queryRaw`
-      SELECT menuOrder FROM StaticPage ORDER BY menuOrder DESC LIMIT 1
-    `;
-    
-    const newOrder = Array.isArray(maxOrderResult) && maxOrderResult.length > 0
-      ? maxOrderResult[0].menuOrder + 1
-      : 0;
-    
-    // Crear la página usando SQL directo
-    const isVisible = body.isVisible === undefined ? true : body.isVisible;
-    const includeInMenu = body.includeInMenu || false;
-    
+    // Crear la página usando SQL directo sin las columnas obsoletas
     const newPageResult = await prisma.$queryRaw`
       INSERT INTO StaticPage (
         title, 
         slug, 
         contentHtml, 
-        isVisible, 
-        includeInMenu, 
-        menuOrder,
         isHomePage,
+        showHeader,
+        showFooter,
+        showSidebar,
+        sidebarPosition,
+        metaTitle,
+        metaDescription,
+        metaKeywords,
         createdAt,
         updatedAt
       ) 
@@ -148,16 +168,22 @@ export async function POST(request: NextRequest) {
         ${body.title},
         ${body.slug},
         ${body.contentHtml},
-        ${isVisible},
-        ${includeInMenu},
-        ${newOrder},
         false,
+        ${body.showHeader ?? true},
+        ${body.showFooter ?? true},
+        ${body.showSidebar ?? false},
+        ${body.sidebarPosition || 'left'},
+        ${body.metaTitle || ''},
+        ${body.metaDescription || ''},
+        ${body.metaKeywords || ''},
         CURRENT_TIMESTAMP(),
         CURRENT_TIMESTAMP()
       )
       RETURNING 
-        id, title, slug, contentHtml, isVisible, includeInMenu, 
-        menuOrder, isHomePage, createdAt, updatedAt
+        id, title, slug, contentHtml, isHomePage,
+        showHeader, showFooter, showSidebar, sidebarPosition,
+        metaTitle, metaDescription, metaKeywords,
+        createdAt, updatedAt
     `;
     
     const page = Array.isArray(newPageResult) && newPageResult.length > 0

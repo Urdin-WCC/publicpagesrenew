@@ -1,51 +1,176 @@
-import prisma from './prisma';
+import { prisma } from './prisma';
 
 // Function to get all theme presets for admin UI
 export async function getAllThemePresets() {
-  return prisma.themePreset.findMany({ 
-    select: { id: true, name: true } 
-  });
+  try {
+    const result = await prisma.$queryRaw`
+      SELECT id, name 
+      FROM ThemePreset
+    `;
+    
+    return Array.isArray(result) ? result : [];
+  } catch (error) {
+    console.error('Error fetching all theme presets:', error);
+    return [];
+  }
 }
 
 // Function to get a theme preset configuration by ID
-export async function getThemePresetConfigById(id: number | null | undefined) {
+export async function getThemePresetConfigById(id: number | string | null | undefined) {
   if (id == null) return null;
   
-  const preset = await prisma.themePreset.findUnique({
-    where: { id },
-  });
-  
-  if (!preset) return null;
-  
-  // Parse the config string to JSON
   try {
-    return JSON.parse(preset.config);
-  } catch (e) {
-    console.error('Error parsing theme config:', e);
+    console.log(`Fetching theme preset with ID: ${id}`);
+    
+    const result = await prisma.$queryRaw`
+      SELECT config 
+      FROM ThemePreset 
+      WHERE id = ${id.toString()}
+    `;
+    
+    if (!Array.isArray(result) || result.length === 0 || !result[0].config) {
+      console.log(`No theme preset found for ID: ${id}`);
+      return null;
+    }
+    
+    const themeConfig = result[0].config;
+    
+    // Parse the config JSON if it's a string
+    if (typeof themeConfig === 'string') {
+      try {
+        return JSON.parse(themeConfig);
+      } catch (parseError) {
+        console.error(`Error parsing theme config for ID ${id}:`, parseError);
+        return null;
+      }
+    }
+    
+    // If it's already an object, return as is
+    return themeConfig;
+  } catch (error) {
+    console.error(`Error fetching theme preset with ID ${id}:`, error);
     return null;
   }
 }
 
-// Helper function to get theme configs based on route/context
-export async function getThemeConfigsForRoute(pathname: string, globalConfig: any) {
+// Helper function to get theme assignment IDs for a specific route or component
+export async function getThemeAssignmentIDs(
+  pathname: string, 
+  globalConfig: any, 
+  componentName?: string
+) {
+  console.log(`Getting theme assignment IDs for ${componentName || 'page'} at ${pathname}`);
+  console.log(`Global config:`, {
+    defaultLightThemeId: globalConfig.defaultLightThemePresetId,
+    defaultDarkThemeId: globalConfig.defaultDarkThemePresetId,
+    hasThemeAssignments: !!globalConfig.themeAssignments,
+    themeAssignmentsType: typeof globalConfig.themeAssignments
+  });
+  
   // Default to the global default theme IDs
-  let lightThemeId = globalConfig.defaultLightThemePresetId;
+  let lightThemeId = globalConfig.defaultLightThemePresetId || globalConfig.activeThemeId;
   let darkThemeId = globalConfig.defaultDarkThemePresetId;
 
-  // Parse themeAssignments JSON
-  const themeAssignments = typeof globalConfig.themeAssignments === 'string' 
-    ? JSON.parse(globalConfig.themeAssignments) 
-    : (globalConfig.themeAssignments || {});
-  
-  // Check if there's a specific theme assignment for this route
-  for (const routePattern in themeAssignments) {
-    if (pathname.startsWith(routePattern) || new RegExp(routePattern).test(pathname)) {
-      const assignment = themeAssignments[routePattern];
-      if (assignment.light) lightThemeId = assignment.light;
-      if (assignment.dark) darkThemeId = assignment.dark;
-      break; // Use the first matching route pattern
+  try {
+    // Asegurar que themeAssignments sea un objeto con la estructura esperada
+    let themeAssignments: {
+      components?: Record<string, any>;
+      routes?: Record<string, any>;
+      [key: string]: any; // Permitir indexación dinámica para el nuevo formato
+    } = {};
+    
+    if (typeof globalConfig.themeAssignments === 'string') {
+      try {
+        themeAssignments = JSON.parse(globalConfig.themeAssignments) as {
+          components?: Record<string, any>;
+          routes?: Record<string, any>;
+        };
+        console.log(`Successfully parsed themeAssignments JSON`);
+      } catch (error) {
+        const parseError = error as Error;
+        console.error(`Error parsing themeAssignments JSON: ${parseError.message}`);
+        console.log(`Raw themeAssignments:`, globalConfig.themeAssignments);
+      }
+    } else if (globalConfig.themeAssignments && typeof globalConfig.themeAssignments === 'object') {
+      themeAssignments = globalConfig.themeAssignments as {
+        components?: Record<string, any>;
+        routes?: Record<string, any>;
+      };
+      console.log(`Using themeAssignments object directly`);
     }
+    
+    console.log(`Theme assignments structure:`, JSON.stringify(themeAssignments, null, 2));
+    
+    // Determine if we're looking for route-specific or component-specific assignments
+    if (componentName) {
+      console.log(`Looking for component-specific assignment for ${componentName}`);
+      
+      // Two formats are supported:
+      // 1. Legacy format: { "components": { "header": { "light": 1, "dark": 2 } } }
+      // 2. New format: { "header": { "light": 1, "dark": 2 } }
+      
+      // Check if the component exists directly in themeAssignments (new format)
+      if (themeAssignments[componentName]) {
+        const componentAssignment = themeAssignments[componentName];
+        console.log(`Found component ${componentName} in assignments (new format):`, componentAssignment);
+        
+        if (componentAssignment.light) lightThemeId = componentAssignment.light;
+        if (componentAssignment.dark) darkThemeId = componentAssignment.dark;
+        console.log(`Using new format assignment for component ${componentName}`);
+      }
+      // Check if there's a component-specific assignment in the legacy format
+      else if (themeAssignments.components && themeAssignments.components[componentName]) {
+        const componentAssignment = themeAssignments.components[componentName];
+        console.log(`Found component ${componentName} in assignments (legacy format):`, componentAssignment);
+        
+        // Check if there's a route-specific assignment for this component
+        if (componentAssignment.routes && componentAssignment.routes[pathname]) {
+          const routeSpecificAssignment = componentAssignment.routes[pathname];
+          if (routeSpecificAssignment.light) lightThemeId = routeSpecificAssignment.light;
+          if (routeSpecificAssignment.dark) darkThemeId = routeSpecificAssignment.dark;
+          console.log(`Found route-specific assignment for component ${componentName} at ${pathname}`);
+        } 
+        // Otherwise, use the component's default assignment
+        else if (componentAssignment.light || componentAssignment.dark) {
+          if (componentAssignment.light) lightThemeId = componentAssignment.light;
+          if (componentAssignment.dark) darkThemeId = componentAssignment.dark;
+          console.log(`Using default assignment for component ${componentName}`);
+        }
+      } else {
+        console.log(`No specific assignment found for component ${componentName}`);
+      }
+    } else {
+      console.log(`Looking for route-specific assignment for path ${pathname}`);
+      
+      // Check for route-specific assignment (page level)
+      if (themeAssignments.routes) {
+        for (const routePattern in themeAssignments.routes) {
+          if (pathname === routePattern || pathname.startsWith(routePattern) || 
+              new RegExp(routePattern).test(pathname)) {
+            const assignment = themeAssignments.routes[routePattern];
+            if (assignment.light) lightThemeId = assignment.light;
+            if (assignment.dark) darkThemeId = assignment.dark;
+            console.log(`Found route-specific assignment for ${pathname} (pattern: ${routePattern})`);
+            break; // Use the first matching route pattern
+          }
+        }
+      } else {
+        console.log(`No routes defined in theme assignments`);
+      }
+    }
+  } catch (error) {
+    console.error('Error in getThemeAssignmentIDs:', error);
   }
+  
+  console.log(`Final theme IDs for ${componentName || 'page'} at ${pathname}:`, 
+    { lightThemeId, darkThemeId });
+
+  return { lightThemeId, darkThemeId };
+}
+
+// Helper function to get theme configs based on route/context
+export async function getThemeConfigsForRoute(pathname: string, globalConfig: any) {
+  const { lightThemeId, darkThemeId } = await getThemeAssignmentIDs(pathname, globalConfig);
 
   // Get both theme configs
   const [lightConfig, darkConfig] = await Promise.all([
@@ -56,25 +181,121 @@ export async function getThemeConfigsForRoute(pathname: string, globalConfig: an
   return { lightConfig, darkConfig };
 }
 
+// Helper function to get theme configs for a specific component
+export async function getThemeConfigsForComponent(
+  componentName: string,
+  pathname: string,
+  globalConfig: any
+) {
+  const { lightThemeId, darkThemeId } = await getThemeAssignmentIDs(pathname, globalConfig, componentName);
+
+  // Get both theme configs
+  const [lightConfig, darkConfig] = await Promise.all([
+    getThemePresetConfigById(lightThemeId),
+    getThemePresetConfigById(darkThemeId)
+  ]);
+
+  return { lightConfig, darkConfig };
+}
+
+// Default theme configurations
+const defaultLightTheme = {
+  "--background": "#ffffff",
+  "--foreground": "#333333",
+  "--primary": "#0070f3",
+  "--primary-foreground": "#ffffff",
+  "--secondary": "#f5f5f5",
+  "--secondary-foreground": "#333333",
+  "--accent": "#f000b8",
+  "--accent-foreground": "#ffffff",
+  "--muted": "#f1f5f9",
+  "--muted-foreground": "#64748b",
+  "--card": "#ffffff",
+  "--card-foreground": "#333333",
+  "--border": "#e2e8f0",
+  "--input": "#f1f5f9",
+  "--ring": "#0070f3"
+};
+
+const defaultDarkTheme = {
+  "--background": "#1a1a1a",
+  "--foreground": "#ffffff",
+  "--primary": "#0070f3",
+  "--primary-foreground": "#ffffff",
+  "--secondary": "#2d2d2d",
+  "--secondary-foreground": "#ffffff",
+  "--accent": "#f000b8",
+  "--accent-foreground": "#ffffff",
+  "--muted": "#374151",
+  "--muted-foreground": "#9ca3af",
+  "--card": "#2d2d2d",
+  "--card-foreground": "#ffffff",
+  "--border": "#4b5563",
+  "--input": "#374151",
+  "--ring": "#0070f3"
+};
+
+// Function to flatten nested theme objects
+function flattenThemeConfig(config: any, prefix: string = '--'): Record<string, string> {
+  if (!config) return {};
+  
+  const result: Record<string, string> = {};
+  
+  Object.entries(config).forEach(([key, value]) => {
+    // If the value is an object, recursively flatten it
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const nestedValues = flattenThemeConfig(value, `${prefix}${key}-`);
+      Object.assign(result, nestedValues);
+    } else {
+      // Otherwise add the key-value pair directly
+      result[`${prefix}${key}`] = String(value);
+    }
+  });
+  
+  return result;
+}
+
 // Helper to generate CSS from theme configs
-export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any) {
-  // If no configs are provided, return empty string
-  if (!lightConfig && !darkConfig) return '';
+export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, selector?: string) {
+  console.log("Generating CSS with configs:", 
+    typeof lightConfig, 
+    lightConfig && Object.keys(lightConfig).length, 
+    typeof darkConfig, 
+    darkConfig && Object.keys(darkConfig).length
+  );
+  
+  // Use default themes if no configs are provided
+  if (!lightConfig && !darkConfig) {
+    console.log("No theme configs found, using defaults");
+    lightConfig = defaultLightTheme;
+    darkConfig = defaultDarkTheme;
+  }
 
-  // Default empty objects if configs are null
-  lightConfig = lightConfig || {};
-  darkConfig = darkConfig || {};
+  // Default to default themes if configs are null
+  lightConfig = lightConfig || defaultLightTheme;
+  darkConfig = darkConfig || defaultDarkTheme;
 
+  // Flatten nested theme objects
+  const flatLightConfig = flattenThemeConfig(lightConfig);
+  const flatDarkConfig = flattenThemeConfig(darkConfig);
+  
+  console.log("Flattened light theme:", flatLightConfig);
+  console.log("Flattened dark theme:", flatDarkConfig);
+  
+  // Determine the CSS selector to use
+  const lightSelector = selector ? selector : ':root';
+  const darkSelector = selector ? `html.dark ${selector}` : 'html.dark:root';
+  
   // Generate CSS for light theme
-  let css = ':root {\n';
-  Object.entries(lightConfig).forEach(([key, value]) => {
+  let css = `${lightSelector} {\n`;
+  Object.entries(flatLightConfig).forEach(([key, value]) => {
     css += `  ${key}: ${value};\n`;
   });
   css += '}\n\n';
 
   // Generate CSS for dark theme
-  css += 'html.dark:root {\n';
-  Object.entries(darkConfig).forEach(([key, value]) => {
+  css += `${darkSelector} {\n`;
+  Object.entries(flatDarkConfig).forEach(([key, value]) => {
     css += `  ${key}: ${value};\n`;
   });
   css += '}\n';

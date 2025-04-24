@@ -5,7 +5,9 @@ import { logAdminAction } from '@/lib/stats';
 
 // GET: Fetch a single theme preset by ID
 export async function GET(req: NextRequest, context: { params: { id: string } }) {
-  const { params } = context;
+  // Obtenemos los parámetros de manera asíncrona para evitar el error de Next.js
+  const { params } = await Promise.resolve(context);
+  
   // Usar try-catch ya que auth() podría fallar
   let session;
   try {
@@ -62,7 +64,8 @@ export async function GET(req: NextRequest, context: { params: { id: string } })
 
 // PUT: Update a theme preset by ID
 export async function PUT(req: NextRequest, context: { params: { id: string } }) {
-  const { params } = context;
+  // Obtenemos los parámetros de manera asíncrona para evitar el error de Next.js
+  const { params } = await Promise.resolve(context);
   // Usar try-catch ya que auth() podría fallar
   let session;
   try {
@@ -129,27 +132,42 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
     }
 
     // Update the theme using raw query to bypass type checking issues
-    let updateStatement = `UPDATE ThemePreset SET`;
-    const updateParams: any[] = [];
-    let paramIndex = 1;
-
-    if (updateData.name) {
-      updateStatement += ` name = $${paramIndex++},`;
-      updateParams.push(updateData.name);
+    // MySQL doesn't support RETURNING clause, so we do it in two steps
+    
+    // En lugar de usar parámetros, construimos las consultas directamente para MySQL
+    // 1. First, build and execute the UPDATE statement
+    if (updateData.name && updateData.config) {
+      // Actualizar nombre y configuración
+      await prisma.$queryRaw`
+        UPDATE ThemePreset 
+        SET 
+          name = ${updateData.name},
+          config = ${updateData.config}
+        WHERE id = ${id}
+      `;
+    } else if (updateData.name) {
+      // Solo actualizar nombre
+      await prisma.$queryRaw`
+        UPDATE ThemePreset 
+        SET name = ${updateData.name}
+        WHERE id = ${id}
+      `;
+    } else if (updateData.config) {
+      // Solo actualizar configuración
+      await prisma.$queryRaw`
+        UPDATE ThemePreset 
+        SET config = ${updateData.config}
+        WHERE id = ${id}
+      `;
     }
-
-    if (updateData.config) {
-      updateStatement += ` config = $${paramIndex++},`;
-      updateParams.push(updateData.config);
-    }
-
-    // Remove trailing comma
-    updateStatement = updateStatement.slice(0, -1);
-    updateStatement += ` WHERE id = $${paramIndex} RETURNING id, name, config`;
-    updateParams.push(id);
-
-    // Execute update
-    const result = await prisma.$queryRawUnsafe(updateStatement, ...updateParams);
+    
+    // 2. Then, fetch the updated record separately
+    const result = await prisma.$queryRaw`
+      SELECT id, name, config
+      FROM ThemePreset
+      WHERE id = ${id}
+    `;
+    
     const updatedTheme = Array.isArray(result) && result.length > 0 ? result[0] : null;
 
     if (!updatedTheme) {
@@ -185,7 +203,8 @@ export async function PUT(req: NextRequest, context: { params: { id: string } })
 
 // DELETE: Delete a theme preset by ID
 export async function DELETE(req: NextRequest, context: { params: { id: string } }) {
-  const { params } = context;
+  // Obtenemos los parámetros de manera asíncrona para evitar el error de Next.js
+  const { params } = await Promise.resolve(context);
   // Usar try-catch ya que auth() podría fallar
   let session;
   try {

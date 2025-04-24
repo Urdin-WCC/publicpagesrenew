@@ -1,0 +1,273 @@
+#############################################################################
+# Neurowitch - Complete Modular Development Guide                           #
+# ASSIGNED TASK: Chapter 4 - Site_Configuration_Module (Revised)            #
+#                (General Site & Appearance Configuration)                  #
+#############################################################################
+
+# NOTE: This document contains instructions for a specific module.
+# You MUST FIRST READ AND ADHERE TO "Chapter 0" provided below,
+# which contains essential common information, project principles,
+# and the mandatory tech stack for the entire Neurowitch project.
+# It also assumes that the preparatory refactoring from "Appendix B"
+# has been completed on the codebase, and that Module 8 (Theme Presets)
+# is either complete or its API for listing presets is available.
+
+#############################################################################
+# Chapter 0: Common Information & Project Principles                        #
+#############################################################################
+
+# 0.1 Introduction
+# Welcome to the development guide for the "Neurowitch" project. This document
+# details the modular architecture and technical specifications for building the
+# application. The goal of this modular structure is to enable parallel and efficient
+# development, where each developer or AI agent can focus on a specific module with
+# self-contained instructions.
+#
+# This Chapter 0 contains all the fundamental and common information that all
+# developers must know before starting work on any module. The subsequent chapters
+# describe the specific modules. To work on your assigned module (Chapter 4 - Revised),
+# you will need to read this Chapter 0 thoroughly AND the specific instructions
+# in the Chapter 4 section below.
+
+# 0.2 Project Overview
+# Neurowitch is a complete, responsive, and accessible web application featuring an
+# administration panel for managing content (blog, portfolio, static pages), SEO,
+# appearance (theming), and site statistics. It consists of a publicly accessible front-
+# end and an administration panel protected by role-based authentication.
+
+# 0.3 Mandatory Tech Stack
+# All development must exclusively use the following technology stack to ensure
+# compatibility:
+#
+# - Primary Framework: Next.js (version 14+ with App Router)
+# - Language: TypeScript
+# - UI Library: React (version 18+)
+# - Database: MySQL (version 5.7+)
+# - ORM: Prisma (using the Core_Module provided client: `lib/prisma.ts`)
+# - CSS Styling: Tailwind CSS
+# - Authentication: Next-Auth.js (v5+) (using Core_Module setup: `lib/auth.ts`)
+# - Form Handling: React Hook Form
+# - UI Components (Recommended): Shadcn/ui (installed and configured in the base project)
+# - State Management (Client-side): Zustand (preferred) or React Context API
+# - HTML Editor: React Quill or Tiptap (Use the Core_Module provided `HtmlEditor` component: `components/core/HtmlEditor.tsx`)
+# - File Upload (UI): React Dropzone (Use the Core_Module provided `ImageUploader` component: `components/core/ImageUploader.tsx`)
+# - Color Picker: react-color (or similar, if needed for spinner overlay)
+# - Charts: Recharts
+# - Package Manager: npm or yarn
+
+# 0.4 Credentials & Initial Setup (Reference for Core Module - You interact via code)
+# - Database (MySQL): Connection URL is configured in `.env` as DATABASE_URL for Prisma (Managed by Core_Module).
+# - Default Users: Created by Core_Module's seed script (master, admin, editor, collaborator) with hashed passwords (bcrypt).
+# - Role Hierarchy (Strict): master > admin > editor > collaborator
+#   - A user can only view/manage users and content at their level or lower, as specified in each module. Access to admin panel sections/features must be strictly restricted by role. Use Core_Module helpers/hooks for role checks (e.g., `useCurrentUserRole`, `checkUserRole`).
+
+# 0.5 General Principles & Mandatory Requirements
+# All modules must adhere to the following principles:
+#
+# - Responsiveness & Accessibility: All interfaces (public and admin) must be fully responsive and follow accessibility best practices (WCAG 2.1 AA). Use Tailwind CSS for this. Use semantic HTML.
+# - No Public Signup: The application does not allow public user registration. Users are created from the admin panel (Module 10).
+# - NO Browser Local Storage: Under no circumstances should localStorage or sessionStorage be used for storing sensitive information or application state. Use secure cookies (managed by Next-Auth for session) or server/URL state.
+# - Clean & Commented Code: Write clear, well-structured, and maintainable TypeScript code. Comment complex logic, public functions, and data types (use TSDoc).
+# - Documentation: Maintain necessary documentation (TSDoc, comments) to understand the module's functionality.
+# - Robustness & Reliability: Use the tech stack tools appropriately. Implement error handling (try/catch, UI error states). Do not simulate, remove, hide, or simplify described features without authorization.
+# - Security: Implement basic security measures: input validation in API routes, CSRF protection (Next-Auth helps), XSS protection (React helps, be careful with dangerouslySetInnerHTML), security header configuration, route/API protection by role. Prevent Path Traversal in file handling. Hash passwords (bcrypt handled by Core_Module).
+# - Performance: Optimize public page load times (Next.js SSR/SSG), image loading (use `next/image` component), and DB queries (Prisma - be mindful of query efficiency).
+# - Consistency: Follow the naming and structure conventions defined in this chapter. Use components and utilities from the Core_Module whenever possible (e.g., `ImageUploader`, `HtmlEditor`, `prisma` client, `logAdminAction`).
+# - Error Handling: Display clear and user-friendly error messages when something fails (both client-side and server-side validations). Use UI components (like Shadcn/ui's Alert/Toast) for feedback.
+# - Backups: (Responsibility of the project manager) Regular database backups are performed.
+# - **Application Language: IMPORTANT:** While these development instructions are in English, the final application's **user-facing interface** (UI text, labels, messages, content displayed to the end-user in both the public site and the admin panel) **MUST be in Spanish.** Ensure all user-visible text implemented in the components is in Spanish.
+
+# 0.6 Recommended Folder Structure (Next.js App Router)
+# The project should follow a structure similar to this (adapt as needed for your module):
+# ```
+# neurowitch-app/
+# |- app/
+# |  |- (admin)/              # Admin panel routes (grouped by layout)
+# |  |  |- admin/
+# |  |  |  |- ...
+# |  |  |  |- settings/      # <<< Your admin UI pages go here (Module 4)
+# |  |  |  |  |- header/page.tsx
+# |  |  |  |  |- footer/page.tsx
+# |  |  |  |  |- sidebar/page.tsx
+# |  |  |  |  |- social/page.tsx
+# |  |  |  |  |- sharing/page.tsx
+# |  |  |  |  |- appearance/page.tsx # <<< New page
+# |  |  |  |  |- privacy/page.tsx # (From Module 7)
+# |  |  |  |  |- security/page.tsx # (From Module 10)
+# |  |  |  |- ...
+# |  |  |  |- layout.tsx     # Admin base layout (Provided by UI_Framework_Module)
+# |  |- (public)/             # Public routes (grouped by layout)
+# |  |  |- ...
+# |  |  |- layout.tsx     # Public base layout (Provided by UI_Framework_Module)
+# |  |- api/                  # API Routes
+# |  |  |- ...
+# |  |  |- settings/         # <<< Your API routes go here (Module 4)
+# |  |  |  |- header/route.ts
+# |  |  |  |- footer/route.ts
+# |  |  |  |- sidebar/route.ts
+# |  |  |  |- social/route.ts
+# |  |  |  |- sharing/route.ts
+# |  |  |  |- appearance/route.ts # <<< New route
+# |  |  |  |- privacy/route.ts # (From Module 7)
+# |  |  |  |- security/route.ts # (From Module 10)
+# |  |  |- ...
+# |  |- layout.tsx          # Root layout (Core)
+# |  |- globals.css         # Global styles (Tailwind)
+# |  |- ...
+# |- components/
+# |  |- core/               # Core reusable components (HtmlEditor, ImageUploader - Provided by Core)
+# |  |- admin/              # Admin specific components (AdminLayout, Sidebar - Provided by UI_Framework)
+# |  |  |- settings/        # <<< Your specific components (if any)
+# |  |- public/             # Public site specific components (PublicLayout, Header, Footer - Provided by UI_Framework)
+# |  |- ui/                 # Shadcn/ui components (Base project)
+# |- lib/                    # Shared logic, utilities, config
+# |  |- prisma.ts           # Prisma client instance (Provided by Core)
+# |  |- auth.ts             # Next-Auth config & helpers (Provided by Core)
+# |  |- utils.ts            # Utility functions (e.g., generateSlug - Provided by Core)
+# |  |- stats.ts            # Statistics logging function `logAdminAction` (Provided by Core)
+# |  |- hooks/              # Custom React hooks (e.g., role checks - Provided by Core)
+# |  |- constants.ts        # <<< Define WIDGET_TYPES here
+# |- prisma/                 # Prisma schema and migrations (Managed by Core, modified by modules)
+# |  |- schema.prisma       # <<< Assumes GlobalConfig model exists from Appendix B
+# |  |- migrations/
+# |- public/                 # Static assets
+# |  |- uploads/            # Folder for user uploads (Managed by Core)
+# |- .env                    # Environment variables (Managed by Core)
+# |- next.config.mjs
+# |- tailwind.config.ts
+# |- tsconfig.json
+# |- package.json
+# ```
+
+# 0.7 Core Module Interface Summary (Module 1 Exports - What you can use)
+# The Core_Module (Chapter 1, potentially modified by Appendix B) established the foundation and provides the following key tools and functionalities that other modules must use:
+# - Database Access: Via the singleton Prisma client exported from `lib/prisma.ts`. All DB interactions must use this typed client.
+# - Authentication & Session (Next-Auth.js): Use helpers/hooks from Core for role checks.
+# - ImageUploader Component (`components/core/ImageUploader.tsx`): For image uploads (e.g., header logo, spinner image).
+# - HtmlEditor Component (`components/core/HtmlEditor.tsx`): For editing HTML content (e.g., secondary footer HTML).
+# - `logAdminAction(...)` Function (`lib/stats.ts`): MUST be called on DB writes via admin APIs.
+# - Global Configuration: Functions `getGlobalConfig()` and `updateGlobalConfig()` from `lib/config.ts` (or similar) to read/write the *single row* `GlobalConfig` model in Prisma (schema updated by Appendix B).
+
+# 0.8 Basic Workflow
+# - Version Control: Use Git.
+# - Install Dependencies: `npm install` if needed.
+# - Migrations: Not expected unless you modify `GlobalConfig` further (unlikely).
+# - Prisma Client: `npx prisma generate` if needed.
+# - Dev Server: `npm run dev`.
+# - Testing: Verify forms save data correctly to `GlobalConfig` and API endpoints are protected.
+
+# ---------------------------------------------------------------------------
+# End of Chapter 0
+# ---------------------------------------------------------------------------
+
+
+# ############################################################################
+# Chapter 4: Site_Configuration_Module (Revised)                            #
+#             (General Site Structure & Appearance Configuration)             #
+# ############################################################################
+
+# **Objective:** Implement the admin panel sections allowing configuration of the public site's structural elements (Header, Footer, Sidebar content like widgets, Social Links, Sharing Buttons) AND the global visual appearance settings (Default Themes, Theme Assignments, Loading Spinner, Theme Switcher, Sticky Elements).
+
+# **Specific Technology:** Next.js (App Router, API Routes), React, TypeScript, Prisma (via Core), Tailwind CSS, React Hook Form, Shadcn/ui (optional), react-color (optional, for spinner overlay).
+
+# **Detailed Responsibilities:**
+
+# 1.  **Data Model (Prisma Schema):**
+#     - This module interacts primarily with the `GlobalConfig` model (single row), assuming its schema was updated by Appendix B.
+#     - Ensure you understand the structure of the JSON fields within `GlobalConfig`: `themeAssignments`, `loadingSpinnerConfig`, `themeSwitcherConfig`, `stickyElementsConfig`, and potentially fields storing header/footer/sidebar specific data (like widget lists, secondary HTML) which might be stored directly or as JSON.
+
+# 2.  **Define Widget Types:**
+#     - Create or locate a constants file (e.g., `lib/constants.ts`).
+#     - Define an enum or a constant array for available widget types that can be placed in the Footer or Sidebar. Example:
+#       ```typescript
+#       // lib/constants.ts
+#       export const WIDGET_TYPES = [
+#         { id: 'WidgetLatestPosts', name: 'Últimas Entradas Blog' }, // Name in Spanish
+#         { id: 'WidgetLatestProjects', name: 'Últimos Proyectos' },
+#         { id: 'WidgetSearch', name: 'Buscador' },
+#         { id: 'WidgetCategories', name: 'Categorías Blog' },
+#         { id: 'WidgetTags', name: 'Etiquetas Blog' },
+#         { id: 'WidgetCustomHTML', name: 'HTML Personalizado' }, // Could potentially use DEVELOPER_HTML from Module 14 if needed
+#         // Add other widget types as needed
+#       ] as const; // Use 'as const' for better type inference
+
+#       export type WidgetType = typeof WIDGET_TYPES[number]['id'];
+#       ```
+#     - This list will be used in the Footer/Sidebar configuration forms.
+
+# 3.  **Admin Interface - Structural Configuration [admin]:**
+#     - Ensure the following pages exist or create them under `app/(admin)/admin/settings/`. Use `AdminLayout`. Protect access [admin]. **All UI text must be in Spanish.**
+#     - **Header (`header/page.tsx`):**
+#       - Form (`react-hook-form`) to manage header settings stored in `GlobalConfig` (or dedicated fields/JSON).
+#       - Include: Logo upload (using `Core_Module.ImageUploader`), potentially menu style options, etc.
+#       - On submit, call API `PUT /api/settings/header`. **Form labels/buttons in Spanish.**
+#     - **Footer (`footer/page.tsx`):**
+#       - Form (`react-hook-form`) to manage footer settings.
+#       - Include:
+#         - **Widget Management:** Interface (e.g., using `react-hook-form`'s `useFieldArray`) to add/remove/reorder widgets for the footer. For each widget entry, allow selecting the type from `WIDGET_TYPES`. Store the resulting array (e.g., `[{ type: 'WidgetLatestPosts' }, { type: 'WidgetSearch' }]`) as JSON in `GlobalConfig` (e.g., `footerWidgetsJson`). **UI text in Spanish.**
+#         - Height field (optional). **Label in Spanish.**
+#         - Secondary HTML content (e.g., copyright): Use `Core_Module.HtmlEditor`. Store in `GlobalConfig` (e.g., `footerHtmlContent`). *(Consider role restriction [master only] for editing raw HTML if needed).* **Label in Spanish.**
+#       - On submit, call API `PUT /api/settings/footer`.
+#     - **Sidebar (`sidebar/page.tsx`):**
+#       - Similar form to Footer for managing sidebar widgets, position (left/right), width. Store config as JSON in `GlobalConfig` (e.g., `sidebarConfigJson`). **UI text in Spanish.**
+#       - On submit, call API `PUT /api/settings/sidebar`.
+#     - **Social Links (`social/page.tsx`):**
+#       - Interface (`useFieldArray`?) to manage a list of social links `{ name: string, url: string, icon?: string, newTab?: boolean }`. Store as JSON in `GlobalConfig`. **UI text in Spanish.**
+#       - On submit, call API `PUT /api/settings/social`.
+#     - **Sharing Buttons (`sharing/page.tsx`):**
+#       - Similar interface to manage sharing buttons/links for content pages `{ name: string, shareUrlBase: string, icon?: string, newTab?: boolean }`. Store as JSON in `GlobalConfig`. **UI text in Spanish.**
+#       - On submit, call API `PUT /api/settings/sharing`.
+
+# 4.  **Admin Interface - Appearance Configuration [admin]:**
+#     - **Create New Page:** `app/(admin)/admin/settings/appearance/page.tsx`.
+#     - Use `AdminLayout`. Protect access [admin]. **Page title and all UI text must be in Spanish** (e.g., Title: "Configuración de Apariencia Global").
+#     - **Appearance Form:** Create a client component (e.g., `components/admin/settings/AppearanceForm.tsx`) using `react-hook-form`.
+#       - **Load Initial Data:** Fetch the current `GlobalConfig` using the Core `getGlobalConfig` function (or create a simple `GET /api/settings/appearance` endpoint if needed) and populate form defaults. Also, fetch the list of theme presets (`id`, `name`) from `/api/theme/presets` (created by Module 8) to populate dropdowns.
+#       - **Form Sections:**
+#         - **Default Themes:** Two dropdowns (`<select>` or Shadcn/ui Select) labeled "Tema por Defecto (Claro)" and "Tema por Defecto (Oscuro)". Populate with fetched theme presets. Bind to `defaultLightThemePresetId` and `defaultDarkThemePresetId` fields.
+#         - **Loading Spinner:** Checkbox "Activar Spinner de Carga". If checked, show:
+#           - Color picker (e.g., `react-color`, ensure alpha support) for overlay color (`loadingSpinnerConfig.overlayColor`).
+#           - Optional: `Core_Module.ImageUploader` for a custom spinner image (`loadingSpinnerConfig.spinnerImageUrl`). Store config in `loadingSpinnerConfig` JSON.
+#         - **Theme Switcher:** Checkbox "Mostrar Interruptor de Tema". If checked, show options for style (e.g., Icon Only, Icon + Text) and position (dropdown: Bottom Right, Bottom Left, etc.). Store config in `themeSwitcherConfig` JSON.
+#         - **Sticky Elements:** Checkboxes: "Cabecera Fija", "Barra Lateral Fija" (if sidebar exists), "Pie de Página Fijo", "Interruptor de Tema Fijo". Store boolean flags in `stickyElementsConfig` JSON.
+#         - **Specific Theme Assignments:**
+#           - Use `useFieldArray` to manage a list of assignments.
+#           - Each row should have:
+#             - Input for "Ruta o Elemento" (e.g., `/blog`, `/contacto`, `header`, `footer`). Provide clear examples.
+#             - Dropdown "Tema Claro" (populated with theme presets).
+#             - Dropdown "Tema Oscuro" (populated with theme presets).
+#             - Button "Eliminar".
+#           - Button "Añadir Asignación".
+#           - Store this array of objects as a JSON string in the `themeAssignments` field of `GlobalConfig`.
+#       - **Submit Button:** "Guardar Configuración de Apariencia". On click, bundle all form data correctly (especially the JSON fields) and send it via the API call.
+#       - **All labels, titles, button texts, helper texts must be in Spanish.**
+
+# 5.  **API Routes:**
+#     - Create/Ensure routes exist under `app/api/settings/`. Protect all with [admin] role check and call `Core_Module.logAdminAction` on successful writes. Use the Core `updateGlobalConfig` function where appropriate to update the single `GlobalConfig` row.
+#     - `header/route.ts` (PUT): Receives header config, updates `GlobalConfig`.
+#     - `footer/route.ts` (PUT): Receives footer config (widget list JSON, HTML content), updates `GlobalConfig`.
+#     - `sidebar/route.ts` (PUT): Receives sidebar config (widget list JSON, position, width), updates `GlobalConfig`.
+#     - `social/route.ts` (PUT): Receives social links list JSON, updates `GlobalConfig`.
+#     - `sharing/route.ts` (PUT): Receives sharing buttons list JSON, updates `GlobalConfig`.
+#     - **`appearance/route.ts` (PUT):** Receives all data from the appearance form (default theme IDs, JSON configs for spinner, switcher, sticky, theme assignments). Validate data. Update the single `GlobalConfig` row in the database using Prisma (via Core `updateGlobalConfig` or direct `prisma.globalConfig.update`).
+
+# **Dependencies:**
+# - Core_Module: Auth, DB/Prisma client (using updated schema), ImageUploader, HtmlEditor, logAdminAction, `getGlobalConfig`, `updateGlobalConfig`.
+# - UI_Framework_Module: AdminLayout.
+# - **Theme_Module (Module 8):** Needs the API endpoint `/api/theme/presets` (GET) to be available for fetching the list of presets for dropdowns.
+# - External Libraries: `react-hook-form`, potentially `react-color`.
+
+# **Completion Criteria:**
+# - Admin users can configure Header, Footer (widgets, HTML), Sidebar (widgets, layout), Social Links, and Sharing Buttons via dedicated admin pages.
+# - Admin users can configure global appearance settings (default themes, assignments, spinner, switcher, sticky elements) on the new `/admin/settings/appearance` page.
+# - All configurations are correctly saved to the `GlobalConfig` database record via protected API routes.
+# - Core `logAdminAction` is called on every successful configuration save.
+# - Forms load existing configuration data correctly.
+# - Dropdowns for theme selection are populated from Module 8's API.
+# - Widget type list is defined and used in forms.
+# - All admin UI text is in Spanish.
+# - Code follows project principles.
+
+# ############################################################################
+# End of Chapter 4 (Revised)                                                #
+# ############################################################################

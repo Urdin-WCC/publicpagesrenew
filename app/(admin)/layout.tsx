@@ -38,6 +38,7 @@ const navLinks = [
       { href: "/admin/settings/header", label: "Encabezado", icon: <FileText className="w-4 h-4" /> },
       { href: "/admin/settings/footer", label: "Pie de página", icon: <FileText className="w-4 h-4" /> },
       { href: "/admin/settings/sidebar", label: "Barra lateral", icon: <FolderKanban className="w-4 h-4" /> },
+      { href: "/admin/settings/menu", label: "Menú de Navegación", icon: <FileText className="w-4 h-4" /> },
       { href: "/admin/settings/social", label: "Redes sociales", icon: <Users className="w-4 h-4" /> },
       { href: "/admin/settings/sharing", label: "Botones compartir", icon: <BarChart2 className="w-4 h-4" /> },
       { href: "/admin/settings/appearance", label: "Apariencia Global", icon: <Paintbrush className="w-4 h-4" /> }

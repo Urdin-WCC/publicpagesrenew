@@ -120,3 +120,121 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Styling for HTML content rendered with dangerouslySetInnerHTML */
+.content-html {
+  color: var(--typography-paragraph-color, var(--foreground));
+  font-family: var(--typography-paragraph-fontFamily, inherit);
+  font-size: var(--typography-paragraph-fontSize, inherit);
+  line-height: 1.5;
+}
+
+.content-html h1, 
+.content-html h2, 
+.content-html h3, 
+.content-html h4, 
+.content-html h5, 
+.content-html h6 {
+  color: var(--typography-heading-color, var(--foreground));
+  font-family: var(--typography-heading-fontFamily, inherit);
+  font-weight: var(--typography-heading-fontWeight, bold);
+  margin-bottom: 0.75em;
+}
+
+.content-html a {
+  color: var(--typography-link-color, var(--primary));
+  text-decoration: underline;
+  font-family: var(--typography-link-fontFamily, inherit);
+}
+
+.content-html a:hover {
+  color: var(--typography-link-hoverColor, var(--primary-foreground));
+}
+
+.content-html p, 
+.content-html ul, 
+.content-html ol, 
+.content-html blockquote {
+  margin-bottom: 1em;
+}
+
+.content-html ul, 
+.content-html ol {
+  padding-left: 1.5em;
+}
+
+.content-html ul {
+  list-style-type: disc;
+}
+
+.content-html ol {
+  list-style-type: decimal;
+}
+
+.content-html blockquote {
+  border-left: 3px solid var(--primary, #0070F3);
+  padding-left: 1em;
+  font-style: italic;
+}
+
+.content-html img {
+  max-width: 100%;
+  height: auto;
+  margin: 1em 0;
+}
+
+.content-html code {
+  font-family: monospace;
+  background-color: rgba(0,0,0,0.05);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+.content-html pre {
+  background-color: rgba(0,0,0,0.05);
+  padding: 1em;
+  border-radius: 5px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+/* Clases para controlar visibilidad basada en configuración de página */
+body.hide-header header {
+  display: none !important;
+}
+
+body.hide-footer footer {
+  display: none !important;
+}
+
+/* Reglas para sidebar - VERSION MODIFICADA PARA FORZAR VISIBILIDAD */
+/* Forzar sidebar visible por defecto */
+.sidebar-component {
+  display: block !important;
+}
+
+/* Si explícitamente se desea ocultar, respetamos eso */
+body.hide-sidebar .sidebar-component {
+  display: none !important;
+}
+
+/* Priorización de posición cuando ambas barras están presentes */
+body.sidebar-left .sidebar-component[data-position="right"] {
+  display: none !important;
+}
+body.sidebar-right .sidebar-component[data-position="left"] {
+  display: none !important;
+}
+
+/* Debug: añadir borde para visualizar componentes */
+.sidebar-component {
+  border: 2px solid #ff5722 !important;
+  min-height: 300px;
+}
+header {
+  border: 2px solid #2196f3 !important;
+}
+footer {
+  border: 2px solid #4caf50 !important;
+  min-height: 100px;
+}

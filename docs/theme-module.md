@@ -184,9 +184,44 @@ Cada sección puede tener asignados temas diferentes tanto para modo claro como 
 - La configuración es extremadamente flexible, permitiendo definir solo los valores necesarios
 - Los valores predeterminados se aplican cuando falta alguna configuración específica
 
-## Características Implementadas en la Última Actualización
+## Características Implementadas en la Última Actualización (2025)
 
-- **Sistema de asignación de temas por sección**: Nueva funcionalidad que permite asignar temas específicos a cada sección principal del sitio (blog, páginas, portfolio, header, footer, sidebar) tanto para modo claro como oscuro.
+### Centralización de la Configuración de Temas (2025-Q2)
+
+- **Sistema de asignación central**: Nueva interfaz unificada que permite gestionar todas las asignaciones de temas desde un solo lugar en Apariencia Global.
+- **Selector mejorado de destinos**: Interfaz intuitiva que muestra:
+  * Elementos del sistema (header, footer, sidebar, blog, portfolio)
+  * Todas las páginas estáticas disponibles (cargadas dinámicamente)
+  * Opción para rutas personalizadas
+- **Eliminación de selectores redundantes**: Retirados todos los selectores de temas dispersos en múltiples configuraciones (encabezado, pie de página, páginas individuales).
+- **Retrocompatibilidad**: Mantiene compatibilidad con asignaciones existentes mientras ofrece un nuevo flujo de trabajo más eficiente.
+- **Mensajes informativos**: Cada sección individual ahora incluye redirecciones claras al sistema centralizado.
+
+### Mejoras en el Módulo de Páginas Estáticas (2025-Q2)
+
+- **Nuevas opciones de visualización**: Control granular sobre elementos que se muestran en cada página:
+  * Mostrar/ocultar cabecera (activado por defecto)
+  * Mostrar/ocultar pie de página (activado por defecto)
+  * Mostrar/ocultar barra lateral con selección de posición (izquierda/derecha)
+- **Campos SEO por página**: Posibilidad de especificar para cada página:
+  * Título Meta personalizado
+  * Descripción Meta personalizada
+  * Palabras clave específicas
+- **Gestión de menú separada**: La inclusión en el menú de navegación se gestiona ahora a través del nuevo Sistema de Menú de Navegación.
+
+### Nuevo Sistema de Menú de Navegación (2025-Q2)
+
+Se ha implementado un sistema completamente nuevo para la gestión del menú de navegación. Para una documentación detallada, consulte [docs/navigation-menu-system.md](./navigation-menu-system.md).
+
+Características destacadas:
+- Gestión centralizada de todos los elementos del menú
+- Soporte para páginas del sistema, páginas estáticas y URLs personalizadas
+- Interfaz intuitiva con reordenación mediante botones
+- Apertura en nueva pestaña configurable por elemento
+- Validación de datos y prevención de errores
+
+### Mejoras Previas del Módulo de Temas
+
 - **Configuración detallada de sombras**: Control granular sobre todos los aspectos de las sombras (posición X/Y, desenfoque, expansión y color).
 - **Selección de fuentes mejorada**: Selector con fuentes comunes predefinidas y vista previa en tiempo real.
 - **Selector de color mejorado**: Interfaz con botones de confirmación y cancelación que evita cambios accidentales.
@@ -246,13 +281,29 @@ try {
 }
 ```
 
+## Refactorización del Sistema (2025)
+
+El sistema de temas ha sido completamente refactorizado para mejorar su modularidad, mantenibilidad y experiencia de usuario. Los principales cambios incluyen:
+
+- División del componente principal (`PresetForm.tsx`) en múltiples componentes especializados
+- Creación de componentes base reutilizables (ColorPicker, FontSelector)
+- Organización por pestañas para una navegación más intuitiva
+- Vistas previas en tiempo real para cada sección
+- Mejoras significativas en la experiencia de usuario
+
+Para más detalles sobre la nueva arquitectura, patrones implementados, y cómo extender el sistema, consulte la [documentación completa de la refactorización](./theme-system-refactoring.md).
+
 ## Mejoras Futuras Posibles
 
-- Previsualización en tiempo real de los cambios de tema
+- ✓ ~~Previsualización en tiempo real de los cambios de tema~~ (Implementado en la refactorización)
 - Selección de temas predefinidos como punto de partida
 - Exportación/importación de temas para compartir entre sitios
 - Aplicación de temas basada en hora del día o ubicación del usuario
 - Soporte para temas estacionales o temáticos
 - Modo oscuro/claro automático basado en preferencias del usuario
 - Regenerar el cliente Prisma para asegurar acceso a todos los modelos
-- Implementar documentación detallada para desarrolladores sobre cómo extender el sistema de temas
+- ✓ ~~Implementar documentación detallada para desarrolladores sobre cómo extender el sistema de temas~~ (Implementado en la documentación de refactorización)
+- Sistema avanzado de herencia de temas (temas base y variaciones)
+- Gestión de versiones para cada tema con posibilidad de revertir cambios
+- Biblioteca de componentes que apliquen automáticamente los estilos del tema
+- Validación de contraste para asegurar accesibilidad

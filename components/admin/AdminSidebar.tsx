@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { translations } from "@/app/translations";
+import { useCurrentUserRole, checkUserRole } from "@/lib/auth";
+import { Role } from "@prisma/client";
 
 /**
  * Admin sidebar component
@@ -15,6 +17,8 @@ import { translations } from "@/app/translations";
  */
 export default function AdminSidebar() {
   const pathname = usePathname();
+  // Obtener el rol del usuario actual
+  const userRole = useCurrentUserRole();
 
   const menuItems = [
     { name: "Dashboard", href: "/admin", icon: "📊" },
@@ -38,9 +42,15 @@ export default function AdminSidebar() {
     { name: "Encabezado", href: "/admin/settings/header", icon: "📋" },
     { name: "Pie de página", href: "/admin/settings/footer", icon: "📋" },
     { name: "Barra lateral", href: "/admin/settings/sidebar", icon: "📑" },
+    { name: "Menú de Navegación", href: "/admin/settings/menu", icon: "🔗" },
     { name: "Redes sociales", href: "/admin/settings/social", icon: "👥" },
     { name: "Botones compartir", href: "/admin/settings/sharing", icon: "📤" },
     { name: "Apariencia Global", href: "/admin/settings/appearance", icon: "🎨" },
+  ];
+
+  // Elementos del menú específicos para el rol Master
+  const masterOnlyItems = [
+    { name: "HTML Personalizado", href: "/admin/developer-html", icon: "⚠️" },
   ];
 
   return (
@@ -52,6 +62,26 @@ export default function AdminSidebar() {
 
       <nav className="p-4">
         <ul className="space-y-1">
+          {/* Master-only menu items - solo se muestran si el usuario tiene el rol MASTER */}
+          {userRole === Role.MASTER && masterOnlyItems.map((item) => (
+            <li key={item.href} className="border-b border-orange-200 mb-2 pb-2">
+              <Link
+                href={item.href}
+                className={cn(
+                  "flex items-center px-4 py-2 rounded-md text-sm transition-colors bg-amber-50",
+                  pathname === item.href
+                    ? "bg-amber-100 text-amber-900"
+                    : "text-amber-800 hover:bg-amber-100"
+                )}
+              >
+                <span className="mr-3">{item.icon}</span>
+                {item.name}
+                <span className="ml-auto text-xs bg-amber-200 px-2 py-1 rounded text-amber-800">Solo Master</span>
+              </Link>
+            </li>
+          ))}
+          
+          {/* Menú items regulares */}
           {menuItems.map((item) => (
             <li key={item.href}>
               <Link

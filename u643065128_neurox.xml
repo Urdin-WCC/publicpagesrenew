@@ -1,0 +1,691 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+- phpMyAdmin XML Dump
+- version 5.2.1
+- https://www.phpmyadmin.net
+-
+- Servidor: 127.0.0.1:3306
+- Tiempo de generación: 20-04-2025 a las 10:55:10
+- Versión del servidor: 10.11.10-MariaDB
+- Versión de PHP: 7.2.34
+-->
+
+<pma_xml_export version="1.0" xmlns:pma="https://www.phpmyadmin.net/some_doc_url/">
+    <!--
+    - Structure schemas
+    -->
+    <pma:structure_schemas>
+        <pma:database name="u643065128_neurox" collation="utf8mb4_unicode_ci" charset="utf8mb4">
+            <pma:table name="Account">
+                CREATE TABLE `Account` (
+                  `id` varchar(191) NOT NULL,
+                  `userId` varchar(191) NOT NULL,
+                  `type` varchar(191) NOT NULL,
+                  `provider` varchar(191) NOT NULL,
+                  `providerAccountId` varchar(191) NOT NULL,
+                  `refresh_token` text DEFAULT NULL,
+                  `access_token` text DEFAULT NULL,
+                  `expires_at` int(11) DEFAULT NULL,
+                  `token_type` varchar(191) DEFAULT NULL,
+                  `scope` varchar(191) DEFAULT NULL,
+                  `id_token` text DEFAULT NULL,
+                  `session_state` varchar(191) DEFAULT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `Account_provider_providerAccountId_key` (`provider`,`providerAccountId`),
+                  KEY `Account_userId_fkey` (`userId`),
+                  CONSTRAINT `Account_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="AdminAction">
+                CREATE TABLE `AdminAction` (
+                  `id` varchar(191) NOT NULL,
+                  `userId` varchar(191) NOT NULL,
+                  `action` varchar(191) NOT NULL,
+                  `details` text DEFAULT NULL,
+                  `module` varchar(191) NOT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="AdminLog">
+                CREATE TABLE `AdminLog` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `userId` varchar(255) DEFAULT NULL,
+                  `userEmail` varchar(255) DEFAULT NULL,
+                  `action` varchar(255) NOT NULL,
+                  `details` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`details`)),
+                  `timestamp` datetime DEFAULT current_timestamp(),
+                  PRIMARY KEY (`id`),
+                  KEY `idx_timestamp` (`timestamp`),
+                  KEY `idx_userId` (`userId`),
+                  KEY `idx_action` (`action`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+            </pma:table>
+            <pma:table name="Category">
+                CREATE TABLE `Category` (
+                  `id` varchar(191) NOT NULL,
+                  `name` varchar(191) NOT NULL,
+                  `slug` varchar(191) NOT NULL,
+                  `description` text DEFAULT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `Category_slug_key` (`slug`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="GlobalConfig">
+                CREATE TABLE `GlobalConfig` (
+                  `id` varchar(191) NOT NULL DEFAULT 'global',
+                  `siteName` varchar(191) NOT NULL DEFAULT 'Neurowitch',
+                  `description` text DEFAULT NULL,
+                  `globalMetaTitle` varchar(255) DEFAULT NULL,
+                  `globalMetaDescription` text DEFAULT NULL,
+                  `globalKeywords` text DEFAULT NULL,
+                  `defaultSocialShareImage` varchar(255) DEFAULT NULL,
+                  `robotsTxtContent` longtext DEFAULT NULL,
+                  `googleAnalyticsId` varchar(50) DEFAULT NULL,
+                  `googleTagManagerId` varchar(50) DEFAULT NULL,
+                  `siteUrl` varchar(191) NOT NULL DEFAULT 'http://localhost:3000',
+                  `logoUrl` varchar(191) DEFAULT NULL,
+                  `faviconUrl` varchar(191) DEFAULT NULL,
+                  `themeColor` varchar(191) DEFAULT NULL,
+                  `header` longtext DEFAULT NULL,
+                  `footer` longtext DEFAULT NULL,
+                  `sidebar` longtext DEFAULT NULL,
+                  `social` longtext DEFAULT NULL,
+                  `sharing` longtext DEFAULT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  `maintenanceMode` tinyint(1) NOT NULL DEFAULT 0,
+                  `blogConfig` longtext DEFAULT NULL,
+                  `portfolioConfig` longtext DEFAULT NULL,
+                  `defaultLightThemePresetId` int(11) DEFAULT NULL,
+                  `defaultDarkThemePresetId` int(11) DEFAULT NULL,
+                  `themeAssignments` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`themeAssignments`)),
+                  `loadingSpinnerConfig` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`loadingSpinnerConfig`)),
+                  `themeSwitcherConfig` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`themeSwitcherConfig`)),
+                  `stickyElementsConfig` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`stickyElementsConfig`)),
+                  `cookieBannerLinkPageId` int(11) DEFAULT NULL,
+                  `cookieBannerText` text DEFAULT NULL,
+                  `activeThemeId` varchar(255) DEFAULT NULL,
+                  `passwordMinLength` int(11) DEFAULT 8,
+                  `passwordRequireUppercase` tinyint(1) DEFAULT 1,
+                  `passwordRequireNumber` tinyint(1) DEFAULT 1,
+                  `passwordRequireSymbol` tinyint(1) DEFAULT 1,
+                  `sessionDuration` int(11) DEFAULT 24,
+                  `maxLoginAttempts` int(11) DEFAULT 5,
+                  `captchaEnabled` tinyint(1) DEFAULT 0,
+                  `accountLockoutDuration` int(11) DEFAULT 30,
+                  `globalSeoTitle` varchar(191) DEFAULT NULL,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="MenuItem">
+                CREATE TABLE `MenuItem` (
+                  `id` varchar(191) NOT NULL,
+                  `label` varchar(191) NOT NULL,
+                  `url` varchar(191) NOT NULL,
+                  `order` int(11) NOT NULL DEFAULT 0,
+                  `parentId` varchar(191) DEFAULT NULL,
+                  `sectionId` varchar(191) NOT NULL,
+                  `isActive` tinyint(1) NOT NULL DEFAULT 1,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  KEY `MenuItem_parentId_fkey` (`parentId`),
+                  KEY `MenuItem_sectionId_fkey` (`sectionId`),
+                  CONSTRAINT `MenuItem_parentId_fkey` FOREIGN KEY (`parentId`) REFERENCES `MenuItem` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+                  CONSTRAINT `MenuItem_sectionId_fkey` FOREIGN KEY (`sectionId`) REFERENCES `SiteSection` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="PageView">
+                CREATE TABLE `PageView` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `url` varchar(255) NOT NULL,
+                  `referrer` varchar(255) DEFAULT NULL,
+                  `ipAddress` varchar(45) DEFAULT NULL,
+                  `userAgent` text DEFAULT NULL,
+                  `timestamp` datetime DEFAULT current_timestamp(),
+                  PRIMARY KEY (`id`),
+                  KEY `idx_timestamp` (`timestamp`),
+                  KEY `idx_url` (`url`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+            </pma:table>
+            <pma:table name="Post">
+                CREATE TABLE `Post` (
+                  `id` varchar(191) NOT NULL,
+                  `title` varchar(191) NOT NULL,
+                  `slug` varchar(191) NOT NULL,
+                  `content` text NOT NULL,
+                  `excerpt` text DEFAULT NULL,
+                  `coverImage` varchar(191) DEFAULT NULL,
+                  `status` enum('DRAFT','PUBLISHED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
+                  `publishedAt` datetime(3) DEFAULT NULL,
+                  `featured` tinyint(1) NOT NULL DEFAULT 0,
+                  `deleted` tinyint(1) NOT NULL DEFAULT 0,
+                  `authorId` varchar(191) DEFAULT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  `authorDisplayName` varchar(191) DEFAULT NULL,
+                  `categoryId` varchar(191) DEFAULT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `Post_slug_key` (`slug`),
+                  KEY `Post_authorId_fkey` (`authorId`),
+                  KEY `Post_categoryId_fkey` (`categoryId`),
+                  CONSTRAINT `Post_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+                  CONSTRAINT `Post_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="Project">
+                CREATE TABLE `Project` (
+                  `id` varchar(191) NOT NULL,
+                  `title` varchar(191) NOT NULL,
+                  `slug` varchar(191) NOT NULL,
+                  `content` text NOT NULL,
+                  `excerpt` text DEFAULT NULL,
+                  `coverImage` varchar(191) DEFAULT NULL,
+                  `additionalImageUrls` longtext DEFAULT NULL,
+                  `displayType` enum('SINGLE','GALLERY','SLIDER','GRID') NOT NULL DEFAULT 'SINGLE',
+                  `status` enum('DRAFT','PUBLISHED','ARCHIVED') NOT NULL DEFAULT 'DRAFT',
+                  `publishedAt` datetime(3) DEFAULT NULL,
+                  `featured` tinyint(1) NOT NULL DEFAULT 0,
+                  `authorDisplayName` varchar(191) DEFAULT NULL,
+                  `deleted` tinyint(1) NOT NULL DEFAULT 0,
+                  `authorId` varchar(191) DEFAULT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  `categoryId` varchar(191) DEFAULT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `Project_slug_key` (`slug`),
+                  KEY `Project_authorId_fkey` (`authorId`),
+                  KEY `Project_categoryId_fkey` (`categoryId`),
+                  CONSTRAINT `Project_authorId_fkey` FOREIGN KEY (`authorId`) REFERENCES `User` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+                  CONSTRAINT `Project_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="Referrer">
+                CREATE TABLE `Referrer` (
+                  `id` varchar(191) NOT NULL,
+                  `referrer` varchar(191) NOT NULL,
+                  `date` datetime(3) NOT NULL,
+                  `count` int(11) NOT NULL DEFAULT 0,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="Session">
+                CREATE TABLE `Session` (
+                  `id` varchar(191) NOT NULL,
+                  `sessionToken` varchar(191) NOT NULL,
+                  `userId` varchar(191) NOT NULL,
+                  `expires` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `Session_sessionToken_key` (`sessionToken`),
+                  KEY `Session_userId_fkey` (`userId`),
+                  CONSTRAINT `Session_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="SiteSection">
+                CREATE TABLE `SiteSection` (
+                  `id` varchar(191) NOT NULL,
+                  `name` varchar(191) NOT NULL,
+                  `type` enum('HEADER','FOOTER','SIDEBAR') NOT NULL,
+                  `isActive` tinyint(1) NOT NULL DEFAULT 1,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="StaticPage">
+                CREATE TABLE `StaticPage` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `title` varchar(191) NOT NULL,
+                  `slug` varchar(191) NOT NULL,
+                  `contentHtml` longtext NOT NULL,
+                  `menuOrder` int(11) NOT NULL DEFAULT 0,
+                  `includeInMenu` tinyint(1) NOT NULL DEFAULT 0,
+                  `isHomePage` tinyint(1) NOT NULL DEFAULT 0,
+                  `isVisible` tinyint(1) NOT NULL DEFAULT 1,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `StaticPage_slug_key` (`slug`)
+                ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="Tag">
+                CREATE TABLE `Tag` (
+                  `id` varchar(191) NOT NULL,
+                  `name` varchar(191) NOT NULL,
+                  `slug` varchar(191) NOT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `Tag_slug_key` (`slug`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="ThemePreset">
+                CREATE TABLE `ThemePreset` (
+                  `id` int(11) NOT NULL AUTO_INCREMENT,
+                  `name` varchar(191) NOT NULL,
+                  `config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`config`)),
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `ThemePreset_name_key` (`name`)
+                ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="User">
+                CREATE TABLE `User` (
+                  `id` varchar(191) NOT NULL,
+                  `name` varchar(191) DEFAULT NULL,
+                  `email` varchar(191) NOT NULL,
+                  `password` varchar(191) NOT NULL,
+                  `role` enum('MASTER','ADMIN','EDITOR','COLLABORATOR') NOT NULL DEFAULT 'COLLABORATOR',
+                  `emailVerified` datetime(3) DEFAULT NULL,
+                  `image` varchar(191) DEFAULT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `User_email_key` (`email`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="VerificationToken">
+                CREATE TABLE `VerificationToken` (
+                  `identifier` varchar(191) NOT NULL,
+                  `token` varchar(191) NOT NULL,
+                  `expires` datetime(3) NOT NULL,
+                  UNIQUE KEY `VerificationToken_token_key` (`token`),
+                  UNIQUE KEY `VerificationToken_identifier_token_key` (`identifier`,`token`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="Visit">
+                CREATE TABLE `Visit` (
+                  `id` varchar(191) NOT NULL,
+                  `date` datetime(3) NOT NULL,
+                  `count` int(11) NOT NULL DEFAULT 0,
+                  PRIMARY KEY (`id`),
+                  UNIQUE KEY `Visit_date_key` (`date`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+            <pma:table name="Widget">
+                CREATE TABLE `Widget` (
+                  `id` varchar(191) NOT NULL,
+                  `title` varchar(191) NOT NULL,
+                  `type` enum('LATEST_POSTS','LATEST_PROJECTS','SEARCH','CATEGORIES','TAGS','SOCIAL_LINKS','TEXT','NEWSLETTER','RECENT_COMMENTS') NOT NULL,
+                  `content` text DEFAULT NULL,
+                  `config` longtext DEFAULT NULL,
+                  `order` int(11) NOT NULL DEFAULT 0,
+                  `isActive` tinyint(1) NOT NULL DEFAULT 1,
+                  `sectionId` varchar(191) NOT NULL,
+                  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+                  `updatedAt` datetime(3) NOT NULL,
+                  PRIMARY KEY (`id`),
+                  KEY `Widget_sectionId_fkey` (`sectionId`),
+                  CONSTRAINT `Widget_sectionId_fkey` FOREIGN KEY (`sectionId`) REFERENCES `SiteSection` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+            </pma:table>
+        </pma:database>
+    </pma:structure_schemas>
+
+    <!--
+    - Base de datos: 'u643065128_neurox'
+    -->
+    <database name="u643065128_neurox">
+        <!-- Tabla Account -->
+        <!-- Tabla AdminAction -->
+        <!-- Tabla AdminLog -->
+        <!-- Tabla Category -->
+        <table name="Category">
+            <column name="id">cm9orar3x0000un54g4wzk4q5</column>
+            <column name="name">Cosas raras</column>
+            <column name="slug">cosas-raras</column>
+            <column name="description">NULL</column>
+            <column name="createdAt">2025-04-19 21:54:50.683</column>
+            <column name="updatedAt">2025-04-19 21:54:50.683</column>
+        </table>
+        <table name="Category">
+            <column name="id">cm9orb0ee0001un540juo4o1k</column>
+            <column name="name">Cosas divertidas</column>
+            <column name="slug">cosas-divertidas</column>
+            <column name="description">NULL</column>
+            <column name="createdAt">2025-04-19 21:55:02.727</column>
+            <column name="updatedAt">2025-04-19 21:55:02.727</column>
+        </table>
+        <table name="Category">
+            <column name="id">cm9orbbwg0002un5488f3xtei</column>
+            <column name="name">Cosas interesantes</column>
+            <column name="slug">cosas-interesantes</column>
+            <column name="description">NULL</column>
+            <column name="createdAt">2025-04-19 21:55:17.633</column>
+            <column name="updatedAt">2025-04-19 21:55:17.633</column>
+        </table>
+        <table name="Category">
+            <column name="id">cm9orbtzb0003un547vbj00te</column>
+            <column name="name">Cosas aburridas</column>
+            <column name="slug">cosas-aburridas</column>
+            <column name="description">NULL</column>
+            <column name="createdAt">2025-04-19 21:55:41.063</column>
+            <column name="updatedAt">2025-04-19 21:55:41.063</column>
+        </table>
+        <table name="Category">
+            <column name="id">cm9orc6gj0004un54w165i317</column>
+            <column name="name">Cosas bonitas</column>
+            <column name="slug">cosas-bonitas</column>
+            <column name="description">NULL</column>
+            <column name="createdAt">2025-04-19 21:55:57.235</column>
+            <column name="updatedAt">2025-04-19 21:55:57.235</column>
+        </table>
+        <table name="Category">
+            <column name="id">cm9orcd6a0005un545ge1fkd4</column>
+            <column name="name">Cosas feas</column>
+            <column name="slug">cosas-feas</column>
+            <column name="description">NULL</column>
+            <column name="createdAt">2025-04-19 21:56:05.939</column>
+            <column name="updatedAt">2025-04-19 21:56:05.939</column>
+        </table>
+        <!-- Tabla GlobalConfig -->
+        <table name="GlobalConfig">
+            <column name="id">global</column>
+            <column name="siteName">UrDiN.art</column>
+            <column name="description">NULL</column>
+            <column name="globalMetaTitle">NULL</column>
+            <column name="globalMetaDescription">NULL</column>
+            <column name="globalKeywords">NULL</column>
+            <column name="defaultSocialShareImage">NULL</column>
+            <column name="robotsTxtContent">User-agent: *
+Allow: /
+
+Disallow: /admin/</column>
+            <column name="googleAnalyticsId">NULL</column>
+            <column name="googleTagManagerId">NULL</column>
+            <column name="siteUrl">http://192.168.228.199:3000</column>
+            <column name="logoUrl">NULL</column>
+            <column name="faviconUrl">/uploads/images/1745123242778-urdintransp.png</column>
+            <column name="themeColor">NULL</column>
+            <column name="header">{&quot;elements&quot;:[{&quot;type&quot;:&quot;logo&quot;,&quot;visible&quot;:true,&quot;position&quot;:&quot;center-left&quot;,&quot;logoUrl&quot;:&quot;/uploads/images/1744614274473-urdintransp.png&quot;},{&quot;type&quot;:&quot;text&quot;,&quot;visible&quot;:false,&quot;position&quot;:&quot;top-left&quot;,&quot;text&quot;:&quot;&quot;},{&quot;type&quot;:&quot;menu&quot;,&quot;visible&quot;:true,&quot;position&quot;:&quot;bottom-right&quot;},{&quot;type&quot;:&quot;social&quot;,&quot;visible&quot;:true,&quot;position&quot;:&quot;top-right&quot;},{&quot;type&quot;:&quot;theme&quot;,&quot;visible&quot;:false,&quot;position&quot;:&quot;top-left&quot;},{&quot;type&quot;:&quot;html&quot;,&quot;visible&quot;:false,&quot;position&quot;:&quot;top-left&quot;}]}</column>
+            <column name="footer">NULL</column>
+            <column name="sidebar">NULL</column>
+            <column name="social">NULL</column>
+            <column name="sharing">NULL</column>
+            <column name="createdAt">2025-04-20 06:26:46.000</column>
+            <column name="updatedAt">2025-04-20 06:26:46.000</column>
+            <column name="maintenanceMode">0</column>
+            <column name="blogConfig">NULL</column>
+            <column name="portfolioConfig">NULL</column>
+            <column name="defaultLightThemePresetId">1</column>
+            <column name="defaultDarkThemePresetId">1</column>
+            <column name="themeAssignments">{&quot;header&quot;:{&quot;light&quot;:1}}</column>
+            <column name="loadingSpinnerConfig">{&quot;enabled&quot;:false,&quot;overlayColor&quot;:&quot;#00000080&quot;}</column>
+            <column name="themeSwitcherConfig">{&quot;visible&quot;:true,&quot;style&quot;:&quot;icon&quot;,&quot;position&quot;:&quot;bottom_right&quot;}</column>
+            <column name="stickyElementsConfig">{&quot;header&quot;:false,&quot;sidebar&quot;:false,&quot;footer&quot;:false,&quot;themeSwitcher&quot;:true}</column>
+            <column name="cookieBannerLinkPageId">NULL</column>
+            <column name="cookieBannerText">NULL</column>
+            <column name="activeThemeId">NULL</column>
+            <column name="passwordMinLength">8</column>
+            <column name="passwordRequireUppercase">1</column>
+            <column name="passwordRequireNumber">1</column>
+            <column name="passwordRequireSymbol">1</column>
+            <column name="sessionDuration">24</column>
+            <column name="maxLoginAttempts">5</column>
+            <column name="captchaEnabled">0</column>
+            <column name="accountLockoutDuration">30</column>
+            <column name="globalSeoTitle">NULL</column>
+        </table>
+        <!-- Tabla MenuItem -->
+        <!-- Tabla PageView -->
+        <!-- Tabla Post -->
+        <table name="Post">
+            <column name="id">cuid229786</column>
+            <column name="title">Post guachi</column>
+            <column name="slug">post-guachi</column>
+            <column name="content">&lt;p&gt;Contenido guachi&lt;/p&gt;</column>
+            <column name="excerpt">Extracto de contenido guachi</column>
+            <column name="coverImage">/uploads/images/1745100719837-png-clipart-professor-utonium-mojo-jojo-drawing-cartoon-network-character-professor-miscellaneous-angle-thumbnail.png</column>
+            <column name="status">ARCHIVED</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">0</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 22:12:26.000</column>
+            <column name="updatedAt">2025-04-19 22:12:26.000</column>
+            <column name="authorDisplayName">Professor</column>
+            <column name="categoryId">cm9orbbwg0002un5488f3xtei</column>
+        </table>
+        <table name="Post">
+            <column name="id">cuid38036</column>
+            <column name="title">Post chupi</column>
+            <column name="slug">post-chupi</column>
+            <column name="content">&lt;p&gt;Contenido chupi&lt;/p&gt;</column>
+            <column name="excerpt">Extracto de contenido chupi</column>
+            <column name="coverImage">/uploads/images/1745100445504-Burbuja1-2.webp</column>
+            <column name="status">PUBLISHED</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">0</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 22:07:48.000</column>
+            <column name="updatedAt">2025-04-19 22:07:48.000</column>
+            <column name="authorDisplayName">Burbuja</column>
+            <column name="categoryId">cm9orb0ee0001un540juo4o1k</column>
+        </table>
+        <table name="Post">
+            <column name="id">cuid698505</column>
+            <column name="title">Post chachi</column>
+            <column name="slug">post-chachi</column>
+            <column name="content">&lt;p&gt;Contenido chachi&lt;/p&gt;</column>
+            <column name="excerpt">Extracto de contenido chachi</column>
+            <column name="coverImage">/uploads/images/1745099078596-Bomb3Fn1.webp</column>
+            <column name="status">PUBLISHED</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">1</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 21:52:04.000</column>
+            <column name="updatedAt">2025-04-19 22:06:25.000</column>
+            <column name="authorDisplayName">Pétalo</column>
+            <column name="categoryId">cm9orc6gj0004un54w165i317</column>
+        </table>
+        <table name="Post">
+            <column name="id">cuid90535</column>
+            <column name="title">Post chuli</column>
+            <column name="slug">post-chuli</column>
+            <column name="content">&lt;p&gt;Contenido chuli&lt;/p&gt;</column>
+            <column name="excerpt">Extracto de contenido chuli</column>
+            <column name="coverImage">/uploads/images/1745100527380-Bellota1.webp</column>
+            <column name="status">DRAFT</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">0</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 22:09:19.000</column>
+            <column name="updatedAt">2025-04-19 22:09:19.000</column>
+            <column name="authorDisplayName">Cactus</column>
+            <column name="categoryId">cm9orar3x0000un54g4wzk4q5</column>
+        </table>
+        <!-- Tabla Project -->
+        <table name="Project">
+            <column name="id">cuid140123</column>
+            <column name="title">Proyecto cutre</column>
+            <column name="slug">proyecto-cutre</column>
+            <column name="content">&lt;p&gt;Contenido cutre&lt;/p&gt;</column>
+            <column name="excerpt">Extracto cutre</column>
+            <column name="coverImage">/uploads/images/1744958112265-Chicoscocosos2.webp</column>
+            <column name="additionalImageUrls">[&quot;/uploads/images/1744957129543-Mojo_jojo.webp&quot;,&quot;/uploads/images/1744958112265-Chicoscocosos2.webp&quot;,&quot;/uploads/images/1744958619492-Princess-pic.webp&quot;,&quot;/uploads/images/1744958477112-El-100.webp&quot;]</column>
+            <column name="displayType">GRID</column>
+            <column name="status">ARCHIVED</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">0</column>
+            <column name="authorDisplayName">Chicos Cocosos</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 22:24:25.000</column>
+            <column name="updatedAt">2025-04-19 22:24:25.000</column>
+            <column name="categoryId">cm9orcd6a0005un545ge1fkd4</column>
+        </table>
+        <table name="Project">
+            <column name="id">cuid531381</column>
+            <column name="title">Proyecto abyecto</column>
+            <column name="slug">proyecto-abyecto</column>
+            <column name="content">&lt;p&gt;Contenido abyecto&lt;/p&gt;</column>
+            <column name="excerpt">Extracto abyecto</column>
+            <column name="coverImage">/uploads/images/1744958477112-El-100.webp</column>
+            <column name="additionalImageUrls">[&quot;/uploads/images/1744816065513-caballodemar.jpg&quot;,&quot;/uploads/images/1744816073451-08568a9c-b04e-4f15-a590-c8307981536a.jpg&quot;,&quot;/uploads/images/1744904240995-72ade57b-0c95-40e6-a230-ad4d5bb6091c.jpg&quot;,&quot;/uploads/images/1744816090264-desfafcarga.jpg&quot;]</column>
+            <column name="displayType">GALLERY</column>
+            <column name="status">PUBLISHED</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">1</column>
+            <column name="authorDisplayName">Él</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 22:17:47.000</column>
+            <column name="updatedAt">2025-04-19 22:17:47.000</column>
+            <column name="categoryId">cm9orbtzb0003un547vbj00te</column>
+        </table>
+        <table name="Project">
+            <column name="id">cuid595311</column>
+            <column name="title">Proyecto chorra</column>
+            <column name="slug">proyecto-chorra</column>
+            <column name="content">&lt;p&gt;Contenido chorra&lt;/p&gt;</column>
+            <column name="excerpt">Extracto chorra</column>
+            <column name="coverImage">/uploads/images/1744958619492-Princess-pic.webp</column>
+            <column name="additionalImageUrls">[]</column>
+            <column name="displayType">SINGLE</column>
+            <column name="status">DRAFT</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">0</column>
+            <column name="authorDisplayName">Princesa Masbilletes</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 22:22:28.000</column>
+            <column name="updatedAt">2025-04-19 22:22:28.000</column>
+            <column name="categoryId">cm9orar3x0000un54g4wzk4q5</column>
+        </table>
+        <table name="Project">
+            <column name="id">cuid952109</column>
+            <column name="title">Proyecto absurdo</column>
+            <column name="slug">proyecto-absurdo</column>
+            <column name="content">&lt;p&gt;Contenido absurdo&lt;/p&gt;</column>
+            <column name="excerpt">Extracto absurdo</column>
+            <column name="coverImage">/uploads/images/1744957129543-Mojo_jojo.webp</column>
+            <column name="additionalImageUrls">[&quot;/uploads/images/1744904240995-72ade57b-0c95-40e6-a230-ad4d5bb6091c.jpg&quot;,&quot;/uploads/images/1744818447513-ChatGPTImage16abr202513_07_20.png&quot;,&quot;/uploads/images/1744769468137-almadefenix.jpg&quot;,&quot;/uploads/images/1744816073451-08568a9c-b04e-4f15-a590-c8307981536a.jpg&quot;,&quot;/uploads/images/1744816065513-caballodemar.jpg&quot;]</column>
+            <column name="displayType">SLIDER</column>
+            <column name="status">PUBLISHED</column>
+            <column name="publishedAt">NULL</column>
+            <column name="featured">1</column>
+            <column name="authorDisplayName">Mojo Jojo</column>
+            <column name="deleted">0</column>
+            <column name="authorId">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="createdAt">2025-04-19 22:20:03.000</column>
+            <column name="updatedAt">2025-04-19 22:20:03.000</column>
+            <column name="categoryId">cm9orcd6a0005un545ge1fkd4</column>
+        </table>
+        <!-- Tabla Referrer -->
+        <!-- Tabla Session -->
+        <!-- Tabla SiteSection -->
+        <!-- Tabla StaticPage -->
+        <table name="StaticPage">
+            <column name="id">1</column>
+            <column name="title">Inicio</column>
+            <column name="slug">inicio</column>
+            <column name="contentHtml">&lt;p&gt;&amp;lt;h1&amp;gt;HTML Ipsum Presents&amp;lt;/h1&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;p&amp;gt;&amp;lt;strong&amp;gt;Pellentesque habitant morbi tristique&amp;lt;/strong&amp;gt; senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. &amp;lt;em&amp;gt;Aenean ultricies mi vitae est.&amp;lt;/em&amp;gt; Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, &amp;lt;code&amp;gt;commodo vitae&amp;lt;/code&amp;gt;, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. &amp;lt;a href=&quot;#&quot;&amp;gt;Donec non enim&amp;lt;/a&amp;gt; in turpis pulvinar facilisis. Ut felis.&amp;lt;/p&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;h2&amp;gt;Header Level 2&amp;lt;/h2&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;ol&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Lorem ipsum dolor sit amet, consectetuer adipiscing elit.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Aliquam tincidunt mauris eu risus.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;/ol&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;blockquote&amp;gt;&amp;lt;p&amp;gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna. Cras in mi at felis aliquet congue. Ut a est eget ligula molestie gravida. Curabitur massa. Donec eleifend, libero at sagittis mollis, tellus est malesuada tellus, at luctus turpis elit sit amet quam. Vivamus pretium ornare est.&amp;lt;/p&amp;gt;&amp;lt;/blockquote&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;h3&amp;gt;Header Level 3&amp;lt;/h3&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;ul&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Lorem ipsum dolor sit amet, consectetuer adipiscing elit.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Aliquam tincidunt mauris eu risus.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;/ul&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;pre&amp;gt;&amp;lt;code&amp;gt;&lt;/p&gt;&lt;p&gt;				#header h1 a {&lt;/p&gt;&lt;p&gt;				  display: block;&lt;/p&gt;&lt;p&gt;				  width: 300px;&lt;/p&gt;&lt;p&gt;				  height: 80px;&lt;/p&gt;&lt;p&gt;				}&lt;/p&gt;&lt;p&gt;				&amp;lt;/code&amp;gt;&amp;lt;/pre&amp;gt;&lt;/p&gt;</column>
+            <column name="menuOrder">0</column>
+            <column name="includeInMenu">1</column>
+            <column name="isHomePage">1</column>
+            <column name="isVisible">1</column>
+            <column name="createdAt">2025-04-19 22:35:41.000</column>
+            <column name="updatedAt">2025-04-20 04:38:21.000</column>
+        </table>
+        <table name="StaticPage">
+            <column name="id">2</column>
+            <column name="title">Contacto</column>
+            <column name="slug">contacto</column>
+            <column name="contentHtml">&lt;p&gt;&amp;lt;h1&amp;gt;HTML Ipsum Presents&amp;lt;/h1&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;p&amp;gt;&amp;lt;strong&amp;gt;Pellentesque habitant morbi tristique&amp;lt;/strong&amp;gt; senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. &amp;lt;em&amp;gt;Aenean ultricies mi vitae est.&amp;lt;/em&amp;gt; Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, &amp;lt;code&amp;gt;commodo vitae&amp;lt;/code&amp;gt;, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. &amp;lt;a href=&quot;#&quot;&amp;gt;Donec non enim&amp;lt;/a&amp;gt; in turpis pulvinar facilisis. Ut felis.&amp;lt;/p&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;h2&amp;gt;Header Level 2&amp;lt;/h2&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;ol&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Lorem ipsum dolor sit amet, consectetuer adipiscing elit.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Aliquam tincidunt mauris eu risus.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;/ol&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;blockquote&amp;gt;&amp;lt;p&amp;gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna. Cras in mi at felis aliquet congue. Ut a est eget ligula molestie gravida. Curabitur massa. Donec eleifend, libero at sagittis mollis, tellus est malesuada tellus, at luctus turpis elit sit amet quam. Vivamus pretium ornare est.&amp;lt;/p&amp;gt;&amp;lt;/blockquote&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;h3&amp;gt;Header Level 3&amp;lt;/h3&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;ul&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Lorem ipsum dolor sit amet, consectetuer adipiscing elit.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Aliquam tincidunt mauris eu risus.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;/ul&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;pre&amp;gt;&amp;lt;code&amp;gt;&lt;/p&gt;&lt;p&gt;				#header h1 a {&lt;/p&gt;&lt;p&gt;				  display: block;&lt;/p&gt;&lt;p&gt;				  width: 300px;&lt;/p&gt;&lt;p&gt;				  height: 80px;&lt;/p&gt;&lt;p&gt;				}&lt;/p&gt;&lt;p&gt;				&amp;lt;/code&amp;gt;&amp;lt;/pre&amp;gt;&lt;/p&gt;</column>
+            <column name="menuOrder">1</column>
+            <column name="includeInMenu">1</column>
+            <column name="isHomePage">0</column>
+            <column name="isVisible">1</column>
+            <column name="createdAt">2025-04-19 22:41:00.000</column>
+            <column name="updatedAt">2025-04-20 04:38:43.000</column>
+        </table>
+        <table name="StaticPage">
+            <column name="id">3</column>
+            <column name="title">Servicios</column>
+            <column name="slug">servicios</column>
+            <column name="contentHtml">&lt;p&gt;&amp;lt;h1&amp;gt;HTML Ipsum Presents&amp;lt;/h1&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;p&amp;gt;&amp;lt;strong&amp;gt;Pellentesque habitant morbi tristique&amp;lt;/strong&amp;gt; senectus et netus et malesuada fames ac turpis egestas. Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit amet quam egestas semper. &amp;lt;em&amp;gt;Aenean ultricies mi vitae est.&amp;lt;/em&amp;gt; Mauris placerat eleifend leo. Quisque sit amet est et sapien ullamcorper pharetra. Vestibulum erat wisi, condimentum sed, &amp;lt;code&amp;gt;commodo vitae&amp;lt;/code&amp;gt;, ornare sit amet, wisi. Aenean fermentum, elit eget tincidunt condimentum, eros ipsum rutrum orci, sagittis tempus lacus enim ac dui. &amp;lt;a href=&quot;#&quot;&amp;gt;Donec non enim&amp;lt;/a&amp;gt; in turpis pulvinar facilisis. Ut felis.&amp;lt;/p&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;h2&amp;gt;Header Level 2&amp;lt;/h2&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;ol&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Lorem ipsum dolor sit amet, consectetuer adipiscing elit.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Aliquam tincidunt mauris eu risus.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;/ol&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;blockquote&amp;gt;&amp;lt;p&amp;gt;Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus magna. Cras in mi at felis aliquet congue. Ut a est eget ligula molestie gravida. Curabitur massa. Donec eleifend, libero at sagittis mollis, tellus est malesuada tellus, at luctus turpis elit sit amet quam. Vivamus pretium ornare est.&amp;lt;/p&amp;gt;&amp;lt;/blockquote&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;h3&amp;gt;Header Level 3&amp;lt;/h3&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;ul&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Lorem ipsum dolor sit amet, consectetuer adipiscing elit.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				   &amp;lt;li&amp;gt;Aliquam tincidunt mauris eu risus.&amp;lt;/li&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;/ul&amp;gt;&lt;/p&gt;&lt;p&gt;				&amp;lt;pre&amp;gt;&amp;lt;code&amp;gt;&lt;/p&gt;&lt;p&gt;				#header h1 a {&lt;/p&gt;&lt;p&gt;				  display: block;&lt;/p&gt;&lt;p&gt;				  width: 300px;&lt;/p&gt;&lt;p&gt;				  height: 80px;&lt;/p&gt;&lt;p&gt;				}&lt;/p&gt;&lt;p&gt;				&amp;lt;/code&amp;gt;&amp;lt;/pre&amp;gt;&lt;/p&gt;</column>
+            <column name="menuOrder">2</column>
+            <column name="includeInMenu">1</column>
+            <column name="isHomePage">0</column>
+            <column name="isVisible">1</column>
+            <column name="createdAt">2025-04-19 22:41:45.000</column>
+            <column name="updatedAt">2025-04-20 04:38:56.000</column>
+        </table>
+        <!-- Tabla Tag -->
+        <!-- Tabla ThemePreset -->
+        <table name="ThemePreset">
+            <column name="id">1</column>
+            <column name="name">Default</column>
+            <column name="config">{&quot;background&quot;:{&quot;type&quot;:&quot;color&quot;,&quot;value&quot;:&quot;rgba(255, 255, 255, 1)&quot;},&quot;typography&quot;:{&quot;heading&quot;:{&quot;fontFamily&quot;:&quot;Arial, sans-serif&quot;,&quot;color&quot;:&quot;rgba(51, 51, 51, 1)&quot;},&quot;paragraph&quot;:{&quot;fontFamily&quot;:&quot;Arial, sans-serif&quot;,&quot;color&quot;:&quot;#666666&quot;},&quot;link&quot;:{&quot;fontFamily&quot;:&quot;Arial, sans-serif&quot;,&quot;color&quot;:&quot;#007bff&quot;,&quot;hoverColor&quot;:&quot;#0056b3&quot;}},&quot;spacing&quot;:{&quot;baseMargin&quot;:&quot;1rem&quot;,&quot;basePadding&quot;:&quot;1rem&quot;},&quot;cards&quot;:{&quot;borderRadius&quot;:&quot;0.5rem&quot;,&quot;borderWidth&quot;:&quot;1px&quot;,&quot;borderColor&quot;:&quot;rgba(0,0,0,0.1)&quot;,&quot;background&quot;:{&quot;type&quot;:&quot;color&quot;,&quot;value&quot;:&quot;#ffffff&quot;},&quot;shadow&quot;:&quot;shadow-md&quot;},&quot;buttons&quot;:{&quot;primary&quot;:{&quot;backgroundColor&quot;:&quot;#007bff&quot;,&quot;textColor&quot;:&quot;#ffffff&quot;,&quot;borderRadius&quot;:&quot;0.25rem&quot;,&quot;hoverBackgroundColor&quot;:&quot;#0069d9&quot;,&quot;hoverTextColor&quot;:&quot;#ffffff&quot;},&quot;secondary&quot;:{&quot;backgroundColor&quot;:&quot;#6c757d&quot;,&quot;textColor&quot;:&quot;#ffffff&quot;,&quot;borderRadius&quot;:&quot;0.25rem&quot;,&quot;hoverBackgroundColor&quot;:&quot;#5a6268&quot;,&quot;hoverTextColor&quot;:&quot;#ffffff&quot;}},&quot;forms&quot;:{&quot;input&quot;:{&quot;backgroundColor&quot;:&quot;#ffffff&quot;,&quot;textColor&quot;:&quot;#495057&quot;,&quot;borderColor&quot;:&quot;#ced4da&quot;,&quot;borderRadius&quot;:&quot;0.25rem&quot;,&quot;focusBorderColor&quot;:&quot;#80bdff&quot;},&quot;label&quot;:{&quot;textColor&quot;:&quot;#212529&quot;,&quot;fontWeight&quot;:&quot;bold&quot;}},&quot;effects&quot;:{&quot;transitions&quot;:true}}</column>
+        </table>
+        <table name="ThemePreset">
+            <column name="id">2</column>
+            <column name="name">Header light</column>
+            <column name="config">{&quot;background&quot;:{&quot;type&quot;:&quot;image&quot;,&quot;value&quot;:&quot;#ffffff&quot;,&quot;imageUrl&quot;:&quot;/uploads/images/1745097916621-01.png&quot;},&quot;typography&quot;:{&quot;heading&quot;:{&quot;fontFamily&quot;:&quot;Montserrat, sans-serif&quot;,&quot;color&quot;:&quot;#333333&quot;},&quot;paragraph&quot;:{&quot;fontFamily&quot;:&quot;Raleway, sans-serif&quot;,&quot;color&quot;:&quot;#666666&quot;},&quot;link&quot;:{&quot;fontFamily&quot;:&quot;Arial, sans-serif&quot;,&quot;color&quot;:&quot;#007bff&quot;,&quot;hoverColor&quot;:&quot;#0056b3&quot;}},&quot;spacing&quot;:{&quot;margin&quot;:{&quot;top&quot;:&quot;10px&quot;,&quot;right&quot;:&quot;30px&quot;,&quot;bottom&quot;:&quot;10px&quot;,&quot;left&quot;:&quot;30px&quot;,&quot;base&quot;:&quot;1rem&quot;},&quot;padding&quot;:{&quot;top&quot;:&quot;0px&quot;,&quot;right&quot;:&quot;10px&quot;,&quot;bottom&quot;:&quot;0px&quot;,&quot;left&quot;:&quot;10px&quot;,&quot;base&quot;:&quot;1rem&quot;}},&quot;cards&quot;:{&quot;borderRadius&quot;:&quot;10px&quot;,&quot;borderWidth&quot;:&quot;1px&quot;,&quot;borderColor&quot;:&quot;rgba(144, 144, 144, 0.1)&quot;,&quot;background&quot;:{&quot;type&quot;:&quot;color&quot;,&quot;value&quot;:&quot;#ffffff&quot;},&quot;shadow&quot;:{&quot;x&quot;:&quot;10px&quot;,&quot;y&quot;:&quot;10px&quot;,&quot;blur&quot;:&quot;10px&quot;,&quot;spread&quot;:&quot;0px&quot;,&quot;color&quot;:&quot;rgba(0, 0, 0, 0.42)&quot;}},&quot;buttons&quot;:{&quot;primary&quot;:{&quot;backgroundColor&quot;:&quot;#007bff&quot;,&quot;textColor&quot;:&quot;#ffffff&quot;,&quot;borderRadius&quot;:&quot;0.25rem&quot;,&quot;hoverBackgroundColor&quot;:&quot;#0069d9&quot;,&quot;hoverTextColor&quot;:&quot;#ffffff&quot;},&quot;secondary&quot;:{&quot;backgroundColor&quot;:&quot;#6c757d&quot;,&quot;textColor&quot;:&quot;#ffffff&quot;,&quot;borderRadius&quot;:&quot;0.25rem&quot;,&quot;hoverBackgroundColor&quot;:&quot;#5a6268&quot;,&quot;hoverTextColor&quot;:&quot;#ffffff&quot;}},&quot;forms&quot;:{&quot;input&quot;:{&quot;backgroundColor&quot;:&quot;#ffffff&quot;,&quot;textColor&quot;:&quot;#495057&quot;,&quot;borderColor&quot;:&quot;#ced4da&quot;,&quot;borderRadius&quot;:&quot;0.25rem&quot;,&quot;focusBorderColor&quot;:&quot;#80bdff&quot;},&quot;label&quot;:{&quot;textColor&quot;:&quot;#212529&quot;,&quot;fontWeight&quot;:&quot;bold&quot;}},&quot;effects&quot;:{&quot;transitions&quot;:true,&quot;animation&quot;:&quot;scale&quot;}}</column>
+        </table>
+        <!-- Tabla User -->
+        <table name="User">
+            <column name="id">cm9ezhgvc0000unjsz3po1hch</column>
+            <column name="name">master</column>
+            <column name="email">master@app.com</column>
+            <column name="password">$2b$10$B.w7kRJtNkgBsBCYDen5cu/YNN4j4bpx8/3gA7VPvemydIrlu63Uu</column>
+            <column name="role">MASTER</column>
+            <column name="emailVerified">NULL</column>
+            <column name="image">NULL</column>
+            <column name="createdAt">2025-04-19 13:28:45.938</column>
+            <column name="updatedAt">2025-04-20 05:23:38.086</column>
+        </table>
+        <table name="User">
+            <column name="id">cm9o97xqn0001un3oi6yg2x6r</column>
+            <column name="name">admin</column>
+            <column name="email">admin@app.com</column>
+            <column name="password">$2b$10$B.w7kRJtNkgBsBCYDen5cu/YNN4j4bpx8/3gA7VPvemydIrlu63Uu</column>
+            <column name="role">ADMIN</column>
+            <column name="emailVerified">NULL</column>
+            <column name="image">NULL</column>
+            <column name="createdAt">2025-04-19 13:28:46.223</column>
+            <column name="updatedAt">2025-04-19 13:28:46.223</column>
+        </table>
+        <table name="User">
+            <column name="id">cm9o97xuu0002un3oraqti7nn</column>
+            <column name="name">editor</column>
+            <column name="email">editor@app.com</column>
+            <column name="password">$2b$10$B.w7kRJtNkgBsBCYDen5cu/YNN4j4bpx8/3gA7VPvemydIrlu63Uu</column>
+            <column name="role">EDITOR</column>
+            <column name="emailVerified">NULL</column>
+            <column name="image">NULL</column>
+            <column name="createdAt">2025-04-19 13:28:46.374</column>
+            <column name="updatedAt">2025-04-19 13:28:46.374</column>
+        </table>
+        <table name="User">
+            <column name="id">cm9o97xz30003un3onf9pb30i</column>
+            <column name="name">collaborator</column>
+            <column name="email">collaborator@app.com</column>
+            <column name="password">$2b$10$B.w7kRJtNkgBsBCYDen5cu/YNN4j4bpx8/3gA7VPvemydIrlu63Uu</column>
+            <column name="role">COLLABORATOR</column>
+            <column name="emailVerified">NULL</column>
+            <column name="image">NULL</column>
+            <column name="createdAt">2025-04-19 13:28:46.527</column>
+            <column name="updatedAt">2025-04-19 13:28:46.527</column>
+        </table>
+        <table name="User">
+            <column name="id">cm9p4qr120001unggcb0ls4ci</column>
+            <column name="name">oscar</column>
+            <column name="email">oscar@oscar</column>
+            <column name="password">$2b$10$dSNDrYsRmvTj3kKQGq/nMuqeo/KUnzBfbm6Svqx0c/7CED9mFtdJK</column>
+            <column name="role">MASTER</column>
+            <column name="emailVerified">NULL</column>
+            <column name="image">NULL</column>
+            <column name="createdAt">2025-04-20 04:11:12.086</column>
+            <column name="updatedAt">2025-04-20 05:23:20.860</column>
+        </table>
+        <!-- Tabla VerificationToken -->
+        <!-- Tabla Visit -->
+        <!-- Tabla Widget -->
+    </database>
+</pma_xml_export>

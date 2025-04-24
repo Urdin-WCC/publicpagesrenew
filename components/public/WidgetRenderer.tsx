@@ -1,25 +1,73 @@
 import React, { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+// Define our widget types to match those in WIDGET_TYPES from lib/constants.ts
+const WidgetTypes = {
+  LATEST_POSTS: 'latest_posts',
+  LATEST_PROJECTS: 'latest_projects',
+  SOCIAL_LIST: 'social_list',
+  CONTACT_FORM: 'contact_form',
+  CONTACT_DATA: 'contact_data',
+  MAP: 'map',
+  CUSTOM_HTML: 'custom_html',
+  LOGO: 'logo',
+  NAVIGATION: 'navigation',
+  DEVELOPER_HTML: 'WidgetDeveloperHTML',
+  SEARCH: 'SEARCH',
+  CATEGORIES: 'CATEGORIES', 
+  TAGS: 'TAGS'
+};
 
-// Importar dinámicamente los componentes de widgets
+// Dynamically import widget components to avoid loading all of them at once
 const LatestProjectsWidget = dynamic(() => import('./widgets/LatestProjectsWidget'), {
   loading: () => <WidgetSkeleton title="Cargando..." />,
   ssr: true,
 });
 
-// Tipo para el widget
+const LatestPostsWidget = dynamic(() => import('./widgets/WidgetLatestPosts'), {
+  loading: () => <WidgetSkeleton title="Cargando..." />,
+  ssr: true,
+});
+
+const SearchWidget = dynamic(() => import('./widgets/WidgetSearch'), {
+  loading: () => <WidgetSkeleton title="Cargando..." />,
+  ssr: true,
+});
+
+const DeveloperHTMLWidget = dynamic(() => import('./widgets/WidgetDeveloperHTML'), {
+  loading: () => <WidgetSkeleton title="Cargando..." />,
+  ssr: true,
+});
+
+const CategoriesWidget = dynamic(() => import('./widgets/WidgetCategories'), {
+  loading: () => <WidgetSkeleton title="Cargando..." />,
+  ssr: true,
+});
+
+const SocialLinksWidget = dynamic(() => import('./widgets/SocialLinksWidget'), {
+  loading: () => <WidgetSkeleton title="Cargando..." />,
+  ssr: true,
+});
+
+// Define the widget interface based on DB model
 interface Widget {
-  type: string;
-  title?: string;
+  id: string;
+  title: string;
+  type: string;  // Changed from WidgetType to string
+  content?: string | null;
   config?: any;
+  order?: number;
+  isActive?: boolean;
+  sectionId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface WidgetRendererProps {
   widget: Widget;
 }
 
-// Componente de esqueleto para carga
+// Skeleton component for loading state
 function WidgetSkeleton({ title }: { title: string }) {
   return (
     <Card>
@@ -38,19 +86,98 @@ function WidgetSkeleton({ title }: { title: string }) {
 }
 
 export default function WidgetRenderer({ widget }: WidgetRendererProps) {
-  // Renderizar el widget según su tipo
+  // Map from widget type to component
   switch (widget.type) {
-    case 'latest_projects':
+    case WidgetTypes.LATEST_PROJECTS:
       return (
         <Suspense fallback={<WidgetSkeleton title={widget.title || "Proyectos recientes"} />}>
           <LatestProjectsWidget 
-            limit={widget.config?.limit || 5} 
-            showFeaturedOnly={widget.config?.showFeaturedOnly || false} 
+            // Only pass props that the component accepts
+            limit={widget.config?.limit || 5}
+            showFeaturedOnly={widget.config?.showFeaturedOnly || false}
           />
         </Suspense>
       );
-    // Aquí se pueden añadir más tipos de widgets
+    
+    case WidgetTypes.LATEST_POSTS:
+      return (
+        <Suspense fallback={<WidgetSkeleton title={widget.title || "Publicaciones recientes"} />}>
+          <LatestPostsWidget 
+            title={widget.title}
+            config={widget.config}
+          />
+        </Suspense>
+      );
+      
+    case WidgetTypes.SEARCH:
+    case 'SEARCH': // Include both formats
+      return (
+        <Suspense fallback={<WidgetSkeleton title={widget.title || "Buscar"} />}>
+          <SearchWidget 
+            title={widget.title}
+          />
+        </Suspense>
+      );
+      
+    // Special widget for developer custom HTML 
+    case WidgetTypes.DEVELOPER_HTML:
+      return (
+        <Suspense fallback={<WidgetSkeleton title={widget.title || "HTML personalizado"} />}>
+          <DeveloperHTMLWidget />
+        </Suspense>
+      );
+    case WidgetTypes.CATEGORIES:
+    case 'CATEGORIES':
+      return (
+        <Suspense fallback={<WidgetSkeleton title={widget.title || "Categorías"} />}>
+          <CategoriesWidget 
+            title={widget.title}
+            config={widget.config || {}}
+          />
+        </Suspense>
+      );
+    case WidgetTypes.TAGS:
+    case 'TAGS':
+    case WidgetTypes.SOCIAL_LIST:
+      return (
+        <Suspense fallback={<WidgetSkeleton title={widget.title || "Redes Sociales"} />}>
+          <SocialLinksWidget 
+            title={widget.title}
+            config={widget.config || {}}
+          />
+        </Suspense>
+      );
+    case WidgetTypes.CONTACT_FORM:
+    case WidgetTypes.CONTACT_DATA:
+    case WidgetTypes.MAP:
+    case WidgetTypes.CUSTOM_HTML:
+    case WidgetTypes.LOGO:
+    case WidgetTypes.NAVIGATION:
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>{widget.title || "Widget"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-500">
+              {`Widget de tipo "${widget.type}" - Próximamente disponible`}
+            </p>
+          </CardContent>
+        </Card>
+      );
+
     default:
-      return null;
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle>{widget.title || "Widget desconocido"}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-gray-500">
+              Tipo de widget no reconocido
+            </p>
+          </CardContent>
+        </Card>
+      );
   }
 }

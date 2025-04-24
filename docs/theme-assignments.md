@@ -4,16 +4,36 @@
 
 El sistema de asignación de temas por sección permite definir temas visuales específicos para cada componente principal del sitio web, tanto para modo claro como para modo oscuro. Esto proporciona un nivel de personalización avanzado, permitiendo que cada sección tenga su propia identidad visual mientras se mantiene la coherencia general del sitio.
 
-## Componentes Implementados
+## ACTUALIZACIÓN (2025-Q2): Gestión Centralizada de Temas
 
-La funcionalidad de asignación de temas está disponible en las siguientes secciones:
+El sistema ha sido completamente mejorado para proporcionar una gestión centralizada de asignaciones de temas. Todas las asignaciones ahora se configuran desde una única interfaz en **Administración → Configuración → Apariencia → Asignaciones Específicas**, simplificando el mantenimiento y evitando configuraciones contradictorias.
 
+### Beneficios del Nuevo Sistema
+
+- **Experiencia de usuario mejorada**: Interfaz unificada y coherente
+- **Prevención de errores**: Elimina la posibilidad de asignaciones redundantes o contradictorias
+- **Mayor visibilidad**: Todas las asignaciones visibles de un vistazo
+- **Selector inteligente**: Ahora muestra tanto elementos del sistema como páginas estáticas disponibles
+- **Opciones personalizadas**: Mantiene la posibilidad de asignar temas a rutas personalizadas
+
+## Componentes y Rutas Soportados
+
+El sistema de asignación centralizado soporta los siguientes destinos:
+
+### Elementos del Sistema
 1. **Blog** - Configuración específica para el módulo de blog
-2. **Páginas** - Temas para páginas individuales
-3. **Portfolio** - Configuración para el módulo de portfolio
-4. **Header** - Tema específico para el encabezado
-5. **Footer** - Tema para el pie de página
-6. **Sidebar** - Personalización de la barra lateral
+2. **Portfolio** - Configuración para el módulo de portfolio
+3. **Header** - Tema específico para el encabezado
+4. **Footer** - Tema para el pie de página
+5. **Sidebar** - Personalización de la barra lateral
+
+### Páginas Estáticas
+- Todas las páginas estáticas creadas en el sistema aparecen automáticamente como opciones disponibles
+- Cada página puede tener un tema específico para modo claro y otro para modo oscuro
+
+### Rutas Personalizadas
+- Posibilidad de asignar temas a rutas específicas que no correspondan a ninguna de las anteriores
+- Útil para secciones personalizadas o páginas gestionadas programáticamente
 
 ## Estructura de Datos
 

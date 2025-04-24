@@ -6,8 +6,17 @@ const sessionCookieName = "authjs.session-token";
 //   ? "__Secure-next-auth.session-token"
 //   : "next-auth.session-token"; // Lógica original comentada
 
+// URL de la página de inicio
+const HOMEPAGE_URL = '/page/inicio';
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Redireccionar la ruta raíz a la página de inicio
+  if (pathname === '/' || pathname === '/inicio') {
+    console.log(`[Middleware] Redirecting root path to: ${HOMEPAGE_URL}`);
+    return NextResponse.redirect(new URL(HOMEPAGE_URL, request.url));
+  }
 
   // Proteger rutas del panel de administración
   if (pathname.startsWith('/admin')) {

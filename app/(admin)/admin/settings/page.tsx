@@ -41,6 +41,12 @@ const settingsPages = [
     icon: <Sidebar className="h-8 w-8" />
   },
   { 
+    href: "/admin/settings/menu", 
+    name: "Menú de Navegación", 
+    description: "Gestiona los elementos del menú de navegación principal del sitio.",
+    icon: <CirclePlay className="h-8 w-8" />
+  },
+  { 
     href: "/admin/settings/social", 
     name: "Redes sociales", 
     description: "Administra los enlaces a tus redes sociales.",

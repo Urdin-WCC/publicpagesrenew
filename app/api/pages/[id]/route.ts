@@ -14,7 +14,7 @@ export async function GET(
   context: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
+    const { params } = await context;
     
     // Check for auth (only admin or higher can access this)
     let session;
@@ -47,7 +47,10 @@ export async function GET(
     // Usar SQL directo en lugar de prisma.staticPage que podría no estar disponible
     console.log(`Obteniendo página con ID: ${id}`);
     const pageResult = await prisma.$queryRaw`
-      SELECT id, title, slug, contentHtml, menuOrder, includeInMenu, isHomePage, isVisible, createdAt, updatedAt
+      SELECT id, title, slug, contentHtml, 
+             showHeader, showFooter, showSidebar, sidebarPosition,
+             metaTitle, metaDescription, metaKeywords,
+             createdAt, updatedAt
       FROM StaticPage
       WHERE id = ${id}
       LIMIT 1
@@ -80,7 +83,7 @@ export async function PUT(
   context: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
+    const { params } = await context;
     
     // Check for auth (only admin or higher can access this)
     let session;
@@ -124,7 +127,9 @@ export async function PUT(
     // Usar SQL directo en lugar de prisma.staticPage que podría no estar disponible
     console.log(`Verificando existencia de página con ID: ${id}`);
     const existingPageResult = await prisma.$queryRaw`
-      SELECT id, title, slug, contentHtml, menuOrder, includeInMenu, isHomePage, isVisible
+      SELECT id, title, slug, contentHtml,
+             showHeader, showFooter, showSidebar, sidebarPosition,
+             metaTitle, metaDescription, metaKeywords
       FROM StaticPage
       WHERE id = ${id}
       LIMIT 1
@@ -162,8 +167,10 @@ export async function PUT(
     }
 
     // Actualizar la página con SQL directo
-    const isVisible = body.isVisible !== undefined ? body.isVisible : existingPage.isVisible;
-    const includeInMenu = body.includeInMenu !== undefined ? body.includeInMenu : existingPage.includeInMenu;
+    const showHeader = body.showHeader !== undefined ? body.showHeader : existingPage.showHeader;
+    const showFooter = body.showFooter !== undefined ? body.showFooter : existingPage.showFooter;
+    const showSidebar = body.showSidebar !== undefined ? body.showSidebar : existingPage.showSidebar;
+    const sidebarPosition = body.sidebarPosition || existingPage.sidebarPosition || 'left';
     
     console.log(`Actualizando página con ID: ${id}`);
     await prisma.$queryRaw`
@@ -172,15 +179,23 @@ export async function PUT(
         title = ${body.title}, 
         slug = ${body.slug}, 
         contentHtml = ${body.contentHtml},
-        isVisible = ${isVisible},
-        includeInMenu = ${includeInMenu},
+        showHeader = ${showHeader},
+        showFooter = ${showFooter},
+        showSidebar = ${showSidebar},
+        sidebarPosition = ${sidebarPosition},
+        metaTitle = ${body.metaTitle || ''},
+        metaDescription = ${body.metaDescription || ''},
+        metaKeywords = ${body.metaKeywords || ''},
         updatedAt = CURRENT_TIMESTAMP()
       WHERE id = ${id}
     `;
     
     // Obtener la página actualizada
     const updatedPageResult = await prisma.$queryRaw`
-      SELECT id, title, slug, contentHtml, menuOrder, includeInMenu, isHomePage, isVisible, createdAt, updatedAt
+      SELECT id, title, slug, contentHtml,
+             showHeader, showFooter, showSidebar, sidebarPosition,
+             metaTitle, metaDescription, metaKeywords,
+             createdAt, updatedAt
       FROM StaticPage
       WHERE id = ${id}
       LIMIT 1
@@ -219,7 +234,7 @@ export async function DELETE(
   context: { params: { id: string } }
 ) {
   try {
-    const { params } = context;
+    const { params } = await context;
     
     // Check for auth (only admin or higher can access this)
     let session;
@@ -252,7 +267,7 @@ export async function DELETE(
     // Verificar si la página existe usando SQL directo
     console.log(`Verificando existencia de página con ID: ${id}`);
     const pageResult = await prisma.$queryRaw`
-      SELECT id, title, slug, isHomePage
+      SELECT id, title, slug
       FROM StaticPage
       WHERE id = ${id}
       LIMIT 1
@@ -266,14 +281,6 @@ export async function DELETE(
       return NextResponse.json(
         { error: "Página no encontrada" },
         { status: 404 }
-      );
-    }
-
-    // Can't delete the homepage
-    if (page.isHomePage) {
-      return NextResponse.json(
-        { error: "No se puede eliminar la página de inicio. Asigne otra página como inicio primero." },
-        { status: 400 }
       );
     }
 
