@@ -74,10 +74,87 @@ async function main() {
   
   // 3. Añadir todos los archivos al staging
   log('\n📋 Añadiendo archivos al staging...', colors.blue);
-  if (!execCommand('git add .')) {
+  
+  // Asegurarse de que .gitignore existe y tiene configuraciones correctas
+  if (!fs.existsSync('.gitignore')) {
+    log('Creando .gitignore completo...', colors.yellow);
+    fs.writeFileSync('.gitignore', `# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+`);
+  } else {
+    // Verificar que node_modules esté en .gitignore
+    const gitignoreContent = fs.readFileSync('.gitignore', 'utf8');
+    if (!gitignoreContent.includes('node_modules')) {
+      log('Añadiendo node_modules a .gitignore...', colors.yellow);
+      fs.appendFileSync('.gitignore', '\n# Dependencies\nnode_modules/\n');
+    }
+  }
+
+  log('🔍 Verificando que node_modules esté correctamente ignorado...', colors.blue);
+
+  // Añadir archivos no rastreados, pero respetando .gitignore
+  log('Añadiendo todos los archivos no rastreados (excepto los ignorados en .gitignore)...', colors.blue);
+  
+  // Primero obtener una lista de todos los archivos no rastreados
+  log('Archivos no rastreados:', colors.blue);
+  try {
+    const untrackedFiles = execSync('git ls-files --others --exclude-standard').toString();
+    console.log(untrackedFiles);
+  } catch (error) {
+    // Ignorar errores aquí, esto es solo informativo
+    log('No se pudieron listar archivos no rastreados', colors.yellow);
+  }
+  
+  // Añadir todos los archivos, respetando .gitignore
+  if (!execCommand('git add --all --verbose')) {
     log('❌ Error al añadir archivos. Abortando.', colors.red);
     process.exit(1);
   }
+
+  // Verificar que node_modules NO esté siendo rastreado
+  log('🔍 Verificando que node_modules NO esté incluido...', colors.blue);
+  const stagedFiles = execSync('git ls-files --stage').toString();
+  if (stagedFiles.includes('node_modules/')) {
+    log('⚠️ ¡ADVERTENCIA! node_modules está siendo rastreado. Corrigiendo...', colors.yellow);
+    // Intentar eliminar node_modules del staging
+    execCommand('git rm -r --cached node_modules/');
+  } else {
+    log('✅ node_modules está correctamente ignorado.', colors.green);
+  }
+  
+  log('✅ Todos los archivos añadidos correctamente.', colors.green);
   
   // 4. Crear commit
   log('\n💾 Creando commit...', colors.blue);

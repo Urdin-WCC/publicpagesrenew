@@ -64,10 +64,81 @@ main() {
   
   # 3. Añadir todos los archivos al staging
   log $BLUE "\n📋 Añadiendo archivos al staging..."
-  if ! exec_command "git add ."; then
+  
+  # Asegurarse de que .gitignore existe con configuraciones correctas
+  if [ ! -f ".gitignore" ]; then
+    log $YELLOW "Creando .gitignore completo..."
+    cat > .gitignore << EOL
+# Dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# Production
+/build
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+.env
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+EOL
+  else
+    # Verificar que node_modules esté en .gitignore
+    if ! grep -q "node_modules" .gitignore; then
+      log $YELLOW "Añadiendo node_modules a .gitignore..."
+      echo -e "\n# Dependencies\nnode_modules/\n" >> .gitignore
+    fi
+  fi
+
+  log $BLUE "🔍 Verificando que node_modules esté correctamente ignorado..."
+
+  # Añadir archivos no rastreados, pero respetando .gitignore
+  log $BLUE "Añadiendo todos los archivos no rastreados (excepto los ignorados en .gitignore)..."
+  
+  # Primero obtener una lista de todos los archivos no rastreados
+  log $BLUE "Archivos no rastreados:"
+  git ls-files --others --exclude-standard
+  
+  # Añadir todos los archivos, respetando .gitignore
+  if ! exec_command "git add --all --verbose"; then
     log $RED "❌ Error al añadir archivos. Abortando."
     exit 1
   fi
+
+  # Verificar que node_modules NO esté siendo rastreado
+  log $BLUE "🔍 Verificando que node_modules NO esté incluido..."
+  STAGED_FILES=$(git ls-files --stage)
+  if echo "$STAGED_FILES" | grep -q "node_modules/"; then
+    log $YELLOW "⚠️ ¡ADVERTENCIA! node_modules está siendo rastreado. Corrigiendo..."
+    # Intentar eliminar node_modules del staging
+    exec_command "git rm -r --cached node_modules/"
+  else
+    log $GREEN "✅ node_modules está correctamente ignorado."
+  fi
+  
+  log $GREEN "✅ Todos los archivos añadidos correctamente."
   
   # 4. Crear commit
   log $BLUE "\n💾 Creando commit..."
