@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getGlobalConfig } from "@/lib/config-server";
 import { generatePageMetadata, GlobalConfig } from "@/lib/seoUtils";
+import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from "@/lib/themeUtils";
 import FixedHtmlRenderer from "@/components/public/FixedHtmlRenderer";
 
 interface StaticPageParams {
@@ -107,6 +108,16 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
     notFound();
   }
 
+  // Obtener configuración global para temas
+  const globalConfig = await getGlobalConfig();
+  
+  // Obtener temas específicos para esta ruta
+  const { lightConfig, darkConfig } = await getThemeConfigsForRoute(`/page/${slug}`, globalConfig);
+  
+  // Generar CSS para los temas específicos de esta página usando un selector específico
+  // Usamos una clase que identifique unívocamente esta página por su slug
+  const pageThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, `.page-${slug}`);
+
   // Configuración de visualización de página
   const pageConfig = {
     showHeader: page.showHeader !== undefined ? Boolean(page.showHeader) : true,
@@ -127,12 +138,37 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
       {/* Insertar script con configuración de página */}
       <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
       
-      <div className="container mx-auto px-4 py-8">
+      {/* Inyectar CSS para los temas específicos de esta página */}
+      {pageThemeCSS && (
+        <style id={`page-${slug}-theme-css`} dangerouslySetInnerHTML={{ __html: pageThemeCSS }} />
+      )}
+      
+      <div 
+        className={`page-${slug} container mx-auto px-4 py-8`}
+        style={{
+          backgroundColor: 'var(--background-value, white)',
+          color: 'var(--typography-paragraph-color, inherit)'
+        }}
+      >
         {/* Título de la página (opcional, depende del diseño) */}
-        <h1 className="text-3xl font-bold mb-6">{page.title}</h1>
+        <h1 
+          className="text-3xl font-bold mb-6"
+          style={{
+            fontFamily: 'var(--typography-heading-fontFamily, inherit)',
+            color: 'var(--typography-heading-color, inherit)',
+            fontWeight: 'var(--typography-heading-fontWeight, 600)',
+            fontSize: 'var(--typography-heading-fontSize, 1.875rem)'
+          }}
+        >{page.title}</h1>
         
         {/* Contenido principal de la página */}
-        <div className="mb-12">
+        <div 
+          className="mb-12"
+          style={{
+            fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',
+            fontSize: 'var(--typography-paragraph-fontSize, inherit)'
+          }}
+        >
           {/* Usar el componente cliente FixedHtmlRenderer para renderizar HTML con corrección de doble codificación */}
           <FixedHtmlRenderer 
             content={page.contentHtml || ""} 

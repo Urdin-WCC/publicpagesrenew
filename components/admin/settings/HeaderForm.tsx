@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import HtmlEditor from "@/components/core/HtmlEditor";
-import ImageUploader from "@/components/core/ImageUploader";
+import ImageUploaderLogo from "@/components/core/ImageUploaderLogo";
 import { toast } from "sonner";
 
 const HEADER_ELEMENTS = [
@@ -45,6 +45,8 @@ type HeaderElementConfig = {
   menuItems?: string[]; // Simplificado
   socialLinks?: { icon: string; url: string }[];
   html?: string;
+  // Propiedades adicionales
+  height?: string; // Altura del encabezado
 };
 
 type HeaderConfig = {
@@ -234,11 +236,23 @@ export default function HeaderForm() {
                     {field.type === "logo" && (
                       <div className="space-y-2">
                         <Label>Logo del sitio:</Label>
-                        <ImageUploader
+                        <ImageUploaderLogo
                           value={watch(`elements.${idx}.logoUrl`)}
-                          onChange={url => setValue(`elements.${idx}.logoUrl`, url)}
-                          label="Seleccionar imagen"
+                          onChange={(url: string) => setValue(`elements.${idx}.logoUrl`, url)}
+                          label="Seleccionar imagen para el logo"
                         />
+                        
+                        <div className="mt-4">
+                          <Label>Altura del encabezado:</Label>
+                          <Input
+                            {...register(`elements.${idx}.height` as const)}
+                            placeholder="ej: 80px, 5rem, auto"
+                            className="mt-1"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Define la altura del encabezado. Use valores como 80px, 5rem o auto.
+                          </p>
+                        </div>
                       </div>
                     )}
                     

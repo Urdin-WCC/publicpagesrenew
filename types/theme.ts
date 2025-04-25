@@ -1,6 +1,7 @@
 // Theme module types
 
 export interface ThemeConfig {
+  id?: number | string; // ID del tema
   background?: {
     type: 'color' | 'gradient' | 'image';
     value: string;

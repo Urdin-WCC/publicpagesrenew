@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { ImageUploader } from '@/components/core/ImageUploader';
+import ImageUploaderTheme from '@/components/core/ImageUploaderTheme';
 import { ColorPicker } from './ColorPicker';
 
 interface BackgroundSectionProps {
@@ -147,9 +148,12 @@ export function BackgroundSection({ config, onChange }: BackgroundSectionProps) 
                   </div>
                 )}
               </div>
-              <ImageUploader
+              <ImageUploaderTheme
                 onChange={handleImageUpload}
-                label="Seleccionar Imagen"
+                label="Seleccionar Imagen de Fondo Principal"
+                themeId={config.id}
+                imageType="main"
+                value={getConfigValue('background.imageUrl', '')}
               />
             </div>
             

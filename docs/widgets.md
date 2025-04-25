@@ -40,10 +40,13 @@
   - Ordenación: de izquierda a derecha.
 - Se puede elegir el orden de los widgets en ambas ubicaciones.
 
-## Notas
+## Notas Técnicas
 
-- Los widgets deben ser responsivos y adaptarse a las medidas y estilos definidos por configuración.
-- Los textos y opciones configurables deben estar centralizados en el sistema de traducciones.
+- **Compatibilidad de tipos**: Los widgets ahora implementan garantías de IDs únicos para asegurar el renderizado correcto.
+- **Estilo adaptado**: Los widgets se adaptan automáticamente a los temas aplicados utilizando variables CSS.
+- **Optimización de rendimiento**: La carga de widgets utiliza importaciones dinámicas con React.Suspense para mejor performance.
+- **Respuesta a dimensiones**: Los widgets respetan el ancho inline del sidebar (ya no como clase Tailwind) y la altura del footer.
+- **Ajuste de columnas**: El footer ahora implementa un sistema de grid automático basado en la configuración de columnas.
 
 ---
 _Este documento debe mantenerse actualizado si se añaden, eliminan o modifican widgets._

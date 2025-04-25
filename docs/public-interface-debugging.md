@@ -1,186 +1,148 @@
-# Guía de Depuración de la Interfaz Pública
+# Solución de Problemas en Componentes de Interfaz Pública
 
-Este documento proporciona una guía paso a paso para depurar problemas en la interfaz pública, especialmente relacionados con la carga de configuraciones y la visualización de elementos.
+Este documento detalla problemas comunes y sus soluciones relacionados con los componentes de la interfaz pública. Sirve como referencia de mantenimiento para desarrolladores.
 
-## Categorías de Problemas Comunes
+## Problemas de Dimensiones
 
-Los problemas en la interfaz pública generalmente se dividen en:
+### Problema: El ancho del Sidebar no se aplica correctamente
 
-1. **Problemas de Carga de Datos**: Configuraciones que no se cargan correctamente
-2. **Problemas de Visualización**: Elementos que no se muestran o se muestran incorrectamente
-3. **Problemas de Tema**: Estilos o temas que no se aplican correctamente
-4. **Problemas de Rendimiento**: Carga lenta o bloqueos
+**Síntoma**: El valor configurado para el ancho del Sidebar (p.ej. '350px') no se respeta visualmente.
 
-## Proceso de Depuración General
+**Causa**: El ancho se estaba aplicando como una clase de Tailwind (`widthClass`) en lugar de como un estilo inline con unidades CSS válidas.
 
-### 1. Inspeccionar la Consola del Navegador
-
-Revisa los mensajes de error en la consola del navegador presionando F12:
-- `Error fetching global config`
-- `Error parsing theme config`
-- `Error fetching section`
-
-### 2. Verificar Network Requests
-
-Revisa las solicitudes de red para identificar:
-- Peticiones fallidas a la API
-- Códigos de estado HTTP inesperados
-- Tiempos de respuesta largos
-
-### 3. Verificar el HTML Generado
-
-Inspecciona el HTML para asegurarte que:
-- Variables CSS de tema presentes en `<style>`
-- Elemento `<script>` con `window.__PAGE_CONFIG__`
-- Elementos estructurales como `<header>`, `<footer>` presentes
-
-## Depuración por Componente
-
-### Problemas con Header
-
-Si el header no aparece o aparece incorrectamente:
-
-```bash
-# 1. Verificar datos del menú
-prisma.$queryRaw`SELECT navigationMenu FROM GlobalConfig WHERE id = 'global'`
-
-# 2. Verificar sección de header
-prisma.$queryRaw`SELECT * FROM SiteSection WHERE type = 'HEADER' AND isActive = true`
-
-# 3. Revisar elementos del menú
-prisma.$queryRaw`SELECT * FROM MenuItem WHERE sectionId = '[ID-SECCION]' AND isActive = true`
+**Solución implementada**:
+```jsx
+<aside 
+  className={`sidebar-component p-4 ${positionClasses} ${className}`}
+  style={{
+    backgroundColor: 'var(--background-value, #f5f5f5)',
+    color: 'var(--typography-paragraph-color, inherit)',
+    width: sidebarConfig.width || 'auto',
+    maxWidth: sidebarConfig.width || '320px'
+  }}
+>
 ```
 
-Componentes involucrados:
-- `app/(public)/layout.tsx` (carga datos)
-- `components/public/Header.tsx` (renderiza)
-- `actions/menu-actions.ts` (obtiene datos)
+### Problema: La altura del Footer no se aplica correctamente
 
-### Problemas con Footer
+**Síntoma**: El Footer no respeta la altura configurada.
 
-Si el footer no aparece o los widgets no son correctos:
-
-```bash
-# 1. Verificar configuración del footer
-prisma.$queryRaw`SELECT footer FROM GlobalConfig WHERE id = 'global'`
-
-# 2. Verificar sección de footer
-prisma.$queryRaw`SELECT * FROM SiteSection WHERE type = 'FOOTER' AND isActive = true`
-
-# 3. Revisar widgets de footer
-prisma.$queryRaw`SELECT * FROM Widget WHERE sectionId = '[ID-SECCION]' AND isActive = true`
+**Solución**: Aplicación directa del valor como estilo inline:
+```jsx
+style={{
+  backgroundColor: 'var(--background-value, white)',
+  color: 'var(--typography-paragraph-color, inherit)',
+  height: footerConfig.height !== 'auto' ? footerConfig.height : 'auto'
+}}
 ```
 
-### Problemas con Temas
+## Problemas con Widgets
 
-Si los colores o estilos no se aplican correctamente:
+### Problema: Widgets no se muestran en Sidebar o Footer
 
-```bash
-# 1. Verificar tema predeterminado
-prisma.$queryRaw`SELECT defaultLightThemePresetId, defaultDarkThemePresetId FROM GlobalConfig WHERE id = 'global'`
+**Síntomas**:
+- Los widgets están configurados pero no aparecen
+- Error en consola sobre propiedades faltantes o tipos incompatibles
 
-# 2. Verificar configuración de tema
-prisma.$queryRaw`SELECT config FROM ThemePreset WHERE id = [ID-TEMA]`
+**Causas**:
+1. Los widgets provienen de múltiples fuentes (configuración, secciones)
+2. Incompatibilidad de tipos entre diferentes definiciones de Widget
+3. ID faltantes o inválidos en algunos widgets
 
-# 3. Verificar asignaciones de tema
-prisma.$queryRaw`SELECT themeAssignments FROM GlobalConfig WHERE id = 'global'`
+**Solución implementada**:
+1. Garantizar IDs válidos para todos los widgets:
+```javascript
+// En Footer.tsx
+const configWidgets = (footerConfig.widgets || []).map((widget, index) => ({
+  ...widget,
+  id: widget.id || `footer-widget-${index}` // Garantizar siempre un ID
+}));
+
+// En Sidebar.tsx
+const configWidgets = (sidebarConfig.widgets || []).map((widget, index) => ({
+  ...widget,
+  id: widget.id || `sidebar-widget-${index}`
+}));
 ```
 
-Componentes involucrados:
-- `lib/themeUtils.ts` (lógica de temas)
-- `components/public/ThemeSwitcher.tsx` (cambio de tema)
-- Inyección CSS en `app/(public)/layout.tsx`
+2. Uso de casting de tipos cuando sea necesario para compatibilidad:
+```javascript
+<WidgetRenderer 
+  key={widget.id || `widget-${index}`} 
+  widget={widget as any} 
+/>
+```
 
-## Resolución de Problemas Específicos
+## Problemas de Tipado
 
-### Problema: "La visibilidad de Header/Footer no funciona correctamente"
+### Problema: Conflicto entre diferentes definiciones de Widget
 
-**Diagnóstico:**
-1. Verifica si `window.__PAGE_CONFIG__` se establece correctamente
-2. Inspecciona el script cliente en el HTML
-3. Comprueba los valores de `showHeader` y `showFooter` en la página
+**Síntoma**: Error de TypeScript sobre tipos incompatibles:
+```
+Type 'FooterWidget' is not assignable to type 'Widget'.
+Types of property 'id' are incompatible.
+```
 
-**Solución:**
-1. Asegúrate de que el script se inyecta correctamente en la página
-2. Verifica que la página de inicio tiene los valores correctos en la base de datos
-3. Actualiza el código de la página para incluir estos valores:
-   ```tsx
-   const pageConfig = {
-     showHeader: homepage.showHeader === undefined ? true : Boolean(homepage.showHeader),
-     showFooter: homepage.showFooter === undefined ? true : Boolean(homepage.showFooter),
-   };
-   ```
+**Causa**: Múltiples definiciones de la interfaz Widget con diferentes requisitos (id obligatorio vs opcional).
 
-### Problema: "Los colores del tema no se aplican correctamente"
+**Soluciones**:
+1. Definir interfaces específicas por componente (FooterWidget, SidebarWidget)
+2. Garantizar que todos los widgets tienen un ID válido antes de utilizarlos
+3. Utilizar casting de tipos cuando sea necesario para la compatibilidad
 
-**Diagnóstico:**
-1. Inspecciona el elemento `<style>` en el HTML para verificar las variables CSS
-2. Verifica si `html.dark` se aplica correctamente al cambiar de tema
-3. Revisa la configuración del tema en la base de datos
+## Problemas de Configuración
 
-**Solución:**
-1. Asegúrate de que `generateCssFromThemeConfigs()` tiene los valores correctos:
-   ```tsx
-   const themeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig);
-   ```
-2. Verifica que ThemeSwitcher está funcionando correctamente:
-   ```tsx
-   // Debe alternar la clase 'dark' en el elemento html
-   document.documentElement.classList.add('dark'); // o remove
-   ```
-3. Revisa las asignaciones de tema para la ruta actual
+### Problema: Errores al parsear la configuración JSON
 
-### Problema: "Los elementos del menú de navegación no aparecen"
+**Síntomas**:
+- Valores de configuración no disponibles
+- Errores en consola durante el parseo
 
-**Diagnóstico:**
-1. Verifica el resultado de `fetchNavigationMenu()`
-2. Inspecciona la estructura del objeto devuelto
-3. Comprueba si hay errores de parseo de JSON
+**Solución implementada**: Manejo seguro con valores por defecto y captura de errores:
+```javascript
+// Parse config con valores predeterminados
+let sidebarConfig: SidebarConfig = {
+  showWidgets: true,
+  backgroundColor: 'bg-gray-50',
+  textColor: 'text-gray-700',
+  width: 'w-64',
+  visible: true,
+  customHtml: ''
+};
 
-**Solución:**
-1. Corrige el formato del menú de navegación en la base de datos:
-   ```bash
-   # Ejemplo de formato correcto
-   UPDATE GlobalConfig SET navigationMenu = '[{"label": "Inicio", "url": "/", "openInNewTab": false}]' WHERE id = 'global'
-   ```
-2. Asegúrate de que el Header procesa correctamente los elementos del menú
-3. Verifica que no hay errores al mezclar las dos fuentes de elementos de menú
+try {
+  // Parse sidebar configuration if available
+  if (config) {
+    // Si es string, intentar parsearlo
+    const configData = typeof config === 'string' ? JSON.parse(config) : config;
+    
+    // Combinar con valores predeterminados
+    sidebarConfig = {
+      ...sidebarConfig,
+      ...configData,
+    };
+  }
+} catch (error) {
+  console.error('Error parsing sidebar config:', error);
+}
+```
 
-### Problema: "El Loading Spinner/ThemeSwitcher no aparecen"
+## Prácticas Recomendadas
 
-**Diagnóstico:**
-1. Verifica las configuraciones en GlobalConfig
-2. Comprueba que las propiedades `enabled` están correctamente establecidas
-3. Revisa que los campos JSON se están parseando correctamente
+1. **Aplicar dimensiones**: Usar siempre estilos inline para dimensiones que aceptan unidades CSS (ancho, alto).
 
-**Solución:**
-1. Corrige las configuraciones en la base de datos:
-   ```bash
-   UPDATE GlobalConfig SET loadingSpinnerConfig = '{"enabled": true}' WHERE id = 'global'
-   UPDATE GlobalConfig SET themeSwitcherConfig = '{"enabled": true, "position": "bottom-right"}' WHERE id = 'global'
-   ```
-2. Verifica que la página procesa correctamente estas configuraciones
+2. **Garantizar IDs**: Asegurar que todos los elementos, especialmente widgets, tengan IDs válidos.
 
-## Errores Comunes en Campos JSON
+3. **Manejo de configuración**:
+   - Implementar valores por defecto para toda configuración
+   - Usar estructuras try/catch al parsear JSON
+   - Validar la estructura esperada
 
-Muchos problemas se originan en campos JSON malformados:
+4. **Compatibilidad de tipos**:
+   - Proporcionar interfaces específicas para cada componente
+   - Implementar conversiones de tipo seguras cuando sea necesario
+   - Documentar requisitos de tipo en interfaces compartidas
 
-| Campo | Formato Correcto | Formato Incorrecto |
-|-------|------------------|-------------------|
-| `navigationMenu` | `[{"label": "Inicio", "url": "/"}]` | `[{label: Inicio, url: /}]` |
-| `themeAssignments` | `{"/blog": {"light": 1, "dark": 2}}` | `{/blog: {light: 1, dark: 2}}` |
-| `themeSwitcherConfig` | `{"enabled": true, "position": "top-right"}` | `{enabled: true, position: top-right}` |
-
-Al corregir campos JSON, siempre:
-1. Usa comillas dobles para claves y valores de texto
-2. Asegúrate de que los valores booleanos sean `true`/`false` (sin comillas)
-3. Verifica que los números no tienen comillas
-
-## Herramientas de Depuración
-
-Para una depuración más profunda, puedes utilizar estas herramientas:
-
-1. **Consola del Navegador**: Inspecciona variables, estructura DOM y rendimiento
-2. **React Dev Tools**: Inspecciona componentes React, props y estado
-3. **Prisma Studio**: Visualiza y edita datos de la base de datos directamente
-4. **SQL Client**: Ejecuta queries directamente para verificar datos
+5. **Pruebas específicas**:
+   - Probar componentes con configuraciones extremas (vacía, valores mínimos/máximos)
+   - Verificar que los sistemas de fallback funcionen correctamente

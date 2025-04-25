@@ -16,6 +16,7 @@ export interface HeaderElementConfig {
   position: string;
   logoUrl?: string;
   html?: string;
+  height?: string; // Altura del encabezado
 }
 
 // Elementos predeterminados para el header

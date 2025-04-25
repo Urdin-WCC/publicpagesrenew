@@ -1,0 +1,197 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Demo de Estilos con Ámbito para Temas</title>
+  <style>
+    /* Estilos globales */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    
+    .component {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      width: calc(50% - 40px);
+      min-height: 200px;
+    }
+    
+    /* ESTILOS CON ÁMBITO PARA CADA COMPONENTE */
+    
+    /* Variables CSS para el Header */
+    .header-component {
+      --bg-color: #4a6da7;
+      --text-color: white;
+      --link-color: #ffd700;
+      --font-family: 'Impact', sans-serif;
+      --padding: 20px;
+      
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: var(--padding);
+      font-family: var(--font-family);
+    }
+    
+    /* Variables CSS para el Sidebar */
+    .sidebar-component {
+      --bg-color: #f5f5f5;
+      --text-color: #333;
+      --link-color: #0066cc;
+      --font-family: 'Arial', sans-serif;
+      --padding: 15px;
+      
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: var(--padding);
+      font-family: var(--font-family);
+    }
+    
+    /* Variables CSS para el Footer */
+    .footer-component {
+      --bg-color: #333;
+      --text-color: #f0f0f0;
+      --link-color: #66ccff;
+      --font-family: 'Georgia', serif;
+      --padding: 10px;
+      
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: var(--padding);
+      font-family: var(--font-family);
+    }
+    
+    /* Variables CSS para el Main Content */
+    .content-component {
+      --bg-color: #fff;
+      --text-color: #222;
+      --link-color: #cc0066;
+      --font-family: 'Tahoma', sans-serif;
+      --padding: 25px;
+      
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      padding: var(--padding);
+      font-family: var(--font-family);
+    }
+    
+    /* Estilos para enlaces dentro de cada componente */
+    .component a {
+      color: var(--link-color);
+      text-decoration: none;
+      font-weight: bold;
+    }
+    
+    .component a:hover {
+      text-decoration: underline;
+    }
+    
+    pre {
+      background-color: #f0f0f0;
+      padding: 10px;
+      border-radius: 4px;
+      overflow: auto;
+    }
+    
+    .explanation {
+      margin-bottom: 30px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-left: 4px solid #4a6da7;
+    }
+  </style>
+</head>
+<body>
+  <h1>Demo de Estilos con Ámbito para Temas</h1>
+  
+  <div class="explanation">
+    <p>Esta demo muestra cómo aplicar diferentes estilos a diferentes componentes usando las <strong>mismas propiedades CSS</strong> pero con <strong>valores distintos</strong> para cada componente.</p>
+    <p>Cada componente tiene sus propias variables CSS (--bg-color, --text-color, etc.) pero con valores únicos para ese componente.</p>
+  </div>
+  
+  <h2>Componentes con estilos independientes</h2>
+  
+  <div class="container">
+    <div class="component header-component">
+      <h3>Header Component</h3>
+      <p>Este es un encabezado con su propio tema.</p>
+      <p>Tiene fondo azul y texto blanco.</p>
+      <a href="#">Un enlace en el header</a>
+      <pre>
+.header-component {
+  --bg-color: #4a6da7;
+  --text-color: white;
+  --link-color: #ffd700;
+  --font-family: 'Impact', sans-serif;
+}
+      </pre>
+    </div>
+    
+    <div class="component sidebar-component">
+      <h3>Sidebar Component</h3>
+      <p>Esta es una barra lateral con su propio tema.</p>
+      <p>Tiene fondo gris claro y texto oscuro.</p>
+      <a href="#">Un enlace en el sidebar</a>
+      <pre>
+.sidebar-component {
+  --bg-color: #f5f5f5;
+  --text-color: #333;
+  --link-color: #0066cc;
+  --font-family: 'Arial', sans-serif;
+}
+      </pre>
+    </div>
+    
+    <div class="component footer-component">
+      <h3>Footer Component</h3>
+      <p>Este es un pie de página con su propio tema.</p>
+      <p>Tiene fondo oscuro y texto claro.</p>
+      <a href="#">Un enlace en el footer</a>
+      <pre>
+.footer-component {
+  --bg-color: #333;
+  --text-color: #f0f0f0;
+  --link-color: #66ccff;
+  --font-family: 'Georgia', serif;
+}
+      </pre>
+    </div>
+    
+    <div class="component content-component">
+      <h3>Content Component</h3>
+      <p>Este es el contenido principal con su propio tema.</p>
+      <p>Tiene fondo blanco y texto negro.</p>
+      <a href="#">Un enlace en el contenido</a>
+      <pre>
+.content-component {
+  --bg-color: #fff;
+  --text-color: #222;
+  --link-color: #cc0066;
+  --font-family: 'Tahoma', sans-serif;
+}
+      </pre>
+    </div>
+  </div>
+  
+  <h2>Explicación de la implementación</h2>
+  
+  <div class="explanation">
+    <p>Lo que hace que esto funcione:</p>
+    <ol>
+      <li>Cada componente tiene su propia clase CSS (header-component, sidebar-component, etc.)</li>
+      <li>Cada componente define las mismas variables CSS (--bg-color, --text-color, etc.) pero con valores diferentes</li>
+      <li>Las propiedades CSS reales dentro de cada componente usan esas variables: background-color: var(--bg-color);</li>
+      <li>El ámbito de CSS asegura que las variables de un componente no afecten a otros componentes</li>
+    </ol>
+    <p>En una aplicación Next.js, esto se aplicaría usando clases CSS específicas de componente y inyectando los estilos generados por temas como hemos visto que hace el Header.</p>
+  </div>
+</body>
+</html>

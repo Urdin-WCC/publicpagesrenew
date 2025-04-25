@@ -58,17 +58,13 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     }
   };
   
+  // Generar CSS para los temas específicos de esta página
+  const searchThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.search-page');
+  
   // Almacenar la configuración para que el layout pueda acceder a ella
   const pageConfigScript = `
     <script>
       window.__PAGE_CONFIG__ = ${JSON.stringify(pageConfig)};
-      // Si hay temas específicos, convertir los datos a CSS en el cliente
-      if (${lightConfig || darkConfig}) {
-        window.__PAGE_SPECIFIC_THEMES__ = {
-          light: ${JSON.stringify(lightConfig)},
-          dark: ${JSON.stringify(darkConfig)}
-        };
-      }
     </script>
   `;
   
@@ -77,7 +73,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     return (
       <>
         <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
-        <div className="container mx-auto px-4 py-12">
+        {/* Inyectar CSS para los temas específicos de esta página */}
+        {searchThemeCSS && (
+          <style id="search-page-theme-css" dangerouslySetInnerHTML={{ __html: searchThemeCSS }} />
+        )}
+        <div className="search-page container mx-auto px-4 py-12" 
+          style={{
+            backgroundColor: 'var(--background-value, white)',
+            color: 'var(--typography-paragraph-color, inherit)'
+          }}
+        >
           <h1 className="text-3xl font-bold mb-8 text-center">Buscar en nuestro sitio</h1>
           <div className="max-w-2xl mx-auto">
             <GlobalSearch className="mb-8" />
@@ -93,7 +98,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
-      <div className="container mx-auto px-4 py-8">
+      {/* Inyectar CSS para los temas específicos de esta página */}
+      {searchThemeCSS && (
+        <style id="search-page-theme-css" dangerouslySetInnerHTML={{ __html: searchThemeCSS }} />
+      )}
+      <div className="search-page container mx-auto px-4 py-8"
+        style={{
+          backgroundColor: 'var(--background-value, white)',
+          color: 'var(--typography-paragraph-color, inherit)'
+        }}
+      >
         <h1 className="text-3xl font-bold mb-6">
           Resultados para &quot;{query}&quot;
         </h1>

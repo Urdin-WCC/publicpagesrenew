@@ -1,10 +1,8 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import { WidgetType } from '@prisma/client';
+import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import WidgetRenderer from './WidgetRenderer';
 
-// Widget from database
+// Widget interface
 interface Widget {
   id: string;
   title: string;
@@ -20,124 +18,136 @@ interface Widget {
 
 // Sidebar configuration interface
 interface SidebarConfig {
-  showWidgets: boolean;
-  customHtmlContent?: string;
+  showWidgets?: boolean;
   backgroundColor?: string;
   textColor?: string;
   width?: string;
+  visible?: boolean;
+  customHtml?: string;
+  widgets?: any[];
 }
 
 export interface SidebarProps {
   widgets?: Widget[];
   config?: any; // Config from GlobalConfig
-  stickyClass?: string; // Class for sticky positioning
   position?: 'left' | 'right';
   className?: string;
   globalConfig?: any; // Global config for theme assignments
   pathname?: string; // Current path
 }
 
-export default function Sidebar({ 
+export default async function Sidebar({ 
   widgets = [],
   config,
-  stickyClass = '',
   position = 'right',
   className = '',
   globalConfig,
   pathname = '/'
 }: SidebarProps) {
-  // State for theme styles
-  const [themeStyles, setThemeStyles] = useState<string | null>(null);
+  // Obtener temas específicos para el componente Sidebar en la ruta actual
+  const { lightConfig, darkConfig } = globalConfig 
+    ? await getThemeConfigsForComponent('sidebar', pathname, globalConfig)
+    : { lightConfig: null, darkConfig: null };
   
-  // Parse config
+  // Generar CSS para los temas específicos del Sidebar
+  const sidebarThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.sidebar-component');
+  
+  // Parse config con valores predeterminados
   let sidebarConfig: SidebarConfig = {
     showWidgets: true,
     backgroundColor: 'bg-gray-50',
     textColor: 'text-gray-700',
-    width: 'w-64'
+    width: 'w-64',
+    visible: true,
+    customHtml: ''
   };
   
   try {
     // Parse sidebar configuration if available
     if (config) {
-      // If config is a string, try to parse it
+      // Si es string, intentar parsearlo
       const configData = typeof config === 'string' ? JSON.parse(config) : config;
       
-      // Merge with default values
+      // Combinar con valores predeterminados
       sidebarConfig = {
         ...sidebarConfig,
         ...configData,
       };
+      
+      console.log('Parsed sidebar config:', sidebarConfig);
     }
-  } catch (e) {
-    console.error('Error parsing sidebar config:', e);
+  } catch (error) {
+    console.error('Error parsing sidebar config:', error);
   }
   
-  // Get custom HTML content
-  let customHtmlContent = sidebarConfig.customHtmlContent || '';
+  // Obtener el HTML personalizado
+  const customHtml = sidebarConfig.customHtml || '';
   
-  // Effect to load theme configurations - only runs in client
-  useEffect(() => {
-    // Load theme styles
-    async function loadThemeStyles() {
-      if (pathname) {
-        try {
-          // Use the fetch API to call theme configurations
-          const response = await fetch(`/api/themes/component?component=sidebar&pathname=${encodeURIComponent(pathname)}`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            if (data.css) {
-              setThemeStyles(data.css);
-            }
-          }
-        } catch (error) {
-          console.error('Error loading sidebar theme:', error);
-        }
-      }
-    }
-    
-    loadThemeStyles();
-  }, [pathname]);
-  
-  // Position classes
+  // Clases de posición
   const positionClasses = position === 'left' ? 'order-first' : 'order-last';
   
+  // Visibilidad
+  if (sidebarConfig.visible === false) {
+    // Si está explícitamente configurado como invisible, no renderizar
+    return null;
+  }
+
+  // Obtener widgets de la configuración si están disponibles
+  // y asegurar que todos tengan un id válido
+  const configWidgets = (sidebarConfig.widgets || []).map((widget, index) => ({
+    ...widget,
+    id: widget.id || `sidebar-widget-${index}` // Garantizar que siempre hay un id
+  }));
+  
+  // Combinar widgets externos con los de la configuración
+  // y asegurar que todos tengan un id válido
+  const allWidgets = [
+    ...widgets.map((widget, index) => ({
+      ...widget,
+      id: widget.id || `sidebar-extern-${index}`
+    })),
+    ...configWidgets
+  ];
+
   return (
     <>
-      {/* Inyectar CSS para los temas específicos del sidebar - solo en cliente */}
-      {themeStyles && (
-        <style dangerouslySetInnerHTML={{ __html: themeStyles }} />
+      {/* Inyectar CSS para los temas específicos del sidebar */}
+      {sidebarThemeCSS && (
+        <style id="sidebar-theme-css" dangerouslySetInnerHTML={{ __html: sidebarThemeCSS }} />
       )}
       
       <aside 
-        className={`sidebar-component ${sidebarConfig.backgroundColor} ${sidebarConfig.width} p-4 ${positionClasses} ${stickyClass} ${className}`}
+        className={`sidebar-component p-4 ${positionClasses} ${className}`}
         data-position={position}
         data-visible="true"
+        style={{
+          backgroundColor: 'var(--background-value, #f5f5f5)',
+          color: 'var(--typography-paragraph-color, inherit)',
+          width: sidebarConfig.width || 'auto',
+          maxWidth: sidebarConfig.width || '320px',
+          border: 'none' // Eliminar borde rojo de depuración
+        }}
       >
-        <div className="sidebar-debug px-2 py-1 mb-4 bg-gray-100 text-xs rounded">
-          <div>Posición: {position}</div>
-          <div>Config: {config ? "Presente" : "Ausente"}</div>
-        </div>
-        {/* Widgets - only if showWidgets is true and we have widgets */}
-        {sidebarConfig.showWidgets && widgets.length > 0 && (
+        {/* Widgets - solo si showWidgets es true y hay widgets */}
+        {sidebarConfig.showWidgets && allWidgets.length > 0 && (
           <div className="space-y-6">
-            {widgets.map(widget => (
-              <div key={widget.id} className="mb-6">
+            {allWidgets.map((widget: Widget, index: number) => (
+              <div key={widget.id || `widget-${index}`} className="mb-6">
                 <WidgetRenderer widget={widget} />
               </div>
             ))}
           </div>
         )}
         
-        {/* Custom HTML content */}
-        {customHtmlContent && (
+        {/* HTML Personalizado */}
+        {customHtml && (
           <div 
             className="content-html"
-            dangerouslySetInnerHTML={{ __html: customHtmlContent }}
+            style={{
+              fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',
+              fontSize: 'var(--typography-paragraph-fontSize, inherit)'
+            }}
+            dangerouslySetInnerHTML={{ __html: customHtml }}
           />
         )}
       </aside>

@@ -178,7 +178,13 @@ export async function getThemeConfigsForRoute(pathname: string, globalConfig: an
     getThemePresetConfigById(darkThemeId)
   ]);
 
-  return { lightConfig, darkConfig };
+  // Ensure the theme IDs are passed along with the configs
+  return { 
+    lightConfig: lightConfig ? { ...lightConfig, id: lightThemeId } : null, 
+    darkConfig: darkConfig ? { ...darkConfig, id: darkThemeId } : null,
+    lightThemeId,
+    darkThemeId
+  };
 }
 
 // Helper function to get theme configs for a specific component
@@ -195,7 +201,13 @@ export async function getThemeConfigsForComponent(
     getThemePresetConfigById(darkThemeId)
   ]);
 
-  return { lightConfig, darkConfig };
+  // Ensure the theme IDs are passed along with the configs
+  return { 
+    lightConfig: lightConfig ? { ...lightConfig, id: lightThemeId } : null, 
+    darkConfig: darkConfig ? { ...darkConfig, id: darkThemeId } : null,
+    lightThemeId,
+    darkThemeId
+  };
 }
 
 // Default theme configurations
@@ -275,6 +287,14 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
   lightConfig = lightConfig || defaultLightTheme;
   darkConfig = darkConfig || defaultDarkTheme;
 
+  // Extract theme IDs if available
+  const lightThemeId = lightConfig.id || 'default';
+  const darkThemeId = darkConfig.id || 'default';
+  
+  console.log("Theme IDs for CSS generation:", { lightThemeId, darkThemeId });
+  console.log("Light config:", lightConfig);
+  console.log("Dark config:", darkConfig);
+
   // Flatten nested theme objects
   const flatLightConfig = flattenThemeConfig(lightConfig);
   const flatDarkConfig = flattenThemeConfig(darkConfig);
@@ -299,6 +319,127 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     css += `  ${key}: ${value};\n`;
   });
   css += '}\n';
+
+  // Add special background rules for components
+  if (selector === '.header-component') {
+    // Extract background type from theme configurations
+    const lightBgType = flatLightConfig['--background-type'] || 'color';
+    const darkBgType = flatDarkConfig['--background-type'] || 'color';
+    
+    css += `\n/* Background rules for header */\n`;
+    
+    // Light theme background rules
+    css += `${lightSelector} {\n`;
+    
+    // Default background-color (always set as fallback)
+    css += `  background-color: var(--background-value, white);\n`;
+    
+    // Apply specific background type
+    if (lightBgType === 'image' && lightThemeId !== 'default') {
+      // Image background
+      css += `  background-image: url(/images/backgrounds/main-${lightThemeId}.jpg);\n`;
+      css += `  background-size: cover;\n`;
+      css += `  background-position: center;\n`;
+    } else if (lightBgType === 'gradient') {
+      // Gradient background - get it from CSS variables
+      css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    }
+    css += `}\n\n`;
+    
+    // Dark theme background rules
+    css += `${darkSelector} {\n`;
+    
+    // Default background-color (always set as fallback)
+    css += `  background-color: var(--background-value, #1a1a1a);\n`;
+    
+    // Apply specific background type
+    if (darkBgType === 'image' && darkThemeId !== 'default') {
+      // Image background
+      css += `  background-image: url(/images/backgrounds/main-${darkThemeId}.jpg);\n`;
+      css += `  background-size: cover;\n`;
+      css += `  background-position: center;\n`;
+    } else if (darkBgType === 'gradient') {
+      // Gradient background - get it from CSS variables
+      css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    }
+    css += `}\n`;
+  } else if (selector === '.footer-component') {
+    // Extract background type from theme configurations
+    const lightBgType = flatLightConfig['--background-type'] || 'color';
+    const darkBgType = flatDarkConfig['--background-type'] || 'color';
+    
+    css += `\n/* Background rules for footer */\n`;
+    
+    // Light theme background rules
+    css += `${lightSelector} {\n`;
+    css += `  background-color: var(--background-value, white);\n`;
+    
+    // Apply specific background type
+    if (lightBgType === 'image' && lightThemeId !== 'default') {
+      // Image background
+      css += `  background-image: url(/images/backgrounds/main-${lightThemeId}.jpg);\n`;
+      css += `  background-size: cover;\n`;
+      css += `  background-position: center;\n`;
+    } else if (lightBgType === 'gradient') {
+      // Gradient background
+      css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    }
+    css += `}\n\n`;
+    
+    // Dark theme background rules
+    css += `${darkSelector} {\n`;
+    css += `  background-color: var(--background-value, #1a1a1a);\n`;
+    
+    // Apply specific background type
+    if (darkBgType === 'image' && darkThemeId !== 'default') {
+      // Image background
+      css += `  background-image: url(/images/backgrounds/main-${darkThemeId}.jpg);\n`;
+      css += `  background-size: cover;\n`;
+      css += `  background-position: center;\n`;
+    } else if (darkBgType === 'gradient') {
+      // Gradient background
+      css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    }
+    css += `}\n`;
+  } else if (selector === '.sidebar-component') {
+    // Extract background type from theme configurations
+    const lightBgType = flatLightConfig['--background-type'] || 'color';
+    const darkBgType = flatDarkConfig['--background-type'] || 'color';
+    
+    css += `\n/* Background rules for sidebar */\n`;
+    
+    // Light theme background rules
+    css += `${lightSelector} {\n`;
+    css += `  background-color: var(--background-value, white);\n`;
+    
+    // Apply specific background type
+    if (lightBgType === 'image' && lightThemeId !== 'default') {
+      // Image background for cards is different
+      css += `  background-image: url(/images/backgrounds/card-${lightThemeId}.jpg);\n`;
+      css += `  background-size: cover;\n`;
+      css += `  background-position: center;\n`;
+    } else if (lightBgType === 'gradient') {
+      // Gradient background
+      css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    }
+    css += `}\n\n`;
+    
+    // Dark theme background rules
+    css += `${darkSelector} {\n`;
+    css += `  background-color: var(--background-value, #1a1a1a);\n`;
+    
+    // Apply specific background type
+    if (darkBgType === 'image' && darkThemeId !== 'default') {
+      // Image background for cards is different
+      css += `  background-image: url(/images/backgrounds/card-${darkThemeId}.jpg);\n`;
+      css += `  background-size: cover;\n`;
+      css += `  background-position: center;\n`;
+    } else if (darkBgType === 'gradient') {
+      // Gradient background
+      css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    }
+    css += `}\n`;
+  }
 
   return css;
 }

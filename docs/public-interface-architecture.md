@@ -55,21 +55,44 @@ El Header combina elementos de menú de dos fuentes:
 1. `navigationMenu` de la configuración global (gestionado en admin)
 2. `menuItems` de la tabla `SiteSection` + `MenuItem` 
 
+### Sidebar (`components/public/Sidebar.tsx`)
+
+```typescript
+interface SidebarProps {
+  widgets?: Widget[];           // Widgets de la base de datos (externos)
+  config?: any;                 // Configuración personalizada desde GlobalConfig
+  position?: 'left' | 'right';  // Posición de la barra lateral
+  className?: string;           // Clases CSS adicionales
+  globalConfig?: any;           // Configuración global para asignaciones de temas
+  pathname?: string;            // Ruta actual para asignaciones de temas
+}
+```
+
+El Sidebar:
+1. Aplica el ancho configurado como estilo inline (sidebarConfig.width)
+2. Muestra widgets combinados de la configuración y externos 
+3. Puede incluir HTML personalizado (sidebarConfig.customHtml)
+4. Utiliza variables CSS del tema asignado para colores y tipografía
+
 ### Footer (`components/public/Footer.tsx`)
 
 ```typescript
 interface FooterProps {
-  text?: string;                // Texto de copyright
-  widgets?: Widget[];           // Widgets del footer
-  config?: any;                 // Configuración personalizada
+  config?: any;                 // Configuración personalizada desde GlobalConfig
   stickyClass?: string;         // Clase CSS para posicionamiento
+  globalConfig?: any;           // Configuración global para asignaciones de temas
+  pathname?: string;            // Ruta actual para asignaciones de temas
 }
 ```
 
 El Footer muestra:
-1. Widgets dinámicos recuperados de la base de datos
-2. Contenido HTML personalizado desde la configuración (`footerHtmlContent`)
-3. Texto de copyright y atribución
+1. Widgets configurados en el panel de administración (footerConfig.widgets)
+2. Una barra horizontal con contenido HTML personalizado (footerConfig.secondaryHtml)
+3. Aplica la altura configurada (footerConfig.height) y disposición en columnas
+
+La estructura simplificada del Footer incluye:
+- Un grid con widgets que se reparten en el número de columnas especificado
+- Un wrapper HTML que renderiza contenido HTML y aplica los estilos del tema
 
 ### ThemeSwitcher (`components/public/ThemeSwitcher.tsx`)
 

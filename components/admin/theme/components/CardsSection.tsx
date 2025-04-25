@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ImageUploader } from '@/components/core/ImageUploader';
+import ImageUploaderTheme from '@/components/core/ImageUploaderTheme';
 import { ColorPicker } from './ColorPicker';
 
 interface CardsSectionProps {
@@ -183,9 +184,12 @@ export function CardsSection({ config, onChange }: CardsSectionProps) {
                   </div>
                 )}
               </div>
-              <ImageUploader
+              <ImageUploaderTheme
                 onChange={handleCardImageUpload}
-                label="Seleccionar Imagen"
+                label="Seleccionar Imagen para Tarjetas"
+                themeId={config.id}
+                imageType="card"
+                value={getConfigValue('cards.background.imageUrl', '')}
               />
             </div>
           </>

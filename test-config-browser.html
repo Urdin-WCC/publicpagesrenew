@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Configuración de Interfaz Pública</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h1 { color: #2563eb; }
+        h2 { color: #4338ca; margin-top: 2rem; }
+        pre { background: #f1f5f9; padding: 1rem; border-radius: 0.5rem; overflow: auto; }
+        .json { color: #1e40af; font-family: monospace; }
+        .highlight { background: #fef3c7; padding: 0.25rem; }
+        .error { color: #dc2626; font-weight: bold; }
+        .success { color: #16a34a; font-weight: bold; }
+        .test-case {
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+        }
+        button {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2563eb;
+        }
+        .result {
+            margin-top: 0.5rem;
+        }
+        
+        /* Simulated components for testing */
+        header {
+            background-color: #f0f9ff;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        footer {
+            background-color: #f0fdf4;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        .sidebar-component {
+            background-color: #fdf4ff;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Configuración de la Interfaz Pública</h1>
+    <p>Esta página permite probar las configuraciones de visibilidad y comportamiento de los componentes de la interfaz pública.</p>
+    
+    <h2>1. Test de Visibilidad de Componentes</h2>
+    
+    <div class="test-case">
+        <h3>Header Visibility</h3>
+        <button onclick="toggleHeader()">Mostrar/Ocultar Header</button>
+        <div class="result">
+            <header>Este es el header simulado</header>
+        </div>
+    </div>
+    
+    <div class="test-case">
+        <h3>Footer Visibility</h3>
+        <button onclick="toggleFooter()">Mostrar/Ocultar Footer</button>
+        <div class="result">
+            <footer>Este es el footer simulado</footer>
+        </div>
+    </div>
+    
+    <div class="test-case">
+        <h3>Sidebar Visibility</h3>
+        <button onclick="toggleSidebar()">Mostrar/Ocultar Sidebar</button>
+        <div class="result">
+            <div class="sidebar-component" data-position="right">Esta es la sidebar simulada</div>
+        </div>
+    </div>
+    
+    <div class="test-case">
+        <h3>Sidebar Position</h3>
+        <button onclick="toggleSidebarPosition()">Cambiar Posición (Izq/Der)</button>
+        <div class="result" id="sidebar-position-result">
+            <div class="sidebar-component" data-position="left" style="display:none;">Sidebar Izquierda</div>
+            <div class="sidebar-component" data-position="right">Sidebar Derecha</div>
+        </div>
+    </div>
+    
+    <h2>2. Test de Configuración Completa</h2>
+    
+    <div class="test-case">
+        <h3>Simular Configuración de Página</h3>
+        <select id="page-config-preset">
+            <option value="default">Configuración Predeterminada</option>
+            <option value="blog">Configuración Blog</option>
+            <option value="portfolio">Configuración Portfolio</option>
+            <option value="minimal">Configuración Minimalista</option>
+        </select>
+        <button onclick="applyPageConfig()">Aplicar Configuración</button>
+        <div class="result">
+            <pre class="json" id="page-config-json"></pre>
+        </div>
+    </div>
+    
+    <h2>3. Estado Actual</h2>
+    <pre class="json" id="current-state"></pre>
+
+    <script>
+        // Simular objeto window.__PAGE_CONFIG__
+        window.__PAGE_CONFIG__ = {
+            showHeader: true,
+            showFooter: true,
+            showSidebar: true,
+            sidebarPosition: 'right'
+        };
+        
+        // Actualizar clases CSS basadas en la configuración
+        function applyPageConfigClasses() {
+            const config = window.__PAGE_CONFIG__;
+            const body = document.body;
+            
+            // Header visibility
+            if (config.showHeader === false) {
+                body.classList.add('hide-header');
+            } else {
+                body.classList.remove('hide-header');
+            }
+            
+            // Footer visibility
+            if (config.showFooter === false) {
+                body.classList.add('hide-footer');
+            } else {
+                body.classList.remove('hide-footer');
+            }
+            
+            // Sidebar visibility
+            if (config.showSidebar === true) {
+                body.classList.add('show-sidebar');
+                body.classList.add(`sidebar-${config.sidebarPosition || 'right'}`);
+            } else {
+                body.classList.remove('show-sidebar');
+                body.classList.remove('sidebar-left', 'sidebar-right');
+            }
+            
+            // Update current state display
+            updateCurrentState();
+        }
+        
+        // Toggle header visibility
+        function toggleHeader() {
+            window.__PAGE_CONFIG__.showHeader = !window.__PAGE_CONFIG__.showHeader;
+            applyPageConfigClasses();
+        }
+        
+        // Toggle footer visibility
+        function toggleFooter() {
+            window.__PAGE_CONFIG__.showFooter = !window.__PAGE_CONFIG__.showFooter;
+            applyPageConfigClasses();
+        }
+        
+        // Toggle sidebar visibility
+        function toggleSidebar() {
+            window.__PAGE_CONFIG__.showSidebar = !window.__PAGE_CONFIG__.showSidebar;
+            applyPageConfigClasses();
+        }
+        
+        // Toggle sidebar position
+        function toggleSidebarPosition() {
+            const sidebarPosition = window.__PAGE_CONFIG__.sidebarPosition || 'right';
+            window.__PAGE_CONFIG__.sidebarPosition = sidebarPosition === 'right' ? 'left' : 'right';
+            
+            // Visual update for demo
+            const left = document.querySelector('.sidebar-component[data-position="left"]');
+            const right = document.querySelector('.sidebar-component[data-position="right"]');
+            
+            left.style.display = window.__PAGE_CONFIG__.sidebarPosition === 'left' ? 'block' : 'none';
+            right.style.display = window.__PAGE_CONFIG__.sidebarPosition === 'right' ? 'block' : 'none';
+            
+            applyPageConfigClasses();
+        }
+        
+        // Apply preset page configurations
+        function applyPageConfig() {
+            const preset = document.getElementById('page-config-preset').value;
+            
+            switch(preset) {
+                case 'blog':
+                    window.__PAGE_CONFIG__ = {
+                        showHeader: true,
+                        showFooter: true,
+                        showSidebar: true,
+                        sidebarPosition: 'right'
+                    };
+                    break;
+                case 'portfolio':
+                    window.__PAGE_CONFIG__ = {
+                        showHeader: true,
+                        showFooter: true,
+                        showSidebar: false,
+                        sidebarPosition: 'right'
+                    };
+                    break;
+                case 'minimal':
+                    window.__PAGE_CONFIG__ = {
+                        showHeader: false,
+                        showFooter: false,
+                        showSidebar: false,
+                        sidebarPosition: 'right'
+                    };
+                    break;
+                default:
+                    window.__PAGE_CONFIG__ = {
+                        showHeader: true,
+                        showFooter: true,
+                        showSidebar: true,
+                        sidebarPosition: 'right'
+                    };
+            }
+            
+            // Update page config JSON display
+            document.getElementById('page-config-json').textContent = 
+                JSON.stringify(window.__PAGE_CONFIG__, null, 2);
+            
+            applyPageConfigClasses();
+        }
+        
+        // Update current state display
+        function updateCurrentState() {
+            const state = {
+                pageConfig: window.__PAGE_CONFIG__,
+                bodyClasses: document.body.className.split(' ').filter(c => c),
+                elementVisibility: {
+                    header: !document.body.classList.contains('hide-header'),
+                    footer: !document.body.classList.contains('hide-footer'),
+                    sidebar: document.body.classList.contains('show-sidebar'),
+                    sidebarPosition: window.__PAGE_CONFIG__.sidebarPosition
+                }
+            };
+            
+            document.getElementById('current-state').textContent = 
+                JSON.stringify(state, null, 2);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply initial setup
+            applyPageConfigClasses();
+            
+            // Display initial page config
+            document.getElementById('page-config-json').textContent = 
+                JSON.stringify(window.__PAGE_CONFIG__, null, 2);
+        });
+    </script>
+    
+    <!-- CSS for visibility control -->
+    <style>
+        body.hide-header header {
+          display: none !important;
+        }
+        
+        body.hide-footer footer {
+          display: none !important;
+        }
+        
+        body.show-sidebar .sidebar-component {
+          display: block !important;
+        }
+        
+        body.hide-sidebar .sidebar-component {
+          display: none !important;
+        }
+        
+        body.sidebar-left .sidebar-component[data-position="right"] {
+          display: none !important;
+        }
+        
+        body.sidebar-right .sidebar-component[data-position="left"] {
+          display: none !important;
+        }
+    </style>

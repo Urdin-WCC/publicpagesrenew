@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Public Interface Test</title>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; line-height: 1.5; max-width: 800px; margin: 0 auto; padding: 2rem; }
+    h1 { color: #2563eb; }
+    h2 { color: #4338ca; margin-top: 2rem; }
+    pre { background: #f1f5f9; padding: 1rem; border-radius: 0.5rem; overflow: auto; }
+    .json { color: #1e40af; }
+    .highlight { background: #fef3c7; padding: 0.25rem; }
+    .error { color: #dc2626; font-weight: bold; }
+    .success { color: #16a34a; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Public Interface Configuration Test</h1>
+  
+  <h2>1. Global Configuration</h2>
+  <p>Site Name: <span class="highlight">Neurowitch</span></p>
+  <p>Header Configuration: <span class="success">Valid</span></p>
+  <p>Footer Configuration: <span class="success">Valid</span></p>
+  <p>Sidebar Configuration: <span class="success">Valid</span></p>
+  <p>Navigation Menu: <span class="success">Valid</span></p>
+  
+  <h2>2. Theme Settings</h2>
+  <p>Default Light Theme ID: <span class="highlight">1</span></p>
+  <p>Default Dark Theme ID: <span class="highlight">2</span></p>
+  <p>Theme Assignments: <span class="success">Valid</span></p>
+  
+  <h2>3. Navigation Menu</h2>
+  <ul>
+    <li><strong>Inicio</strong>: /</li><li><strong>Blog</strong>: /blog</li><li><strong>Acerca de</strong>: /page/about</li>
+  </ul>
+  
+  <h2>4. Configuration Details</h2>
+  <h3>Header Configuration</h3>
+  <pre class="json">{
+  "elements": [
+    {
+      "type": "logo",
+      "visible": true,
+      "position": "top-left"
+    },
+    {
+      "type": "text",
+      "visible": true,
+      "position": "top-center"
+    },
+    {
+      "type": "menu",
+      "visible": true,
+      "position": "top-right"
+    },
+    {
+      "type": "social",
+      "visible": true,
+      "position": "bottom-left"
+    },
+    {
+      "type": "theme",
+      "visible": true,
+      "position": "bottom-right"
+    },
+    {
+      "type": "html",
+      "visible": false,
+      "position": "center-center"
+    }
+  ]
+}</pre>
+  
+  <h3>Footer Configuration</h3>
+  <pre class="json">{
+  "showWidgets": true,
+  "showCopyright": true,
+  "columns": 3,
+  "backgroundColor": "bg-gray-100",
+  "textColor": "text-gray-600"
+}</pre>
+  
+  <h3>Sidebar Configuration</h3>
+  <pre class="json">{
+  "showWidgets": true,
+  "backgroundColor": "bg-gray-50",
+  "textColor": "text-gray-700",
+  "width": "w-64",
+  "visible": true
+}</pre>
+  
+  <h3>Navigation Menu</h3>
+  <pre class="json">[
+  {
+    "id": "menu-item-1",
+    "label": "Inicio",
+    "target": "/",
+    "openInNewTab": false
+  },
+  {
+    "id": "menu-item-2",
+    "label": "Blog",
+    "target": "/blog",
+    "openInNewTab": false
+  },
+  {
+    "id": "menu-item-3",
+    "label": "Acerca de",
+    "target": "/page/about",
+    "openInNewTab": false
+  }
+]</pre>
+  
+  <h3>Theme Assignments</h3>
+  <pre class="json">{
+  "header": {
+    "light": 1,
+    "dark": 2
+  },
+  "footer": {
+    "light": 1,
+    "dark": 2
+  },
+  "sidebar": {
+    "light": 1,
+    "dark": 2
+  }
+}</pre>
+  
+  <script>
+    // Script to help debug initialization issues
+    console.log("Test page loaded");
+    
+    // Add PageConfig for testing
+    window.__PAGE_CONFIG__ = {
+      showHeader: true,
+      showFooter: true,
+      showSidebar: true,
+      sidebarPosition: 'right'
+    };
+    console.log("PageConfig set:", window.__PAGE_CONFIG__);
+  </script>
+</body>
+</html>
