@@ -152,6 +152,24 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
     case WidgetTypes.MAP:
     case WidgetTypes.CUSTOM_HTML:
     case WidgetTypes.LOGO:
+    case 'logo':
+      return (
+        <a href="/" style={{ display: "block", width: "100%", height: "100%" }}>
+          <img
+            src="/images/logo.png"
+            alt="Logo"
+            style={{
+              display: "block",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              margin: "0 auto"
+            }}
+          />
+        </a>
+      );
     case WidgetTypes.NAVIGATION:
       return (
         <Card>

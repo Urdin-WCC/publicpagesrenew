@@ -116,41 +116,78 @@ export default async function Sidebar({
         <style id="sidebar-theme-css" dangerouslySetInnerHTML={{ __html: sidebarThemeCSS }} />
       )}
       
-      <aside 
-        className={`sidebar-component p-4 ${positionClasses} ${className}`}
-        data-position={position}
-        data-visible="true"
-        style={{
-          backgroundColor: 'var(--background-value, #f5f5f5)',
-          color: 'var(--typography-paragraph-color, inherit)',
-          width: sidebarConfig.width || 'auto',
-          maxWidth: sidebarConfig.width || '320px',
-          border: 'none' // Eliminar borde rojo de depuración
-        }}
-      >
-        {/* Widgets - solo si showWidgets es true y hay widgets */}
-        {sidebarConfig.showWidgets && allWidgets.length > 0 && (
-          <div className="space-y-6">
-            {allWidgets.map((widget: Widget, index: number) => (
-              <div key={widget.id || `widget-${index}`} className="mb-6">
-                <WidgetRenderer widget={widget} />
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {/* HTML Personalizado */}
-        {customHtml && (
-          <div 
-            className="content-html"
+      <style>{`
+        .sidebar-component {
+          min-width: 0;
+          overflow-x: auto;
+          padding: var(--sidebar-padding-base, 1rem);
+          box-sizing: border-box;
+          flex-shrink: 0;
+        }
+      `}</style>
+      {/** 
+        Resolución del ancho:
+        - Si es px/%, se pone en style.
+        - Si empieza por "w-", se agrega a la clase.
+      */}
+      {(() => {
+        let widthClass = "";
+        let widthStyle: React.CSSProperties = {};
+        if (typeof sidebarConfig.width === "string") {
+          if (/^\d+(px|rem|em|vw|%)$/.test(sidebarConfig.width.trim())) {
+            widthStyle.width = sidebarConfig.width.trim();
+          } else if (sidebarConfig.width.startsWith("w-")) {
+            widthClass = sidebarConfig.width;
+          }
+        }
+        return (
+          <aside 
+            className={`sidebar-component ${positionClasses} ${widthClass} ${className}`}
+            data-position={position}
+            data-visible="true"
             style={{
-              fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',
-              fontSize: 'var(--typography-paragraph-fontSize, inherit)'
+              backgroundColor: 'var(--background-value, #f5f5f5)',
+              color: 'var(--typography-paragraph-color, inherit)',
+              ...widthStyle,
+              border: 'none'
             }}
-            dangerouslySetInnerHTML={{ __html: customHtml }}
-          />
-        )}
-      </aside>
+          >
+            {/* Widgets - solo si showWidgets es true y hay widgets */}
+            {sidebarConfig.showWidgets && allWidgets.length > 0 && (
+              <div className="space-y-6">
+                <style>{`
+                  .widget-card {
+                    background: var(--sidebar-cards-background, #fff);
+                    border-radius: var(--sidebar-cards-borderRadius, 12px);
+                    box-shadow: var(--sidebar-cards-boxShadow, none);
+                    border: var(--sidebar-cards-borderWidth, 1px) solid var(--sidebar-cards-borderColor, #e5e7eb);
+                    color: var(--sidebar-cards-color, inherit);
+                    padding: var(--sidebar-cards-padding, 1rem);
+                    margin-bottom: 1.5rem;
+                  }
+                `}</style>
+                {allWidgets.map((widget: Widget, index: number) => (
+                  <div key={widget.id || `widget-${index}`} className="widget-card">
+                    <WidgetRenderer widget={widget} />
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* HTML Personalizado */}
+            {customHtml && (
+              <div 
+                className="content-html"
+                style={{
+                  fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',
+                  fontSize: 'var(--typography-paragraph-fontSize, inherit)'
+                }}
+                dangerouslySetInnerHTML={{ __html: customHtml }}
+              />
+            )}
+          </aside>
+        );
+      })()}
     </>
   );
 }

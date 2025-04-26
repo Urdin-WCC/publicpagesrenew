@@ -296,8 +296,30 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
   console.log("Dark config:", darkConfig);
 
   // Flatten nested theme objects
-  const flatLightConfig = flattenThemeConfig(lightConfig);
-  const flatDarkConfig = flattenThemeConfig(darkConfig);
+  let flatLightConfig = flattenThemeConfig(lightConfig);
+  let flatDarkConfig = flattenThemeConfig(darkConfig);
+
+  // Si el selector es un componente, remapea las variables CSS de spacing y margin/padding con prefijo
+  if (selector && selector.startsWith('.header-component')) {
+    flatLightConfig = Object.fromEntries(
+      Object.entries(flatLightConfig).map(([key, value]) =>
+        key.startsWith('--spacing-padding-')
+          ? [`--header-padding${key.replace('--spacing-padding', '')}`, value]
+          : key.startsWith('--spacing-margin-')
+            ? [`--header-margin${key.replace('--spacing-margin', '')}`, value]
+            : [key, value]
+      )
+    );
+    flatDarkConfig = Object.fromEntries(
+      Object.entries(flatDarkConfig).map(([key, value]) =>
+        key.startsWith('--spacing-padding-')
+          ? [`--header-padding${key.replace('--spacing-padding', '')}`, value]
+          : key.startsWith('--spacing-margin-')
+            ? [`--header-margin${key.replace('--spacing-margin', '')}`, value]
+            : [key, value]
+      )
+    );
+  }
   
   console.log("Flattened light theme:", flatLightConfig);
   console.log("Flattened dark theme:", flatDarkConfig);
@@ -364,9 +386,13 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     }
     css += `}\n`;
   } else if (selector === '.footer-component') {
-    // Extract background type from theme configurations
+    // Extract background and cards type from theme configurations
     const lightBgType = flatLightConfig['--background-type'] || 'color';
     const darkBgType = flatDarkConfig['--background-type'] || 'color';
+    const lightCardsBgType = flatLightConfig['--cards-background-type'] || 'color';
+    const darkCardsBgType = flatDarkConfig['--cards-background-type'] || 'color';
+    const lightThemeIdStr = String(lightThemeId);
+    const darkThemeIdStr = String(darkThemeId);
     
     css += `\n/* Background rules for footer */\n`;
     
@@ -374,31 +400,43 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     css += `${lightSelector} {\n`;
     css += `  background-color: var(--background-value, white);\n`;
     
-    // Apply specific background type
+    // Apply specific background type (main background)
     if (lightBgType === 'image' && lightThemeId !== 'default') {
-      // Image background
-      css += `  background-image: url(/images/backgrounds/main-${lightThemeId}.jpg);\n`;
+      css += `  background-image: url(/images/backgrounds/main-${lightThemeIdStr}.jpg);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (lightBgType === 'gradient') {
-      // Gradient background
       css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
     }
+    // Cards background
+    // image
+    if (lightCardsBgType === 'image' && lightThemeId !== 'default') {
+      css += `  --footer-cards-background: url(/images/backgrounds/card-${lightThemeIdStr}.jpg);\n`;
+    } else if (lightCardsBgType === 'gradient') {
+      css += `  --footer-cards-background: var(--cards-background-gradient, linear-gradient(to right,#fff,#eee));\n`;
+    } else {
+      css += `  --footer-cards-background: var(--cards-background, #fff);\n`;
+    }
     css += `}\n\n`;
-    
+
     // Dark theme background rules
     css += `${darkSelector} {\n`;
     css += `  background-color: var(--background-value, #1a1a1a);\n`;
-    
-    // Apply specific background type
+    // main background
     if (darkBgType === 'image' && darkThemeId !== 'default') {
-      // Image background
-      css += `  background-image: url(/images/backgrounds/main-${darkThemeId}.jpg);\n`;
+      css += `  background-image: url(/images/backgrounds/main-${darkThemeIdStr}.jpg);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (darkBgType === 'gradient') {
-      // Gradient background
       css += `  background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    }
+    // cards bg
+    if (darkCardsBgType === 'image' && darkThemeId !== 'default') {
+      css += `  --footer-cards-background: url(/images/backgrounds/card-${darkThemeIdStr}.jpg);\n`;
+    } else if (darkCardsBgType === 'gradient') {
+      css += `  --footer-cards-background: var(--cards-background-gradient, linear-gradient(to right,#222,#444));\n`;
+    } else {
+      css += `  --footer-cards-background: var(--cards-background, #222);\n`;
     }
     css += `}\n`;
   } else if (selector === '.sidebar-component') {

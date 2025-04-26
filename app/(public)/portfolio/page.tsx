@@ -65,10 +65,11 @@ export default async function PortfolioPage({ searchParams }: PageProps) {
       )}
       
       <div 
-        className="portfolio-page container mx-auto px-4 py-8"
+        className="portfolio-page w-full px-4 py-8"
         style={{
           backgroundColor: 'var(--background-value, white)',
-          color: 'var(--typography-paragraph-color, inherit)'
+          color: 'var(--typography-paragraph-color, inherit)',
+          maxWidth: "100%"
         }}
       >
         <h1 

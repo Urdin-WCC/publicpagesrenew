@@ -95,7 +95,7 @@ export default async function BlogTagPage({ params, searchParams }: BlogTagPageP
   const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
       <h1 className="text-3xl font-bold mb-8">
         {translations.public.tag}: <span className="text-primary">{tag.name}</span>
       </h1>

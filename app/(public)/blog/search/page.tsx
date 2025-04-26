@@ -72,7 +72,7 @@ export default async function BlogSearchPage({ searchParams }: BlogSearchPagePro
   const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
       <h1 className="text-3xl font-bold mb-4">{translations.public.searchTitle}</h1>
 
       {/* Formulario de Búsqueda */}

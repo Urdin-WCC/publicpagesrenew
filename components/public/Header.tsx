@@ -168,12 +168,24 @@ export default async function Header({
                   return (
                     <div className="logo-container">
                       {/* Fallback en caso de error de carga */}
+                      {/* 
+                        Configuración optimizada para que el logo se muestre a su tamaño natural:
+                        - width y height establecidos a 0 para que Next.js no aplique restricciones
+                        - unoptimized=true para evitar la optimización que podría cambiar el tamaño
+                        - Estilos directos para anular cualquier estilo restrictivo
+                      */}
                       <Image 
                         src={validLogoSrc}
-                        alt={siteName} 
-                        width={150} 
-                        height={60}
-                        className="w-auto h-auto"
+                        alt={siteName}
+                        width={0}
+                        height={0}
+                        sizes="100vw"
+                        className="w-auto h-auto" 
+                        style={{
+                          objectFit: "contain",
+                          maxWidth: "none",
+                          maxHeight: "none"
+                        }}
                         unoptimized={true}
                         priority={true}
                       />
@@ -321,56 +333,124 @@ export default async function Header({
       
       {/* Estilos adicionales para las capas de posicionamiento */}
       <style dangerouslySetInnerHTML={{ __html: `
-.header-position-layer {
-  padding: 8px;
-  z-index: 1; /* Asegura que las capas no se superpongan */
-  min-width: 80px; /* Ancho mínimo para evitar que se colapsen */
-  min-height: 30px; /* Altura mínima para evitar que se colapsen */
-  pointer-events: auto; /* Asegura que los elementos sean interactivos */
-  /* Quitar bordes de depuración */
-  border: none;
-  outline: none;
-  background: transparent;
-}
+        /* Sistema de capas que ocupan todo el header */
+        .header-position-layer {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center; /* Centrado horizontal por defecto */
+          align-items: center; /* Centrado vertical por defecto */
+          pointer-events: none; /* Para que las capas no interfieran entre sí */
+          z-index: 1;
+          padding: 0;
+          background: transparent;
+        }
         
-        /* Estilos específicos para ciertos elementos */
+        /* Elemento espaciador invisible para forzar la altura */
+        .layer-spacer {
+          height: 100%;
+          width: 1px;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        
+        /* Contenedor de los elementos reales que se posicionarán correctamente */
+        .layer-content {
+          position: absolute;
+          display: flex;
+          width: 100%;
+          padding: 10px;
+        }
+
+        /* Todos los elementos dentro de las capas deben ser interactivos */
+        .header-element {
+          pointer-events: auto;
+          max-width: 100%;
+          box-sizing: border-box;
+          padding: var(--header-padding-base, 4px);
+        }
+
+        /* Estilos para posicionamiento vertical con más fuerza */
+        .vertical-top {
+          top: 0;
+          align-items: flex-start;    /* Alinea elementos en la parte superior */
+          padding-top: 10px;          /* Espacio adicional en la parte superior */
+        }
+        
+        .vertical-center {
+          top: 50%;
+          transform: translateY(-50%);
+          align-items: center;        /* Alinea elementos en el centro vertical */
+        }
+        
+        .vertical-bottom {
+          bottom: 0;
+          align-items: flex-end;      /* Alinea elementos en la parte inferior */
+          padding-bottom: 10px;       /* Espacio adicional en la parte inferior */
+        }
+        
+        /* Estilos para posicionamiento horizontal */
+        .horizontal-left {
+          left: 0;
+          justify-content: flex-start; /* Alinea elementos a la izquierda */
+          padding-left: 10px;          /* Espacio adicional a la izquierda */
+        }
+        
+        .horizontal-center {
+          left: 50%;
+          transform: translateX(-50%);
+          justify-content: center;     /* Alinea elementos al centro */
+        }
+        
+        .horizontal-right {
+          right: 0;
+          justify-content: flex-end;   /* Alinea elementos a la derecha */
+          padding-right: 10px;         /* Espacio adicional a la derecha */
+        }
+
+        /* Combinaciones especiales para transformaciones */
+        .vertical-center.horizontal-center {
+          transform: translate(-50%, -50%); /* Corregir transformación para center-center */
+        }
+        
+        /* Estilos específicos para elementos */
         .logo-element img {
-          max-height: 60px; /* Limitar altura del logo */
+          max-height: 60px;
         }
         
         .menu-element {
-          max-width: 500px; /* Limitar ancho del menú para evitar que empuje otros elementos */
+          min-width: 0;
+          overflow-x: auto;
+        }
+        .menu-element nav,
+        .menu-element ul {
+          min-width: 0;
+          max-width: 100%;
+          overflow-x: auto;
+          flex-wrap: wrap;
         }
         
-        /* Espacio para las filas */
+        /* Configuración del contenedor */
         .header-component .container {
-          overflow: visible; /* Permite que los elementos absolutos se muestren fuera del contenedor si es necesario */
-          min-height: 120px; /* Garantiza altura mínima suficiente para todas las filas */
-        }
-        
-        /* Espaciado vertical para posiciones */
-        .header-component [class*="top-"] {
-          top: 10px; /* Espacio superior para la fila superior */
-        }
-        
-        .header-component [class*="bottom-"] {
-          bottom: 10px; /* Espacio inferior para la fila inferior */
-        }
-        
-        /* Estilos para elementos específicos */
-        .header-element {
-          max-width: 100%; /* Evita desbordamiento horizontal */
-          box-sizing: border-box; /* Incluye padding en el cálculo de tamaño */
+          overflow: visible;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          height: 100%; /* Ocupar toda la altura del header */
+          min-height: 0; /* Eliminar altura mínima para permitir ajuste completo */
+          padding-top: var(--header-container-padding-top, 8px);
+          padding-bottom: var(--header-container-padding-bottom, 8px);
         }
         
         /* Soporte responsivo */
         @media (max-width: 768px) {
           .header-position-layer {
-            padding: 4px; /* Menor padding en móvil */
-          }
-          
-          .header-component .container {
-            min-height: 100px; /* Altura mínima más pequeña en móvil */
+            padding: 4px;
           }
         }
       `}} />
@@ -381,56 +461,49 @@ export default async function Header({
         style={{
           backgroundColor: 'var(--background-value, white)',
           height: headerHeight !== 'auto' ? headerHeight : undefined,
-          position: 'relative' // Posición relativa para contenedor padre
+          position: 'relative', // Posición relativa para contenedor padre
         }}>
-        <div className="container mx-auto px-4 py-3 relative min-h-[100px]">
+        <div className="w-full relative min-h-[100px]" style={{ maxWidth: "100%", height: "100%" }}>
           {/* Usamos una rejilla con capas absolutas para posicionar los elementos de manera fija */}
           
+          {/* Sistema simplificado de capas - sin espaciadores, posicionamiento directo */}
+          
           {/* FILA SUPERIOR */}
-          {/* Top-Left */}
-          <div className="absolute top-0 left-0 flex items-center justify-start header-position-layer">
+          <div className="header-position-layer vertical-top horizontal-left">
             {renderHeaderElement(positionMatrix['top-left'])}
           </div>
           
-          {/* Top-Center */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 flex items-center justify-center header-position-layer">
+          <div className="header-position-layer vertical-top horizontal-center">
             {renderHeaderElement(positionMatrix['top-center'])}
           </div>
           
-          {/* Top-Right */}
-          <div className="absolute top-0 right-0 flex items-center justify-end header-position-layer">
+          <div className="header-position-layer vertical-top horizontal-right">
             {renderHeaderElement(positionMatrix['top-right'])}
           </div>
           
           {/* FILA CENTRAL */}
-          {/* Center-Left */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-0 flex items-center justify-start header-position-layer">
+          <div className="header-position-layer vertical-center horizontal-left">
             {renderHeaderElement(positionMatrix['center-left'])}
           </div>
           
-          {/* Center-Center */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 flex items-center justify-center header-position-layer">
+          <div className="header-position-layer vertical-center horizontal-center">
             {renderHeaderElement(positionMatrix['center-center'])}
           </div>
           
-          {/* Center-Right */}
-          <div className="absolute top-1/2 -translate-y-1/2 right-0 flex items-center justify-end header-position-layer">
+          <div className="header-position-layer vertical-center horizontal-right">
             {renderHeaderElement(positionMatrix['center-right'])}
           </div>
           
           {/* FILA INFERIOR */}
-          {/* Bottom-Left */}
-          <div className="absolute bottom-0 left-0 flex items-center justify-start header-position-layer">
+          <div className="header-position-layer vertical-bottom horizontal-left">
             {renderHeaderElement(positionMatrix['bottom-left'])}
           </div>
           
-          {/* Bottom-Center */}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center justify-center header-position-layer">
+          <div className="header-position-layer vertical-bottom horizontal-center">
             {renderHeaderElement(positionMatrix['bottom-center'])}
           </div>
           
-          {/* Bottom-Right */}
-          <div className="absolute bottom-0 right-0 flex items-center justify-end header-position-layer">
+          <div className="header-position-layer vertical-bottom horizontal-right">
             {renderHeaderElement(positionMatrix['bottom-right'])}
           </div>
         </div>

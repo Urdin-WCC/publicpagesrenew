@@ -127,7 +127,7 @@ export default function CategoryPostsClient({
     : 'space-y-8';
   
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
       <h1 className="text-3xl font-bold mb-8">
         {translations.public.category}: <span className="text-primary">{category.name}</span>
       </h1>

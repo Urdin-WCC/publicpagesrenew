@@ -144,10 +144,11 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
       )}
       
       <div 
-        className={`page-${slug} container mx-auto px-4 py-8`}
+        className={`page-${slug} w-full px-4 py-8`}
         style={{
           backgroundColor: 'var(--background-value, white)',
-          color: 'var(--typography-paragraph-color, inherit)'
+          color: 'var(--typography-paragraph-color, inherit)',
+          maxWidth: "100%"
         }}
       >
         {/* Título de la página (opcional, depende del diseño) */}

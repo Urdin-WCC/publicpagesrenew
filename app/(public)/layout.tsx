@@ -202,28 +202,13 @@ export default async function PublicLayout({
     const { fetchHeaderConfig } = await import('@/actions/header-actions');
     const headerConfigResponse = await fetchHeaderConfig();
     
-    // La configuración del header puede tener un formato diferente, adaptarla
+    // Usar directamente la configuración del header devuelta por fetchHeaderConfig
+    // que ya tiene el formato adecuado con elements[]
     if (headerConfigResponse && headerConfigResponse.elements) {
-      // Convertir del formato de elementos al formato esperado por el componente Header
-      const elements = headerConfigResponse.elements;
+      // Usar directamente la configuración con los elementos
+      headerConfig = headerConfigResponse;
       
-      // Extraer valores relevantes de los elementos
-      const logoElement = elements.find((e: any) => e.type === 'logo');
-      const socialElement = elements.find((e: any) => e.type === 'social');
-      const textElement = elements.find((e: any) => e.type === 'text');
-      
-      // Crear un nuevo objeto de configuración con el formato esperado
-      headerConfig = {
-        showLogo: logoElement?.visible ?? true,
-        showSiteName: textElement?.visible ?? true,
-        showSocialIcons: socialElement?.visible ?? true,
-        logoUrl: logoElement?.logoUrl,
-        backgroundColor: 'white', // Valores predeterminados
-        textColor: 'black',
-        socialIcons: [] // Llenar esto si hay información disponible
-      };
-      
-      console.log('Header config from API:', headerConfig);
+      console.log('Header config from API (usando directamente elements):', headerConfig);
     } else {
       // Fallback a la configuración del objeto global
       headerConfig = safeParseJson(config?.header, headerConfig);
@@ -405,17 +390,16 @@ export default async function PublicLayout({
           
           {/* Header - La visibilidad se controla vía JS basado en __PAGE_CONFIG__ */}
           <Header 
-            menuItems={headerSection?.menuItems || []}
             siteName={config?.siteName || "Neurowitch"}
             logoUrl={config?.logoUrl}
-            config={headerConfig}
+            config={headerConfig} 
             stickyClass={stickyClasses.header}
             globalConfig={config}
             pathname="/"
           />
           
           {/* Contenido principal con soporte para sidebar */}
-          <div className="flex flex-1">
+          <div className="flex flex-1" style={{ overflowX: "hidden", position: "relative" }}>
             {/* Sidebar - Only show when page config has showSidebar=true */}
             <Sidebar 
               config={sidebarConfig} 
@@ -425,27 +409,28 @@ export default async function PublicLayout({
               pathname="/"
             />
             
-            {/* Main content */}
-            <main className="flex-grow px-4">
+            {/* Main content - Sin padding lateral para evitar márgenes */}
+            <main className="flex-grow min-w-0">
               {children}
             </main>
             
-            {/* Sidebar - Only show when page config has showSidebar=true */}
-            {/* Rendered conditionally at runtime based on client JS */}
-            <Sidebar 
-              config={sidebarConfig} 
-              position="right"
-              className="hidden md:block" // Hidden on mobile
-              globalConfig={config}
-              pathname="/"
-            />
+            {/* Sidebar derecha: solo renderizar si está visible y tiene widgets o customHtml */}
+            {sidebarConfig?.visible !== false && (
+              Array.isArray(sidebarConfig?.widgets) && sidebarConfig.widgets.length > 0 || sidebarConfig?.customHtml ? (
+                <Sidebar 
+                  config={sidebarConfig} 
+                  position="right"
+                  className="hidden md:block" // Hidden on mobile
+                  globalConfig={config}
+                  pathname="/"
+                />
+              ) : null
+            )}
           </div>
           
           
           {/* Footer - La visibilidad se controla vía JS basado en __PAGE_CONFIG__ */}
           <Footer 
-            widgets={footerSection?.widgets || []}
-            text={config?.siteName ? `© ${new Date().getFullYear()} ${config.siteName}. Todos los derechos reservados.` : undefined}
             config={footerConfig}
             stickyClass={stickyClasses.footer}
             globalConfig={config}

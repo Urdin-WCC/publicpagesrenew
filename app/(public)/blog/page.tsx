@@ -32,10 +32,11 @@ export default async function BlogIndexPage() {
       )}
       
       <div 
-        className="blog-page container mx-auto px-4 py-8"
+        className="blog-page w-full px-4 py-8"
         style={{
           backgroundColor: 'var(--background-value, white)',
-          color: 'var(--typography-paragraph-color, inherit)'
+          color: 'var(--typography-paragraph-color, inherit)',
+          maxWidth: "100%"
         }}
       >
         <h1 

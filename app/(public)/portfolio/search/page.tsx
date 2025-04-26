@@ -53,7 +53,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
       <div className="mb-6">
         <Link href="/portfolio" className="text-primary hover:underline">
           ← {translations.public.allProjects}

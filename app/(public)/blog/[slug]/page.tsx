@@ -189,7 +189,7 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
       {/* Insertar script con configuración de página */}
       <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
         {/* Imagen destacada */}
         {post.coverImage && (
           <div className="mb-8 rounded-lg overflow-hidden max-h-96 flex justify-center">

@@ -63,7 +63,7 @@ export default async function ProjectPage({ params }: PageProps) {
   // Skip the old model check since we're using raw SQL queries
   if (false) { // Always skip this condition
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
+      <div className="w-full px-4 py-8 text-center" style={{ maxWidth: "100%" }}>
         <h1 className="text-3xl font-bold mb-4">Módulo de Portfolio no disponible</h1>
         <p className="text-gray-600 mb-6">El módulo de Portfolio aún no está configurado en la base de datos.</p>
         <Link href="/" className="text-primary hover:underline">
@@ -224,7 +224,7 @@ export default async function ProjectPage({ params }: PageProps) {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
       <div className="mb-6">
         <Link href="/portfolio" className="text-primary hover:underline">
           ← {translations.public.allProjects}

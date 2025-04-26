@@ -77,10 +77,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         {searchThemeCSS && (
           <style id="search-page-theme-css" dangerouslySetInnerHTML={{ __html: searchThemeCSS }} />
         )}
-        <div className="search-page container mx-auto px-4 py-12" 
+        <div className="search-page w-full px-4 py-12" 
           style={{
             backgroundColor: 'var(--background-value, white)',
-            color: 'var(--typography-paragraph-color, inherit)'
+            color: 'var(--typography-paragraph-color, inherit)',
+            maxWidth: "100%"
           }}
         >
           <h1 className="text-3xl font-bold mb-8 text-center">Buscar en nuestro sitio</h1>
@@ -102,10 +103,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       {searchThemeCSS && (
         <style id="search-page-theme-css" dangerouslySetInnerHTML={{ __html: searchThemeCSS }} />
       )}
-      <div className="search-page container mx-auto px-4 py-8"
+      <div className="search-page w-full px-4 py-8"
         style={{
           backgroundColor: 'var(--background-value, white)',
-          color: 'var(--typography-paragraph-color, inherit)'
+          color: 'var(--typography-paragraph-color, inherit)',
+          maxWidth: "100%"
         }}
       >
         <h1 className="text-3xl font-bold mb-6">

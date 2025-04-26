@@ -9,7 +9,7 @@ import { translations } from "@/app/translations";
  */
 export default function NotFound() {
   return (
-    <div className="container mx-auto px-4 py-16 text-center">
+    <div className="w-full px-4 py-16 text-center" style={{ maxWidth: "100%" }}>
       <h1 className="text-4xl font-bold mb-6">
         {translations.errorPages.notFound}
       </h1>

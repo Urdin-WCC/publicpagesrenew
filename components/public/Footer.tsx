@@ -98,6 +98,14 @@ export default async function Footer({
         <style id="footer-theme-css" dangerouslySetInnerHTML={{ __html: footerThemeCSS }} />
       )}
       
+      <style>{`
+        .footer-component {
+          min-width: 0;
+          overflow-x: auto;
+          padding: var(--footer-padding-base, 1rem);
+          box-sizing: border-box;
+        }
+      `}</style>
       <footer 
         className={`footer-component mt-auto ${stickyClass}`} 
         data-visible="true"
@@ -108,16 +116,50 @@ export default async function Footer({
           border: 'none' // Eliminar borde verde de depuración
         }}
       >
-        <div className="container mx-auto px-4 py-6">
+        <div className="w-full" style={{ maxWidth: "100%", height: "100%" }}>
           {/* Widgets grid - solo si hay widgets en la configuración */}
           {configWidgets.length > 0 && (
             <div className={`grid ${columnClasses} gap-6 mb-6`}>
-              {configWidgets.map((widget, index: number) => (
-                <WidgetRenderer 
-                  key={widget.id || `widget-${index}`} 
-                  widget={widget as any} 
-                />
-              ))}
+              <style>{`
+                .widget-card {
+                  background: var(--footer-cards-background, #f5f5f5);
+                  border-radius: var(--footer-cards-borderRadius, 12px);
+                  box-shadow: var(--footer-cards-boxShadow, none);
+                  border: var(--footer-cards-borderWidth, 1px) solid var(--footer-cards-borderColor, transparent);
+                  color: var(--footer-cards-color, inherit);
+                  padding: var(--footer-cards-padding, 1rem);
+                }
+                /* Forzar el fondo, borde y shadow de los hijos a ser transparentes para dejar ver el wrapper */
+                .widget-card > * {
+                  background: transparent !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                }
+              `}</style>
+              {configWidgets.map((widget, index: number) => {
+                // Detección del tipo de fondo
+                let cardBackgroundType = lightConfig?.cards?.background?.type || "color";
+                let cardBackgroundValue = lightConfig?.cards?.background?.value || "#fff";
+                let cardThemeId = lightConfig?.id;
+                let style: React.CSSProperties = {};
+                if (cardBackgroundType === "image" && cardThemeId) {
+                  style.backgroundImage = `url(/images/backgrounds/card-${cardThemeId}.jpg)`;
+                  style.backgroundSize = "cover";
+                  style.backgroundPosition = "center";
+                  style.backgroundRepeat = "no-repeat";
+                } else if (cardBackgroundType === "gradient") {
+                  style.backgroundImage = cardBackgroundValue;
+                } else if (cardBackgroundType === "color") {
+                  style.background = cardBackgroundValue;
+                }
+                return (
+                  <div key={widget.id || `widget-${index}`} className="widget-card" style={style}>
+                    <WidgetRenderer 
+                      widget={widget as any} 
+                    />
+                  </div>
+                )
+              })}
             </div>
           )}
           

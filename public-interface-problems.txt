@@ -1,0 +1,15 @@
+## Archivos con errores tras las modificaciones CSS
+
+1. **app/(public)/portfolio/category/[slug]/page.tsx**
+   - Error TypeScript: Property 'projectCategory' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+   - Error TypeScript: Property 'position' does not exist on type 'string | number | true | { [key: string]: JsonValue; } | JsonValue[]'. Property 'position' does not exist on type 'string'.
+   - Error TypeScript: Property 'width' does not exist on type 'string | number | true | { [key: string]: JsonValue; } | JsonValue[]'. Property 'width' does not exist on type 'string'.
+
+2. **app/(public)/portfolio/search/page.tsx**
+   - Error TypeScript: Property 'position' does not exist on type 'string | number | true | { [key: string]: JsonValue; } | JsonValue[]'. Property 'position' does not exist on type 'string'.
+   - Error TypeScript: Property 'width' does not exist on type 'string | number | true | { [key: string]: JsonValue; } | JsonValue[]'. Property 'width' does not exist on type 'string'.
+
+3. **app/(public)/blog/search/page.tsx**
+   - Error TypeScript: Cannot find module '@/components/public/SearchForm' or its corresponding type declarations.
+
+Nota: Estos errores ya existían en el código original o están relacionados con la estructura del proyecto, no son causados por los cambios en las clases CSS que hemos implementado. Por eso, siguiendo las instrucciones, no los hemos intentado solucionar.

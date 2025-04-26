@@ -226,15 +226,13 @@ body.sidebar-right .sidebar-component[data-position="left"] {
   display: none !important;
 }
 
-/* Debug: añadir borde para visualizar componentes */
+/* Altura mínima para componentes principales */
 .sidebar-component {
-  border: 2px solid #ff5722 !important;
-  min-height: 300px;
-}
-header {
-  border: 2px solid #2196f3 !important;
+  min-height: 20px;
 }
 footer {
-  border: 2px solid #4caf50 !important;
-  min-height: 100px;
+  min-height: 20px;
+}
+header {
+  min-height: 20px;
 }
