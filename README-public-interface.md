@@ -1,132 +1,162 @@
 # Documentación de la Interfaz Pública
 
-## Introducción
+## Visión General
+La interfaz pública de Neurowitch ha sido actualizada para proporcionar una experiencia visual consistente y personalizable a través de un sistema de temas.
 
-La interfaz pública es la parte visible de la aplicación para usuarios externos. Consiste en varios componentes clave:
+## Sistema de Temas
 
-- **Header**: Muestra el logo, nombre del sitio, menú de navegación y enlaces sociales
-- **Footer**: Muestra widgets, texto de copyright y contenido HTML personalizado
-- **Sidebar**: Muestra widgets y contenido HTML personalizado, puede estar a la izquierda o derecha
-- **Main Content**: Contenido principal de la página (blogs, páginas estáticas, etc.)
+### Variables CSS del Tema
+El sistema utiliza variables CSS personalizables que se aplican de manera consistente en toda la interfaz:
 
-Cada uno de estos componentes puede tener su propio tema, configuración y visibilidad.
-
-## Arquitectura de Componentes
-
-### 1. Estructura Básica
-
-```
-<PublicLayout>
-  <PageConfigHandler /> (cliente)
-  <Header />
-  <div className="flex">
-    <Sidebar position="left" />
-    <main>{children}</main>
-    <Sidebar position="right" />
-  </div>
-  <Footer />
-  <ThemeSwitcher />
-</PublicLayout>
-```
-
-### 2. Sistema de Temas
-
-Cada componente puede tener su propio tema definido en la base de datos. Estos temas se cargan usando:
-
-```tsx
-const { lightConfig, darkConfig } = globalConfig 
-  ? await getThemeConfigsForComponent('header', pathname, globalConfig)
-  : { lightConfig: null, darkConfig: null };
-
-const componentThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.component-class');
-```
-
-### 3. Visibilidad de Componentes
-
-La visibilidad de los componentes se controla mediante:
-
-1. **Configuración de Página**: Cada página puede definir qué componentes son visibles:
-
-```js
-window.__PAGE_CONFIG__ = {
-  showHeader: true,
-  showFooter: true,
-  showSidebar: true,
-  sidebarPosition: 'right'
-};
-```
-
-2. **Clases CSS**: Las clases determinan la visibilidad:
 ```css
-body.hide-header header { display: none !important; }
-body.hide-footer footer { display: none !important; }
-.sidebar-component { display: block !important; } /* Forzado visible para debug */
+/* Variables principales del tema */
+--background-value: color de fondo base
+--background-image: imagen o gradiente de fondo
+--foreground: color del texto principal
+--spacing-padding: espaciado interno
+--spacing-margin: espaciado externo
 ```
 
-## Flujo de Control y Carga de Datos
+### Estructura del DOM
+Los estilos del tema se aplican en el siguiente orden jerárquico:
 
-### 1. Obtención de Configuraciones
+1. **Layout Principal** (`app/(public)/layout.tsx`)
+   - Define variables CSS globales del tema
+   - Proporciona el contenedor base para todas las páginas
 
-Cada componente obtiene su configuración de tres formas posibles:
+2. **Contenedor de Página**
+   - Aplica los estilos del tema específicos de la página
+   - Maneja el fondo y espaciado según las variables del tema
 
-- **API Dedicada**: Acciones del servidor (`fetchHeaderConfig`, `fetchFooterConfig`, `fetchSidebarConfig`)
-- **GlobalConfig**: De la tabla `GlobalConfig` en la base de datos
-- **Valores por Defecto**: Cuando no se encuentra ninguna configuración
+3. **Componentes Específicos**
+   - Heredan y/o sobrescriben estilos según necesidad
+   - Mantienen consistencia con el tema global
 
-### 2. Asignación de Temas
+### Navegación y Secciones
 
-Los temas se asignan según la siguiente jerarquía:
+#### Header
+- Aplica variables del tema para fondos y colores
+- Soporta posicionamiento fijo/sticky
 
-1. Temas específicos de componente para una ruta específica
-2. Temas específicos de componente (predeterminados)
-3. Temas globales para una ruta específica
-4. Temas globales predeterminados
+#### Footer
+- Mantiene consistencia visual con el tema
+- Soporta widgets y contenido personalizado
 
-### 3. Manipulación del DOM
+#### Sidebar
+- Se integra con el tema global
+- Soporta posicionamiento y ancho personalizable
 
-La gestión de visibilidad se maneja mediante:
+### Páginas Principales
 
-- `PageConfigHandler`: Componente cliente que aplica clases al body después de la hidratación
-- **Clases CSS**: Controlan la visibilidad en lugar de manipulación directa de `style.display`
-- **No manipulación directa**: Evitamos cambiar directamente el DOM para prevenir errores de hidratación
+#### Página de Blog
+- Implementa todas las variables del tema
+- Soporta diferentes modos de visualización (grid/list)
+- Mantiene consistencia en subpáginas:
+  * Lista de posts
+  * Detalle de post
+  * Categorías
+  * Búsqueda
 
-## Troubleshooting
+#### Página de Portfolio
+- Aplica variables del tema de manera consistente
+- Soporta diferentes layouts
+- Mantiene consistencia en:
+  * Galería de proyectos
+  * Detalle de proyecto
+  * Categorías
+  * Búsqueda
 
-### 1. Errores de Hidratación
+#### Páginas Estáticas
+- Heredan estilos del tema global
+- Mantienen consistencia visual
+- Soportan contenido personalizado
 
-Si experimentas errores como:
+### Imágenes y Recursos
+
+#### Sistema de Imágenes Universal
+- Utiliza extensión `.img` para todas las imágenes
+- No utiliza timestamps para evitar problemas de hidratación
+- Maneja conversión automática de formatos
+
+### Implementación de Temas
+
+#### Variables Requeridas
+```css
+/* Variables mínimas requeridas */
+:root {
+  --background-value: #ffffff;
+  --foreground: #333333;
+  --spacing-padding: 2rem 1rem;
+  --spacing-margin: 1rem;
+}
+
+/* Variables opcionales */
+:root {
+  --background-image: url(...) | linear-gradient(...) | none;
+  --typography-heading-fontFamily: var(--font-primary);
+  --typography-heading-fontSize: 2rem;
+  --typography-heading-fontWeight: 600;
+  --typography-heading-color: inherit;
+}
 ```
-A tree hydrated but some attributes of the server rendered HTML didn't match the client properties.
+
+#### Ejemplo de Uso
+```tsx
+<div 
+  className="page-content"
+  style={{
+    backgroundColor: 'var(--background-value)',
+    backgroundImage: 'var(--background-image)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    color: 'var(--foreground)',
+    padding: 'var(--spacing-padding)',
+    margin: 'var(--spacing-margin)'
+  }}
+>
+  {/* Contenido de la página */}
+</div>
 ```
 
-Solución:
-- No manipules `style.display` directamente, usa clases CSS
-- Evita bifurcaciones condicionales basadas en `typeof window !== 'undefined'`
-- Usa hooks del ciclo de vida como `useEffect` para código específico del cliente
+### Consideraciones Especiales
 
-### 2. Componentes No Visibles
+1. **Hidratación**
+   - Se eliminó el uso de timestamps en URLs de imágenes
+   - Se simplificó el manejo de fondos para evitar discrepancias
 
-Si los componentes no aparecen:
-- Verifica que existan las configuraciones correctas en la base de datos
-- Asegúrate de que la clase CSS `.sidebar-component` esté visible (temporalmente forzada)
-- Comprueba los bordes de colores de depuración para confirmar que los componentes se están renderizando
+2. **Responsividad**
+   - Los estilos se adaptan a diferentes tamaños de pantalla
+   - Las variables de espaciado soportan valores responsivos
 
-### 3. Diagnóstico Visual
+3. **Accesibilidad**
+   - Los colores del tema deben mantener contraste suficiente
+   - Las variables de color incluyen valores por defecto accesibles
 
-Hemos añadido información de depuración y bordes coloreados para facilitar la identificación:
-- **Header** - Borde azul (`#2196f3`)
-- **Footer** - Borde verde (`#4caf50`)
-- **Sidebar** - Borde naranja (`#ff5722`)
+### Debugging y Solución de Problemas
 
-## Mejoras Recientes
+#### Problemas Comunes
 
-1. **Sistema de visibilidad CSS-first**: Reemplazo de manipulación directa del DOM por clases CSS
-2. **Manejo adecuado de parámetros dinámicos**: Corrección para `params.slug` en rutas dinámicas
-3. **Soporte para múltiples formatos de tema**: Compatibilidad con diferentes estructuras JSON
-4. **Mejoras de diagnóstico**: Información visual y registros detallados
+1. **Estilos no se aplican**
+   - Verificar que las variables del tema estén definidas
+   - Comprobar la jerarquía del DOM
 
-## Próximos Pasos
+2. **Inconsistencias Visuales**
+   - Revisar que no haya estilos hardcodeados
+   - Verificar que se usen las variables correctas
 
-- **Documentación de Componentes**: Añadir JSDoc a todos los componentes
-- **Testing Automatizado**: Implementar pruebas para garantizar la coherencia visual
-- **Mejora de Rendimiento**: Optimizar la carga de temas y configuraciones
+3. **Problemas de Hidratación**
+   - No usar valores dinámicos en el renderizado inicial
+   - Evitar timestamps y valores que cambian entre servidor y cliente
+
+#### Depuración
+
+```bash
+# Verificar variables del tema
+document.documentElement.style.getPropertyValue('--background-value')
+
+# Inspeccionar jerarquía de estilos
+# Usar las herramientas de desarrollo del navegador para:
+- Verificar la cascada de CSS
+- Comprobar la aplicación de variables
+- Identificar sobreescrituras inesperadas

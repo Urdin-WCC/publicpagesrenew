@@ -189,7 +189,12 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
       {/* Insertar script con configuración de página */}
       <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
       
-      <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
+      <div className="w-full" style={{ 
+        maxWidth: "100%",
+        padding: 'var(--spacing-padding, 2rem 1rem)', /* Usar variable de tema para padding */
+        height: '100%', /* Asegurar que ocupa toda la altura disponible */
+        minHeight: '100%'
+      }}>
         {/* Imagen destacada */}
         {post.coverImage && (
           <div className="mb-8 rounded-lg overflow-hidden max-h-96 flex justify-center">

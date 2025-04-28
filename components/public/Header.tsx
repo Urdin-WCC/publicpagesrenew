@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import dynamic from 'next/dynamic';
+import HeaderHtmlContent from './HeaderHtmlContent';
 import { translations } from '@/app/translations';
 import { fetchNavigationMenu } from '@/actions/menu-actions';
 import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
@@ -157,9 +159,9 @@ export default async function Header({
             <Link href="/" className="flex items-center">
               {/* El logo puede venir de la configuración del elemento o del logoUrl global */}
               {(() => {
-                // Usar la ruta fija para el logo
-                const logoSrc = "/images/logo.png";
-                console.log('Using fixed logo URL:', logoSrc);
+                // Usar la ruta fija para el logo con extensión .img
+                const logoSrc = "/images/logo.img";
+                console.log('Using fixed logo URL with .img extension:', logoSrc);
                 
                 if (true) {
                   // Logo siempre está en la ruta fija
@@ -229,7 +231,15 @@ export default async function Header({
                 {navItems.map((item: NavMenuItem, index: number) => (
                   <li key={item.id || `nav-${index}`}>
                     <Link 
-                      href={item.url!}
+                      href={
+                        !item.url ||
+                        typeof item.url !== "string" ||
+                        item.url === "" ||
+                        item.url.includes("<") ||
+                        item.url.includes(">")
+                        ? "#"
+                        : item.url
+                      }
                       className="transition"
                       style={{
                         color: 'var(--typography-link-color, #333)',
@@ -311,13 +321,15 @@ export default async function Header({
           </div>
         );
       
-      case 'html':
-        return element.html ? (
-          <div 
-            className="header-element html-element"
-            dangerouslySetInnerHTML={{ __html: element.html }}
-          />
-        ) : null;
+      case 'html': {
+        if (!element.html) return null;
+        
+        return (
+          <div className="header-element html-element">
+            <HeaderHtmlContent content={element.html} />
+          </div>
+        );
+      }
       
       default:
         return null;

@@ -19,7 +19,7 @@ type Project = {
 };
 
 export default async function LatestProjectsWidget({
-  limit = 5,
+  limit = 3,
   showFeaturedOnly = false,
 }: LatestProjectsWidgetProps) {
   // Construir URL con parámetros

@@ -226,16 +226,10 @@ export default async function PublicLayout({
     const { fetchFooterConfig } = await import('@/actions/footer-actions');
     const footerConfigResponse = await fetchFooterConfig();
     
-    // La configuración del footer puede tener un formato diferente, adaptarla
+    // Usar la configuración del footer desde la API
     if (footerConfigResponse) {
-      // Convertir del formato de widgets al formato esperado por el componente Footer
-      footerConfig = {
-        widgets: footerConfigResponse.widgets || [],
-        height: footerConfigResponse.height || 'auto',
-        secondaryHtml: footerConfigResponse.secondaryHtml || '',
-        backgroundColor: 'white', // Valores predeterminados
-        textColor: 'black'
-      };
+      // Configuración del footer
+      footerConfig = footerConfigResponse;
       
       console.log('Footer config from API:', footerConfig);
     } else {
@@ -255,18 +249,10 @@ export default async function PublicLayout({
     const { fetchSidebarConfig } = await import('@/actions/sidebar-actions');
     const sidebarConfigResponse = await fetchSidebarConfig();
     
-    // La configuración de la barra lateral puede tener un formato diferente, adaptarla
+    // Usar la configuración de la sidebar desde la API
     if (sidebarConfigResponse) {
-      // Convertir del formato de la API al formato esperado por el componente Sidebar
-      sidebarConfig = {
-        showWidgets: true,
-        customHtmlContent: '',
-        backgroundColor: 'bg-gray-50',
-        textColor: 'text-gray-700',
-        width: sidebarConfigResponse.width || 'w-64',
-        widgets: sidebarConfigResponse.widgets || [],
-        visible: sidebarConfigResponse.visible !== false
-      };
+      // Configuración de la sidebar
+      sidebarConfig = sidebarConfigResponse;
       
       console.log('Sidebar config from API:', sidebarConfig);
     } else {
@@ -399,19 +385,33 @@ export default async function PublicLayout({
           />
           
           {/* Contenido principal con soporte para sidebar */}
-          <div className="flex flex-1" style={{ overflowX: "hidden", position: "relative" }}>
+          <div className="flex flex-1 flex-grow" style={{ overflowX: "hidden", position: "relative", minHeight: "100vh", height: "100%" }}>
             {/* Sidebar - Only show when page config has showSidebar=true */}
             <Sidebar 
               config={sidebarConfig} 
               position="left"
-              className="hidden md:block" // Hidden on mobile
+              className="hidden md:block h-full" // Hidden on mobile
               globalConfig={config}
               pathname="/"
             />
             
             {/* Main content - Sin padding lateral para evitar márgenes */}
-            <main className="flex-grow min-w-0">
-              {children}
+            <main className="flex-grow min-w-0 h-full w-full min-h-screen">
+              <div 
+                className="h-full w-full"
+                style={{
+                  backgroundColor: 'var(--background-value)',
+                  backgroundImage: 'var(--background-image)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                  color: 'var(--foreground)',
+                  padding: 'var(--spacing-padding)',
+                  margin: 'var(--spacing-margin)'
+                }}
+              >
+                {children}
+              </div>
             </main>
             
             {/* Sidebar derecha: solo renderizar si está visible y tiene widgets o customHtml */}
@@ -420,7 +420,7 @@ export default async function PublicLayout({
                 <Sidebar 
                   config={sidebarConfig} 
                   position="right"
-                  className="hidden md:block" // Hidden on mobile
+                  className="hidden md:block h-full" // Hidden on mobile
                   globalConfig={config}
                   pathname="/"
                 />

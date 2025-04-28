@@ -1,6 +1,8 @@
 import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { getBlogConfig } from '@/lib/config-server';
+import { getGlobalConfig } from '@/lib/config';
+import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from '@/lib/themeUtils'; 
 import { notFound } from 'next/navigation';
 import { translations } from '@/app/translations';
 import CategoryPostsClient from './CategoryPostsClient';
@@ -44,13 +46,37 @@ export default async function BlogCategoryPage({ params, searchParams }: BlogCat
   if (!category) {
     notFound(); // Mostrar 404 si la categoría no existe
   }
+  
+  // Obtener configuración global para temas
+  const globalConfig = await getGlobalConfig();
+  
+  // Obtener temas específicos para la ruta de blog/categoría
+  const { lightConfig, darkConfig } = await getThemeConfigsForRoute(`/blog/category/${slug}`, globalConfig);
+  
+  // Generar CSS para los temas específicos de esta página de categoría
+  const categoryPageThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, `.blog-category-page-${slug}`);
 
   return (
-    <CategoryPostsClient 
-      categorySlug={slug} 
-      initialPage={currentPage}
-      translations={translations}
-      layoutMode={blogConfig.listDisplayMode || 'grid'}
-    />
+    <>
+      {/* Inyectar CSS para los temas específicos de esta página de categoría */}
+      {categoryPageThemeCSS && (
+        <style id={`blog-category-${slug}-theme-css`} dangerouslySetInnerHTML={{ __html: categoryPageThemeCSS }} />
+      )}
+      
+      <div 
+        className={`blog-category-page-${slug} w-full`}
+        style={{
+          backgroundColor: 'var(--background-value, white)',
+          color: 'var(--typography-paragraph-color, inherit)'
+        }}
+      >
+        <CategoryPostsClient 
+          categorySlug={slug} 
+          initialPage={currentPage}
+          translations={translations}
+          layoutMode={blogConfig.listDisplayMode || 'grid'}
+        />
+      </div>
+    </>
   );
 }

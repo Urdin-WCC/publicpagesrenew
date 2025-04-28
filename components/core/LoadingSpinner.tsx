@@ -1,8 +1,19 @@
 'use client';
 
+/**
+ * Componente de spinner de carga que muestra un overlay sobre la página durante la carga.
+ * Características:
+ * - Muestra una imagen de spinner personalizada o un spinner CSS por defecto
+ * - Soporte para imágenes de spinner con cualquier extensión (PNG, JPG, GIF, WEBP, etc.)
+ * - Usa automáticamente la versión disponible de /images/spinner como ruta base
+ * - Compatible con URLs personalizadas, también manteniendo la extensión original
+ * - Overlay con opacidad configurable y colores personalizados
+ * - Texto de carga personalizable
+ */
 import { useEffect, useState } from 'react';
 import { translations } from '@/app/translations';
 import Image from 'next/image';
+import { findImageClientSide } from '@/lib/imageUtils';
 
 interface LoadingSpinnerConfig {
   backgroundColor?: string;
@@ -26,7 +37,10 @@ export default function LoadingSpinner({ config }: LoadingSpinnerProps) {
   const spinnerConfig = {
     backgroundColor: config?.backgroundColor || 'rgba(0, 0, 0, 0.5)', // Usar rgba para mejor control de opacidad
     spinnerColor: config?.spinnerColor || 'border-primary',
-    spinnerImage: config?.spinnerImage || '/images/spinner.gif', // Usar ruta fija por defecto
+    // Procesamos la URL del spinner con extensión universal .img
+    spinnerImage: config?.spinnerImage 
+      ? findImageClientSide(config.spinnerImage) 
+      : findImageClientSide('/images/spinner'),
     size: config?.size || 'h-16 w-16',
     textColor: config?.textColor || 'text-white',
     text: config?.text || translations.common.loading,

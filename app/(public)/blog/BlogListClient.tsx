@@ -44,7 +44,15 @@ const fetcher = (url: string) => fetch(url).then(async res => {
     return res.json();
 });
 
-const BlogListClient: React.FC = () => {
+interface BlogListClientProps {
+  displayMode?: 'grid' | 'list';
+  postsPerPage?: number;
+}
+
+const BlogListClient: React.FC<BlogListClientProps> = ({ 
+  displayMode = 'grid',
+  postsPerPage = 10 
+}) => {
   const searchParams = useSearchParams();
   const currentPage = parseInt(searchParams.get('page') || '1', 10);
   const limit = 10; // O obtener de config si es necesario
@@ -53,12 +61,12 @@ const BlogListClient: React.FC = () => {
   const apiUrl = useMemo(() => {
     const params = new URLSearchParams();
     params.set('page', currentPage.toString());
-    params.set('limit', limit.toString());
+    params.set('limit', postsPerPage.toString());
     params.set('status', PostStatus.PUBLISHED); // Filtrar por publicados
     // Podríamos añadir otros filtros públicos si fueran necesarios (ej. categoría, tag)
     // if (searchParams.get('category')) params.set('category', searchParams.get('category')!);
     return `/api/blog?${params.toString()}`;
-  }, [currentPage, limit]); // Dependencias: currentPage y limit
+  }, [currentPage, postsPerPage]); // Dependencias: currentPage y postsPerPage
 
   const { data: apiResponse, error, isLoading } = useSWR<PublicApiResponse>(apiUrl, fetcher, {
     keepPreviousData: true, // Mantiene datos anteriores mientras carga nuevos
@@ -85,21 +93,21 @@ const BlogListClient: React.FC = () => {
       {posts.length === 0 && !isLoading ? (
         <p>{translations.public.noResults}</p>
       ) : (
-        <div className={blogConfig.listDisplayMode === 'grid'
+        <div className={displayMode === 'grid'
           ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-8"
           : "flex flex-col space-y-6 mb-8"
         }>
           {posts.map((post) => (
-            <article key={post.id} className={`border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 ${blogConfig.listDisplayMode === 'list' ? 'flex flex-row' : ''}`}>
+            <article key={post.id} className={`border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 ${displayMode === 'list' ? 'flex flex-row' : ''}`}>
               {post.coverImage && (
                 <Link href={`/blog/${post.slug}`} passHref>
-                  <div className={`relative ${blogConfig.listDisplayMode === 'grid' ? 'w-full h-48' : 'min-w-[200px] h-full'}`}>
+                  <div className={`relative ${displayMode === 'grid' ? 'w-full h-48' : 'min-w-[200px] h-full'}`}>
                     <Image
                       src={post.coverImage}
                       alt={`Imagen de portada para ${post.title}`}
                       fill
                       style={{ objectFit: 'cover' }}
-                      sizes={blogConfig.listDisplayMode === 'grid'
+                      sizes={displayMode === 'grid'
                         ? "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         : "200px"}
                     />

@@ -210,7 +210,7 @@ export async function getThemeConfigsForComponent(
   };
 }
 
-// Default theme configurations
+  // Default theme configurations
 const defaultLightTheme = {
   "--background": "#ffffff",
   "--foreground": "#333333",
@@ -226,7 +226,9 @@ const defaultLightTheme = {
   "--card-foreground": "#333333",
   "--border": "#e2e8f0",
   "--input": "#f1f5f9",
-  "--ring": "#0070f3"
+  "--ring": "#0070f3",
+  "--spacing-padding": "2rem 1rem", // Definición de espaciado predeterminado
+  "--spacing-margin": "1rem"
 };
 
 const defaultDarkTheme = {
@@ -244,7 +246,9 @@ const defaultDarkTheme = {
   "--card-foreground": "#ffffff",
   "--border": "#4b5563",
   "--input": "#374151",
-  "--ring": "#0070f3"
+  "--ring": "#0070f3",
+  "--spacing-padding": "2rem 1rem", // Definición de espaciado predeterminado
+  "--spacing-margin": "1rem"
 };
 
 // Function to flatten nested theme objects
@@ -358,8 +362,8 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     
     // Apply specific background type
     if (lightBgType === 'image' && lightThemeId !== 'default') {
-      // Image background
-      css += `  background-image: url(/images/backgrounds/main-${lightThemeId}.jpg);\n`;
+      // Image background (usando extensión .img universal)
+      css += `  background-image: url(/images/backgrounds/main-${lightThemeId}.img);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (lightBgType === 'gradient') {
@@ -376,8 +380,8 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     
     // Apply specific background type
     if (darkBgType === 'image' && darkThemeId !== 'default') {
-      // Image background
-      css += `  background-image: url(/images/backgrounds/main-${darkThemeId}.jpg);\n`;
+      // Image background (incluyendo extension .jpg como fallback)
+      css += `  background-image: url(/images/backgrounds/main-${darkThemeId}.img);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (darkBgType === 'gradient') {
@@ -402,7 +406,7 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     
     // Apply specific background type (main background)
     if (lightBgType === 'image' && lightThemeId !== 'default') {
-      css += `  background-image: url(/images/backgrounds/main-${lightThemeIdStr}.jpg);\n`;
+      css += `  background-image: url(/images/backgrounds/main-${lightThemeIdStr}.img);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (lightBgType === 'gradient') {
@@ -411,7 +415,7 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     // Cards background
     // image
     if (lightCardsBgType === 'image' && lightThemeId !== 'default') {
-      css += `  --footer-cards-background: url(/images/backgrounds/card-${lightThemeIdStr}.jpg);\n`;
+      css += `  --footer-cards-background: url(/images/backgrounds/card-${lightThemeIdStr}.img);\n`;
     } else if (lightCardsBgType === 'gradient') {
       css += `  --footer-cards-background: var(--cards-background-gradient, linear-gradient(to right,#fff,#eee));\n`;
     } else {
@@ -424,7 +428,7 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     css += `  background-color: var(--background-value, #1a1a1a);\n`;
     // main background
     if (darkBgType === 'image' && darkThemeId !== 'default') {
-      css += `  background-image: url(/images/backgrounds/main-${darkThemeIdStr}.jpg);\n`;
+      css += `  background-image: url(/images/backgrounds/main-${darkThemeIdStr}.img);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (darkBgType === 'gradient') {
@@ -432,11 +436,43 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     }
     // cards bg
     if (darkCardsBgType === 'image' && darkThemeId !== 'default') {
-      css += `  --footer-cards-background: url(/images/backgrounds/card-${darkThemeIdStr}.jpg);\n`;
+      css += `  --footer-cards-background: url(/images/backgrounds/card-${darkThemeIdStr}.img);\n`;
     } else if (darkCardsBgType === 'gradient') {
       css += `  --footer-cards-background: var(--cards-background-gradient, linear-gradient(to right,#222,#444));\n`;
     } else {
       css += `  --footer-cards-background: var(--cards-background, #222);\n`;
+    }
+    css += `}\n`;
+  } else if (selector && selector.startsWith('.page-')) {
+    // Extract background type from theme configurations
+    const lightBgType = flatLightConfig['--background-type'] || 'color';
+    const darkBgType = flatDarkConfig['--background-type'] || 'color';
+    
+    css += `\n/* Background rules for page */\n`;
+    
+    // Light theme background rules
+    css += `${lightSelector} {\n`;
+    
+    // Apply specific background type for page content
+    if (lightBgType === 'image' && lightThemeId !== 'default') {
+      css += `  --background-image: url(/images/backgrounds/main-${lightThemeId}.img);\n`;
+    } else if (lightBgType === 'gradient') {
+      css += `  --background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    } else {
+      css += `  --background-image: none;\n`;
+    }
+    css += `}\n\n`;
+    
+    // Dark theme background rules
+    css += `${darkSelector} {\n`;
+    
+    // Apply specific background type for page content
+    if (darkBgType === 'image' && darkThemeId !== 'default') {
+      css += `  --background-image: url(/images/backgrounds/main-${darkThemeId}.img);\n`;
+    } else if (darkBgType === 'gradient') {
+      css += `  --background-image: var(--background-gradient, linear-gradient(to right, var(--background-value), var(--primary)));\n`;
+    } else {
+      css += `  --background-image: none;\n`;
     }
     css += `}\n`;
   } else if (selector === '.sidebar-component') {
@@ -453,7 +489,7 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     // Apply specific background type
     if (lightBgType === 'image' && lightThemeId !== 'default') {
       // Image background for cards is different
-      css += `  background-image: url(/images/backgrounds/card-${lightThemeId}.jpg);\n`;
+      css += `  background-image: url(/images/backgrounds/card-${lightThemeId}.img);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (lightBgType === 'gradient') {
@@ -469,7 +505,7 @@ export function generateCssFromThemeConfigs(lightConfig: any, darkConfig: any, s
     // Apply specific background type
     if (darkBgType === 'image' && darkThemeId !== 'default') {
       // Image background for cards is different
-      css += `  background-image: url(/images/backgrounds/card-${darkThemeId}.jpg);\n`;
+      css += `  background-image: url(/images/backgrounds/card-${darkThemeId}.img);\n`;
       css += `  background-size: cover;\n`;
       css += `  background-position: center;\n`;
     } else if (darkBgType === 'gradient') {

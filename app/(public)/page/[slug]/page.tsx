@@ -100,6 +100,11 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
   // Asegúrate de que params sea esperado antes de usarlo
   const slug = String(params?.slug || '');
   
+  // Validar que el slug no contenga caracteres HTML
+  if (slug.includes('<') || slug.includes('>') || slug.includes('&lt;') || slug.includes('&gt;')) {
+    notFound();
+  }
+  
   // Obtener la página estática
   const page = await getStaticPage(slug);
   
@@ -144,11 +149,12 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
       )}
       
       <div 
-        className={`page-${slug} w-full px-4 py-8`}
+        className={`page-${slug} w-full`}
         style={{
-          backgroundColor: 'var(--background-value, white)',
-          color: 'var(--typography-paragraph-color, inherit)',
-          maxWidth: "100%"
+          maxWidth: "100%",
+          padding: 'var(--spacing-padding, 2rem 1rem)', /* Usar variable de tema para padding */
+          height: '100%', /* Asegurar que ocupa toda la altura disponible */
+          minHeight: '100%'
         }}
       >
         {/* Título de la página (opcional, depende del diseño) */}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { getPortfolioConfig } from '@/lib/config-server';
 import { getGlobalConfig } from '@/lib/config';
+import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import { translations } from '@/app/translations';
 import LoadingSpinner from '@/components/core/LoadingSpinner';
 import PortfolioSidebar from '@/components/public/PortfolioSidebar';
@@ -46,21 +47,53 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   // Obtener configuración de la barra lateral
   const globalConfig = await getGlobalConfig();
-  const sidebarConfig = globalConfig?.sidebar || {
+  // Usar tipo explícito para sidebarConfig para evitar errores de TypeScript
+  const sidebarConfig = globalConfig?.sidebar as { 
+    position?: 'left' | 'right', 
+    width?: string,
+    widgets?: any[] 
+  } || {
     position: 'right',
     width: '320px',
     widgets: []
   };
+  
+  // Obtener temas específicos para la ruta de búsqueda de portafolio
+  const { lightConfig, darkConfig } = await getThemeConfigsForRoute('/portfolio/search', globalConfig);
+  
+  // Generar CSS para los temas específicos de la página de búsqueda con un selector específico
+  const searchPageThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.portfolio-search-page');
 
   return (
-    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
+    <>
+      {/* Inyectar CSS para los temas específicos de esta página de búsqueda */}
+      {searchPageThemeCSS && (
+        <style id="portfolio-search-theme-css" dangerouslySetInnerHTML={{ __html: searchPageThemeCSS }} />
+      )}
+      
+      <div 
+        className="portfolio-search-page w-full px-4 py-8"
+        style={{
+          backgroundColor: 'var(--background-value, white)',
+          color: 'var(--typography-paragraph-color, inherit)',
+          maxWidth: "100%"
+        }}
+      >
       <div className="mb-6">
         <Link href="/portfolio" className="text-primary hover:underline">
           ← {translations.public.allProjects}
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold mb-8">
+      <h1 
+        className="text-3xl font-bold mb-8"
+        style={{
+          fontFamily: 'var(--typography-heading-fontFamily, inherit)',
+          color: 'var(--typography-heading-color, inherit)',
+          fontWeight: 'var(--typography-heading-fontWeight, 600)',
+          fontSize: 'var(--typography-heading-fontSize, 1.875rem)'
+        }}
+      >
         {searchQuery
           ? translations.public.searchPortfolioResultsFor.replace('{0}', searchQuery)
           : translations.public.searchPortfolio}
@@ -87,5 +120,6 @@ export default async function SearchPage({ searchParams }: PageProps) {
         )}
       </div>
     </div>
+    </>
   );
 }

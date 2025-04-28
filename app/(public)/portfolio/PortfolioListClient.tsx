@@ -38,7 +38,15 @@ interface ApiResponse {
   };
 }
 
-export default function PortfolioListClient() {
+interface PortfolioListClientProps {
+  displayMode?: 'grid' | 'list';
+  projectsPerPage?: number;
+}
+
+export default function PortfolioListClient({ 
+  displayMode = 'grid', 
+  projectsPerPage = 12 
+}: PortfolioListClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [data, setData] = useState<ApiResponse | null>(null);
@@ -119,31 +127,17 @@ export default function PortfolioListClient() {
   // Renderizar lista de proyectos
   return (
     <div>
-      {/* Barra de búsqueda */}
-      <form onSubmit={handleSearch} className="mb-6">
-        <div className="relative">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={translations.public.searchPortfolioPlaceholder}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8"
-          />
-          <Button type="submit" className="absolute right-0 top-0">
-            {translations.public.searchPortfolioButton}
-          </Button>
-        </div>
-      </form>
+      {/* Barra de búsqueda eliminada - movida al componente principal */}
 
       {/* Lista de proyectos */}
-      <div className={data.portfolioConfig.layoutMode === 'grid' 
+      <div className={displayMode === 'grid' 
         ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
         : "space-y-6"
       }>
         {data.projects.map((project) => (
-          <Card key={project.id} className={data.portfolioConfig.layoutMode === 'list' ? "flex flex-col md:flex-row" : ""}>
+          <Card key={project.id} className={displayMode === 'list' ? "flex flex-col md:flex-row" : ""}>
             {project.coverImage && (
-              <div className={data.portfolioConfig.layoutMode === 'list' ? "md:w-1/3" : ""}>
+              <div className={displayMode === 'list' ? "md:w-1/3" : ""}>
                 <Link href={`/portfolio/${project.slug}`}>
                   <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
                     <img
@@ -160,7 +154,7 @@ export default function PortfolioListClient() {
                 </Link>
               </div>
             )}
-            <div className={data.portfolioConfig.layoutMode === 'list' ? "md:w-2/3 p-4" : "p-4"}>
+            <div className={displayMode === 'list' ? "md:w-2/3 p-4" : "p-4"}>
               <CardHeader className="p-0 mb-2">
                 <Link href={`/portfolio/${project.slug}`}>
                   <CardTitle className="text-xl hover:text-primary transition-colors">

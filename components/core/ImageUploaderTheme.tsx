@@ -14,9 +14,9 @@ interface ImageUploaderThemeProps {
 
 /**
  * Componente especializado para subir imágenes de fondo para temas.
- * Guarda las imágenes como:
- * - /images/backgrounds/main-{themeId}.jpg (para fondos generales)
- * - /images/backgrounds/card-{themeId}.jpg (para fondos de tarjetas)
+ * Guarda las imágenes con extensión universal .img:
+ * - /images/backgrounds/main-{themeId}.img (para fondos generales)
+ * - /images/backgrounds/card-{themeId}.img (para fondos de tarjetas)
  */
 export const ImageUploaderTheme: React.FC<ImageUploaderThemeProps> = ({
   value,
@@ -48,7 +48,7 @@ export const ImageUploaderTheme: React.FC<ImageUploaderThemeProps> = ({
     
     if (res.ok) {
       const data = await res.json();
-      onChange(data.url); // La URL será /images/backgrounds/{imageType}-{themeId}.jpg
+      onChange(data.url); // La URL será /images/backgrounds/{imageType}-{themeId}.img
     } else {
       alert(`Error al subir la imagen de fondo ${imageType}`);
     }
@@ -102,7 +102,7 @@ export const ImageUploaderTheme: React.FC<ImageUploaderThemeProps> = ({
       
       if (res.ok) {
         const data = await res.json();
-        onChange(data.url); // La URL será /images/backgrounds/{imageType}-{themeId}.jpg
+        onChange(data.url); // La URL será /images/backgrounds/{imageType}-{themeId}.img
         setShowModal(false);
       } else {
         alert(`Error al establecer imagen de fondo ${imageType}`);
@@ -115,7 +115,7 @@ export const ImageUploaderTheme: React.FC<ImageUploaderThemeProps> = ({
 
   const expectedFilename = noThemeId 
     ? "Guarde el tema primero" 
-    : `/images/backgrounds/${imageType}-${themeId}.jpg`;
+    : `/images/backgrounds/${imageType}-${themeId}.img`;
 
   return (
     <div className="mb-4">
@@ -140,7 +140,7 @@ export const ImageUploaderTheme: React.FC<ImageUploaderThemeProps> = ({
                   className="mx-auto max-h-32 mb-2" 
                 />
                 <p className="text-sm text-gray-500">
-                  La imagen se guardará como {expectedFilename}
+                  La imagen se guardará como {expectedFilename} (con extensión universal)
                 </p>
               </div>
             ) : (
@@ -150,7 +150,7 @@ export const ImageUploaderTheme: React.FC<ImageUploaderThemeProps> = ({
                   : "Arrastra una imagen o haz clic para seleccionar"}
                 {!noThemeId && (
                   <span className="block text-xs text-blue-600 mt-1">
-                    Se guardará como {expectedFilename}
+                    Se guardará como {expectedFilename} (con extensión universal)
                   </span>
                 )}
               </p>
@@ -182,7 +182,7 @@ export const ImageUploaderTheme: React.FC<ImageUploaderThemeProps> = ({
             </div>
             <h2 className="text-lg font-bold mb-4">Selecciona una imagen existente</h2>
             <p className="text-sm text-blue-600 mb-4">
-              La imagen seleccionada se copiará como {expectedFilename}
+              La imagen seleccionada se copiará como {expectedFilename} (con extensión universal)
             </p>
             {loading ? (
               <p>Cargando imágenes...</p>

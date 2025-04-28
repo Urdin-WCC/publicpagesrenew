@@ -1,200 +1,211 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
-import { translations } from '@/app/translations';
-import useSWR from 'swr';
+import React from 'react';
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { getGlobalConfig } from '@/lib/config-server';
+import { translations } from '@/app/translations';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import WidgetRenderer from '@/components/public/WidgetRenderer';
 
-// Fetcher genérico para SWR
-const fetcher = (url: string) => fetch(url).then(async res => {
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || translations.common.error);
-  }
-  return res.json();
-});
-
+// Define interfaces for our data types
 interface Category {
   id: string;
   name: string;
   slug: string;
+  _count: {
+    posts: number;
+  };
 }
 
-interface Tag {
-  id: string;
-  name: string;
-  slug: string;
-}
-
-interface LatestPost {
+interface Post {
   id: string;
   title: string;
   slug: string;
-  publishedAt: string;
+  coverImage: string | null;
+  publishedAt: Date | null;  // Changed from string to Date to match Prisma
+  author: {
+    name: string | null;
+  } | null;
 }
 
 interface SidebarWidget {
+  id: string;  // Make id required to match WidgetRenderer expectations
   type: string;
+  title: string; // Make title required to match WidgetRenderer expectations
   config?: any;
+  content?: string | null;
+  order?: number;
+  isActive?: boolean;
+  sectionId?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface SidebarConfig {
   widgets?: SidebarWidget[];
   position?: 'left' | 'right';
   width?: string;
+  customHtml?: string;
 }
 
-const BlogSidebar: React.FC = () => {
-  // Estado para almacenar la configuración de la barra lateral
-  const [sidebarConfig, setSidebarConfig] = useState<SidebarConfig>({ widgets: [] });
+export default async function BlogSidebar() {
+  // Obtener categorías y posts recientes
+  let categories: Category[] = [];
+  let recentPosts: Post[] = [];
 
-  // Cargar la configuración de la barra lateral
-  useEffect(() => {
-    fetch('/api/settings/sidebar')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.widgets) {
-          setSidebarConfig(data);
-        }
-      })
-      .catch(err => console.error('Error loading sidebar config:', err));
-  }, []);
-  // Cargar categorías
-  const { data: categories, error: categoriesError } = useSWR<Category[]>('/api/blog/categories', fetcher);
+  try {
+    // Verificar si el modelo Category existe
+    if (prisma.category) {
+      categories = await prisma.category.findMany({
+        include: {
+          _count: {
+            select: {
+              posts: {
+                where: {
+                  status: 'PUBLISHED',
+                  deleted: false,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      });
+    }
 
-  // Cargar etiquetas
-  const { data: tags, error: tagsError } = useSWR<Tag[]>('/api/blog/tags', fetcher);
+    // Verificar si el modelo Post existe
+    if (prisma.post) {
+      // Obtener posts recientes
+      recentPosts = await prisma.post.findMany({
+        where: {
+          status: 'PUBLISHED', 
+          deleted: false,
+        },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          coverImage: true,
+          publishedAt: true,
+          author: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          publishedAt: 'desc',
+        },
+        take: 5,
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching blog data:', error);
+    // En caso de error, usar arrays vacíos
+    categories = [];
+    recentPosts = [];
+  }
 
-  // Cargar posts recientes
-  const { data: latestPosts, error: postsError } = useSWR<LatestPost[]>('/api/blog/latest', fetcher);
+  // Obtener configuración global
+  const globalConfig = await getGlobalConfig();
+  const sidebarConfig = globalConfig?.sidebar as SidebarConfig || { widgets: [] };
 
-  // Función para renderizar un widget según su tipo
-  const renderWidget = (widget: SidebarWidget, index: number) => {
-    switch (widget.type) {
-      case 'search':
-        return (
-          <div key={`widget-${index}`} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-3">{translations.public.search}</h3>
-            <form action="/blog/search" method="get" className="flex">
-              <input
-                type="text"
-                name="q"
-                placeholder={translations.public.searchPlaceholder}
-                className="flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <button
-                type="submit"
-                className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-primary-dark transition-colors"
-              >
-                {translations.public.search}
-              </button>
-            </form>
-          </div>
-        );
-      case 'categories':
-        return (
-          <div key={`widget-${index}`} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-3">{translations.public.categories}</h3>
-            {categoriesError ? (
-              <p className="text-red-500 text-sm">{translations.common.error}</p>
-            ) : !categories ? (
-              <p className="text-sm text-gray-500">{translations.common.loading}...</p>
-            ) : categories.length === 0 ? (
-              <p className="text-sm text-gray-500">{translations.public.noCategories}</p>
-            ) : (
-              <ul className="space-y-2">
-                {categories.map((category) => (
-                  <li key={category.id}>
-                    <Link
-                      href={`/blog/category/${category.slug}`}
-                      className="text-primary hover:underline block"
-                    >
-                      {category.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        );
-      case 'tags':
-        return (
-          <div key={`widget-${index}`} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-3">{translations.public.tags}</h3>
-            {tagsError ? (
-              <p className="text-red-500 text-sm">{translations.common.error}</p>
-            ) : !tags ? (
-              <p className="text-sm text-gray-500">{translations.common.loading}...</p>
-            ) : tags.length === 0 ? (
-              <p className="text-sm text-gray-500">{translations.public.noTags}</p>
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
+  return (
+    <div className="space-y-6">
+      {/* Formulario de búsqueda */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">{translations.common.search}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form action="/blog/search" method="get" className="flex">
+            <input
+              type="text"
+              name="q"
+              placeholder={translations.public.searchPlaceholder}
+              className="flex-1 px-3 py-2 border rounded-l-md focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="submit"
+              className="bg-primary text-white px-4 py-2 rounded-r-md hover:bg-primary-dark transition-colors"
+            >
+              {translations.common.search}
+            </button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Categorías */}
+      {categories.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">{translations.public.categories}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-1">
+              {categories.map((category) => (
+                <li key={category.id}>
                   <Link
-                    key={tag.id}
-                    href={`/blog/tag/${tag.slug}`}
-                    className="inline-block bg-gray-100 hover:bg-gray-200 text-gray-800 px-2 py-1 rounded text-sm"
+                    href={`/blog/category/${category.slug}`}
+                    className="text-gray-700 hover:text-primary flex justify-between items-center py-1"
                   >
-                    {tag.name}
+                    <span>{category.name}</span>
+                    <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full">
+                      {category._count.posts}
+                    </span>
                   </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      case 'recent_posts':
-        return (
-          <div key={`widget-${index}`} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-3">{translations.public.recentPosts}</h3>
-            {postsError ? (
-              <p className="text-red-500 text-sm">{translations.common.error}</p>
-            ) : !latestPosts ? (
-              <p className="text-sm text-gray-500">{translations.common.loading}...</p>
-            ) : latestPosts.length === 0 ? (
-              <p className="text-sm text-gray-500">{translations.public.noPosts}</p>
-            ) : (
-              <ul className="space-y-3">
-                {latestPosts.map((post) => (
-                  <li key={post.id}>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Posts recientes */}
+      {recentPosts.length > 0 && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">{translations.public.recentPosts}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-4">
+              {recentPosts.map((post) => (
+                <li key={post.id} className="flex gap-3">
+                  {post.coverImage && (
+                    <Link href={`/blog/${post.slug}`} className="shrink-0">
+                      <div className="w-16 h-16 rounded overflow-hidden">
+                        <img
+                          src={post.coverImage}
+                          alt={post.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </Link>
+                  )}
+                  <div>
                     <Link
                       href={`/blog/${post.slug}`}
-                      className="text-primary hover:underline block"
+                      className="font-medium hover:text-primary line-clamp-2"
                     >
                       {post.title}
                     </Link>
-                    {post.publishedAt && (
-                      <span className="text-xs text-gray-500">
-                        {new Date(post.publishedAt).toLocaleDateString('es-ES')}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
+                    <p className="text-xs text-gray-500 mt-1">
+                      {post.publishedAt && new Date(post.publishedAt).toLocaleDateString()}
+                      {post.author?.name && ` - ${post.author.name}`}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
 
-  // Si no hay widgets configurados, mostrar los widgets por defecto
-  const defaultWidgets = [
-    { type: 'search' },
-    { type: 'categories' },
-    { type: 'tags' },
-    { type: 'recent_posts' }
-  ];
-
-  const widgetsToRender = (sidebarConfig.widgets && sidebarConfig.widgets.length > 0)
-    ? sidebarConfig.widgets
-    : defaultWidgets;
-
-  return (
-    <aside className="w-full space-y-8">
-      {widgetsToRender.map((widget, index) => renderWidget(widget, index))}
-    </aside>
+      {/* Widgets personalizados */}
+      {sidebarConfig.widgets && sidebarConfig.widgets.map((widget, index) => (
+        <WidgetRenderer key={index} widget={widget} />
+      ))}
+    </div>
   );
-};
-
-export default BlogSidebar;
+}

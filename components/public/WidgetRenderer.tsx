@@ -151,12 +151,25 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
     case WidgetTypes.CONTACT_DATA:
     case WidgetTypes.MAP:
     case WidgetTypes.CUSTOM_HTML:
+      const CustomHtmlWidget = dynamic(() => import('./widgets/WidgetCustomHtml'), {
+        loading: () => <WidgetSkeleton title="Cargando HTML..." />,
+        ssr: true,
+      });
+      
+      return (
+        <Suspense fallback={<WidgetSkeleton title={widget.title || "HTML personalizado"} />}>
+          <CustomHtmlWidget 
+            title={widget.title}
+            content={widget.content || ''}
+          />
+        </Suspense>
+      );
     case WidgetTypes.LOGO:
     case 'logo':
       return (
         <a href="/" style={{ display: "block", width: "100%", height: "100%" }}>
           <img
-            src="/images/logo.png"
+            src="/images/logo.img"
             alt="Logo"
             style={{
               display: "block",

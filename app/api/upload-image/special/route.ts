@@ -1,69 +1,146 @@
 import { NextRequest, NextResponse } from "next/server";
-import { join } from "path";
-import { writeFile, mkdir, copyFile } from "fs/promises";
+import { mkdir, writeFile, unlink, readdir } from "fs/promises";
 import { existsSync } from "fs";
+import { join, extname, dirname } from "path";
+import { v4 as uuidv4 } from "uuid";
+import { auth } from "@/auth";
+import { getGlobalConfig } from "@/lib/config-server";
 
-const UPLOAD_DIR_GENERAL = join(process.cwd(), "public", "uploads", "images");
-const UPLOAD_DIR_LOGO = join(process.cwd(), "public", "images");
-const UPLOAD_DIR_THEME_BG = join(process.cwd(), "public", "images", "backgrounds");
-
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const formData = await req.formData();
+    const session = await auth();
+    // Verificar permisos - solo admins/editor pueden subir imágenes
+    if (!session || !session.user?.role || !['ADMIN', 'EDITOR', 'MASTER'].includes(session.user.role)) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // Procesar la subida del archivo
+    const formData = await request.formData();
     const file = formData.get("file") as File;
     const targetType = formData.get("targetType") as string;
     const themeId = formData.get("themeId") as string;
     const imageType = formData.get("imageType") as string;
 
     if (!file) {
-      return NextResponse.json({ error: "No se recibió ningún archivo." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Archivo no proporcionado" },
+        { status: 400 }
+      );
     }
 
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "Solo se permiten imágenes." }, { status: 400 });
+    // Obtener la extensión original del archivo
+    const originalExtension = extname(file.name);
+    
+    // Ruta base del directorio público
+    const publicDir = process.env.NODE_ENV === 'development' 
+      ? join(process.cwd(), 'public') 
+      : join(process.cwd(), 'public');
+
+    // Definir la ruta de destino según el tipo de imagen
+    let targetPath = '';
+    let originalName = '';
+    const fileBuffer = await file.arrayBuffer();
+
+    // Preparar el directorio si no existe
+    const imagesDir = join(publicDir, 'images');
+    if (!existsSync(imagesDir)) {
+      await mkdir(imagesDir, { recursive: true });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Eliminar archivos anteriores con el mismo nombre base pero diferentes extensiones
+    async function removeExistingFiles(basePath: string) {
+      // Obtiene el directorio y el nombre base del archivo
+      const dir = dirname(basePath);
+      const baseName = basePath.substring(basePath.lastIndexOf('/') + 1);
+      
+      try {
+        // Leer todos los archivos en el directorio
+        const files = await readdir(dir);
+        
+        // Filtrar archivos que empiecen con el nombre base (incluida la extensión)
+        for (const file of files) {
+          if (file.startsWith(baseName)) {
+            // Eliminar el archivo existente
+            await unlink(join(dir, file));
+            console.log(`Archivo eliminado: ${join(dir, file)}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error al eliminar archivos existentes:", error);
+      }
+    }
 
-    let targetPath: string;
-    let targetUrl: string;
+    switch (targetType) {
+      case "logo":
+        // Establece la ruta para el logo
+        originalName = "logo";
+        targetPath = join(publicDir, 'images', `logo${originalExtension}`);
+        
+        // Eliminar versiones anteriores del logo con otras extensiones
+        await removeExistingFiles(join(publicDir, 'images', 'logo'));
+        break;
 
-    // Determinar la ruta de destino según el tipo
-    if (targetType === "logo") {
-      // Asegurar que el directorio existe
-      await mkdir(UPLOAD_DIR_LOGO, { recursive: true });
-      targetPath = join(UPLOAD_DIR_LOGO, "logo.png");
-      targetUrl = "/images/logo.png";
-    } else if (targetType === "theme" && themeId && imageType) {
-      // Para imágenes de tema, necesitamos el ID del tema y el tipo (main o card)
-      await mkdir(UPLOAD_DIR_THEME_BG, { recursive: true });
-      
-      // Convertir el nombre a un formato seguro
-      const validImageType = imageType === "card" ? "card" : "main";
-      const filename = `${validImageType}-${themeId}.jpg`;
-      
-      targetPath = join(UPLOAD_DIR_THEME_BG, filename);
-      targetUrl = `/images/backgrounds/${filename}`;
-    } else {
-      // Si no es un tipo especial, usar la ruta normal con timestamp
-      await mkdir(UPLOAD_DIR_GENERAL, { recursive: true });
-      
-      // Nombre seguro: timestamp + nombre original (sin path traversal)
-      const safeName = Date.now() + "-" + file.name.replace(/[^a-zA-Z0-9.\-_]/g, "");
-      
-      targetPath = join(UPLOAD_DIR_GENERAL, safeName);
-      targetUrl = `/uploads/images/${safeName}`;
+      case "theme":
+        // Establece la ruta para imágenes de tema
+        if (!themeId || !imageType) {
+          return NextResponse.json(
+            { error: "Faltan parámetros para imagen de tema" },
+            { status: 400 }
+          );
+        }
+        originalName = `${imageType}-${themeId}`;
+        
+        // Asegurar que existe el directorio de fondos
+        const backgroundsDir = join(imagesDir, 'backgrounds');
+        if (!existsSync(backgroundsDir)) {
+          await mkdir(backgroundsDir, { recursive: true });
+        }
+        
+        // Construir la ruta con la extensión original
+        targetPath = join(backgroundsDir, `${imageType}-${themeId}${originalExtension}`);
+        
+        // Eliminar versiones anteriores con otras extensiones
+        await removeExistingFiles(join(backgroundsDir, `${imageType}-${themeId}`));
+        break;
+        
+      case "spinner":
+        // Establece la ruta para el spinner de carga
+        originalName = "spinner";
+        targetPath = join(publicDir, 'images', `spinner${originalExtension}`);
+        
+        // Eliminar versiones anteriores del spinner con otras extensiones
+        await removeExistingFiles(join(publicDir, 'images', 'spinner'));
+        break;
+
+      default:
+        // Para otros tipos de imágenes, usar un nombre aleatorio
+        const uniqueId = uuidv4();
+        targetPath = join(publicDir, 'images', 'uploads', `${uniqueId}${originalExtension}`);
+        
+        // Asegurar que existe el directorio de uploads
+        const uploadsDir = join(imagesDir, 'uploads');
+        if (!existsSync(uploadsDir)) {
+          await mkdir(uploadsDir, { recursive: true });
+        }
+        break;
     }
 
     // Guardar el archivo
-    await writeFile(targetPath, buffer);
+    await writeFile(targetPath, Buffer.from(fileBuffer));
 
-    return NextResponse.json({ url: targetUrl });
+    // Obtener la ruta relativa para devolver la URL
+    const relativePath = targetPath.substring(publicDir.length).replace(/\\/g, '/');
+    
+    return NextResponse.json({
+      url: relativePath,
+      originalName: originalName,
+      originalExtension: originalExtension
+    });
+
   } catch (error) {
-    console.error("Error al procesar la subida de imagen:", error);
+    console.error('Error al procesar la imagen:', error);
     return NextResponse.json(
-      { error: "Error al procesar la imagen." },
+      { error: "Error al procesar la imagen" },
       { status: 500 }
     );
   }

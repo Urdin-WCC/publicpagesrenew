@@ -149,7 +149,11 @@ export default async function Sidebar({
               backgroundColor: 'var(--background-value, #f5f5f5)',
               color: 'var(--typography-paragraph-color, inherit)',
               ...widthStyle,
-              border: 'none'
+              border: 'none',
+              height: '100%', /* Altura mínima para ocupar todo el espacio disponible */
+              minHeight: '100vh',
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
             {/* Widgets - solo si showWidgets es true y hay widgets */}

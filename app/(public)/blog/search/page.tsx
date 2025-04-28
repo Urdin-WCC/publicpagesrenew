@@ -1,6 +1,8 @@
 import React from 'react';
 import { prisma } from '@/lib/prisma';
 import { getBlogConfig } from '@/lib/config-server';
+import { getGlobalConfig } from '@/lib/config';
+import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import { PostStatus } from '@prisma/client';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -32,6 +34,15 @@ export default async function BlogSearchPage({ searchParams }: BlogSearchPagePro
   const blogConfig = await getBlogConfig();
   const postsPerPage = blogConfig.postsPerPage || 10;
   const skip = (currentPage - 1) * postsPerPage;
+  
+  // Obtener configuración global para temas
+  const globalConfig = await getGlobalConfig();
+  
+  // Obtener temas específicos para la ruta de búsqueda de blog
+  const { lightConfig, darkConfig } = await getThemeConfigsForRoute('/blog/search', globalConfig);
+  
+  // Generar CSS para los temas específicos de la página de búsqueda
+  const searchPageThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.blog-search-page');
 
   let posts: PostSummary[] = [];
   let totalPosts = 0;
@@ -72,8 +83,39 @@ export default async function BlogSearchPage({ searchParams }: BlogSearchPagePro
   const totalPages = Math.ceil(totalPosts / postsPerPage);
 
   return (
-    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
-      <h1 className="text-3xl font-bold mb-4">{translations.public.searchTitle}</h1>
+    <>
+      {/* Inyectar CSS para los temas específicos de esta página de búsqueda */}
+      {searchPageThemeCSS && (
+        <style id="blog-search-theme-css" dangerouslySetInnerHTML={{ __html: searchPageThemeCSS }} />
+      )}
+      
+      <div 
+        className="blog-search-page w-full h-full"
+        style={{
+          backgroundColor: 'var(--background-value, white)',
+          backgroundImage: 'var(--background-image)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          color: 'var(--foreground, inherit)',
+          padding: 'var(--spacing-padding)',
+          margin: 'var(--spacing-margin)',
+          maxWidth: "100%",
+          minHeight: "100%",
+          flex: "1 1 auto"
+        }}
+      >
+      <h1 
+        className="text-3xl font-bold mb-4"
+        style={{
+          fontFamily: 'var(--typography-heading-fontFamily, inherit)',
+          color: 'var(--typography-heading-color, inherit)',
+          fontWeight: 'var(--typography-heading-fontWeight, 600)',
+          fontSize: 'var(--typography-heading-fontSize, 1.875rem)'
+        }}
+      >
+        {translations.public.searchTitle}
+      </h1>
 
       {/* Formulario de Búsqueda */}
       <div className="mb-8">
@@ -97,7 +139,15 @@ export default async function BlogSearchPage({ searchParams }: BlogSearchPagePro
 
       {query && ( // Mostrar resultados solo si se buscó algo
         <>
-          <h2 className="text-xl mb-6">
+          <h2 
+            className="text-xl mb-6"
+            style={{
+              fontFamily: 'var(--typography-heading-fontFamily, inherit)',
+              color: 'var(--typography-heading-color, inherit)',
+              fontWeight: 'var(--typography-heading-fontWeight, 600)',
+              fontSize: 'var(--typography-heading-fontSize, 1.25rem)'
+            }}
+          >
             {totalPosts > 0
               ? `${translations.public.searchResultsFor.replace('{0}', query)} (${totalPosts})`
               : translations.public.noResultsFor.replace('{0}', query)}
@@ -156,5 +206,6 @@ export default async function BlogSearchPage({ searchParams }: BlogSearchPagePro
         </>
       )}
     </div>
+    </>
   );
 }

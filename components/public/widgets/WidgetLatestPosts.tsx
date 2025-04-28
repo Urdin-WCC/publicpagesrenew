@@ -1,55 +1,102 @@
-import { translations } from '@/app/translations';
+import React from 'react';
 import Link from 'next/link';
+import { translations } from '@/app/translations';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface Post {
-  id: string;
-  title: string;
-  slug: string; // Assuming posts have slugs for linking
-  createdAt: Date;
-}
-
+// Tipo para el widget
 interface WidgetLatestPostsProps {
-  title: string;
+  title?: string;
   config?: {
-    count?: number;
+    limit?: number;
+    showFeatured?: boolean;
   };
 }
 
-// Placeholder function to fetch latest posts
-async function getLatestPosts(count: number = 5): Promise<Post[]> {
-  // TODO: Implement actual data fetching logic using Prisma (likely needs a dedicated API route or server action)
-  console.log(`Placeholder: Fetching ${count} latest posts...`);
-  await new Promise(resolve => setTimeout(resolve, 100)); // Simulate delay
-  // Return dummy data for now
-  return [
-    { id: '1', title: 'Primer Post de Ejemplo', slug: 'primer-post', createdAt: new Date() },
-    { id: '2', title: 'Segundo Post Interesante', slug: 'segundo-post', createdAt: new Date(Date.now() - 86400000) }, // Yesterday
-  ];
-}
+// Tipo para posts
+type Post = {
+  id: string;
+  title: string;
+  slug: string;
+  coverImage: string | null;
+  publishedAt: string | null;
+  author?: {
+    name: string | null;
+  } | null;
+};
 
-export default async function WidgetLatestPosts({ title, config }: WidgetLatestPostsProps) {
-  const postCount = config?.count ?? 5;
-  const posts = await getLatestPosts(postCount);
+export default async function WidgetLatestPosts({
+  title,
+  config
+}: WidgetLatestPostsProps) {
+  // Opciones predeterminadas
+  const limit = config?.limit || 3;
+  const showFeatured = config?.showFeatured || false;
+
+  // Construir URL con parámetros
+  const queryParams = new URLSearchParams();
+  queryParams.set('limit', limit.toString());
+  queryParams.set('status', 'PUBLISHED'); // Always filter by PUBLISHED status in public views
+  if (showFeatured) {
+    queryParams.set('featured', 'true');
+  }
+
+  // Obtener posts recientes
+  let posts: Post[] = [];
+  try {
+    // Usar URL absoluta para evitar errores de parseo
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const response = await fetch(`${baseUrl}/api/blog/latest?${queryParams.toString()}`, {
+      next: { revalidate: 3600 }, // Revalidar cada hora
+    });
+
+    if (response.ok) {
+      posts = await response.json();
+    }
+  } catch (error) {
+    console.error('Error fetching latest posts:', error);
+  }
+
+  // Si no hay posts, no mostrar el widget
+  if (posts.length === 0) {
+    return null;
+  }
 
   return (
-    <div className="widget p-4 border rounded bg-white shadow-sm mb-4">
-      <h3 className="widget-title text-lg font-semibold mb-3">{title || translations.public.recentPosts}</h3>
-      {posts.length > 0 ? (
-        <ul className="space-y-2">
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">{title || translations.public.recentPosts}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul className="space-y-4">
           {posts.map((post) => (
-            <li key={post.id}>
-              <Link href={`/blog/${post.slug}`} className="text-primary hover:underline">
-                {post.title}
-              </Link>
-              {/* Optionally display date */}
-              {/* <span className="text-xs text-gray-500 block">{post.createdAt.toLocaleDateString()}</span> */}
+            <li key={post.id} className="flex gap-3">
+              {post.coverImage && (
+                <Link href={`/blog/${post.slug}`} className="shrink-0">
+                  <div className="w-16 h-16 rounded overflow-hidden">
+                    <img
+                      src={post.coverImage}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                </Link>
+              )}
+              <div>
+                <Link
+                  href={`/blog/${post.slug}`}
+                  className="font-medium hover:text-primary line-clamp-2"
+                >
+                  {post.title}
+                </Link>
+                <p className="text-xs text-gray-500 mt-1">
+                  {post.publishedAt && new Date(post.publishedAt).toLocaleDateString()}
+                  {post.author?.name && ` - ${post.author.name}`}
+                </p>
+              </div>
             </li>
           ))}
         </ul>
-      ) : (
-        // Usar traducción sin default
-        <p className="text-sm text-gray-500">{translations.admin.blogList.noPostsFound}</p>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

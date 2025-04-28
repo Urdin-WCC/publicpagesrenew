@@ -9,7 +9,20 @@ import { translations } from "@/app/translations";
  */
 export default function NotFound() {
   return (
-    <div className="w-full px-4 py-16 text-center" style={{ maxWidth: "100%" }}>
+    <div className="w-full text-center" 
+      style={{ 
+        backgroundColor: 'var(--background-value, white)',
+        backgroundImage: 'var(--background-image)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        color: 'var(--foreground, inherit)',
+        padding: 'var(--spacing-padding)',
+        margin: 'var(--spacing-margin)',
+        maxWidth: "100%",
+        minHeight: "100%",
+        flex: "1 1 auto"
+      }}>
       <h1 className="text-4xl font-bold mb-6">
         {translations.errorPages.notFound}
       </h1>

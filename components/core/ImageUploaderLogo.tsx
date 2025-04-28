@@ -12,7 +12,8 @@ interface ImageUploaderLogoProps {
 
 /**
  * Componente especializado para subir el logo del sitio.
- * Guarda siempre la imagen como /images/logo.png
+ * Guarda la imagen con la extensión universal .img:
+ * - /images/logo.img
  */
 export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
   value,
@@ -37,7 +38,7 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
     
     if (res.ok) {
       const data = await res.json();
-      onChange(data.url); // La URL siempre será /images/logo.png
+      onChange(data.url); // La URL será /images/logo.img (con extensión universal)
     } else {
       alert("Error al subir el logo");
     }
@@ -79,7 +80,7 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
       
       if (res.ok) {
         const data = await res.json();
-        onChange(data.url); // La URL siempre será /images/logo.png
+        onChange(data.url); // La URL será /images/logo.img (con extensión universal)
         setShowModal(false);
       } else {
         alert("Error al establecer el logo");
@@ -112,15 +113,15 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
                   alt="Logo seleccionado" 
                   className="mx-auto max-h-32 mb-2" 
                 />
-                <p className="text-sm text-gray-500">
-                  El logo se guardará como /images/logo.png
-                </p>
+              <p className="text-sm text-gray-500">
+                El logo se guardará como /images/logo.img (con extensión universal)
+              </p>
               </div>
             ) : (
               <p>
                 Arrastra una imagen o haz clic para seleccionar
                 <span className="block text-xs text-blue-600 mt-1">
-                  Se guardará como /images/logo.png
+                  Se guardará como /images/logo.img (con extensión universal)
                 </span>
               </p>
             )}
@@ -150,7 +151,7 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
             </div>
             <h2 className="text-lg font-bold mb-4">Selecciona una imagen existente</h2>
             <p className="text-sm text-blue-600 mb-4">
-              La imagen seleccionada se copiará como /images/logo.png
+              La imagen seleccionada se copiará como /images/logo.img (con extensión universal)
             </p>
             {loading ? (
               <p>Cargando imágenes...</p>

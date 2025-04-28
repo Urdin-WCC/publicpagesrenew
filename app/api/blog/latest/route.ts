@@ -32,6 +32,11 @@ export async function GET(request: Request) {
         slug: true,
         publishedAt: true,
         coverImage: true, // Incluir imagen por si el widget la muestra
+        author: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
 

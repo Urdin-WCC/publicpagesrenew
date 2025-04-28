@@ -2,7 +2,8 @@ import React, { Suspense } from 'react';
 import { translations } from '@/app/translations';
 import BlogListClient from './BlogListClient';
 import LoadingSpinner from '@/components/core/LoadingSpinner';
-import BlogSidebar from '@/components/public/BlogSidebar';
+import CategoryDropdown from './CategoryDropdown';
+import BlogSearchForm from './BlogSearchForm';
 import { getBlogConfig } from '@/lib/config-server';
 import { getGlobalConfig } from '@/lib/config';
 import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from '@/lib/themeUtils';
@@ -32,52 +33,54 @@ export default async function BlogIndexPage() {
       )}
       
       <div 
-        className="blog-page w-full px-4 py-8"
+        className="blog-page w-full h-full"
         style={{
           backgroundColor: 'var(--background-value, white)',
-          color: 'var(--typography-paragraph-color, inherit)',
-          maxWidth: "100%"
+          backgroundImage: 'var(--background-image)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          color: 'var(--foreground, inherit)',
+          padding: 'var(--spacing-padding)',
+          margin: 'var(--spacing-margin)',
+          maxWidth: "100%",
+          minHeight: "100%",
+          flex: "1 1 auto"
         }}
       >
-        <h1 
-          className="text-3xl font-bold mb-8"
-          style={{
-            fontFamily: 'var(--typography-heading-fontFamily, inherit)',
-            color: 'var(--typography-heading-color, inherit)',
-            fontWeight: 'var(--typography-heading-fontWeight, 600)',
-            fontSize: 'var(--typography-heading-fontSize, 1.875rem)'
-          }}
-        >{translations.public.blogPublic}</h1>
+        {/* Page title removed as requested */}
 
-        <div className={`flex flex-col lg:flex-row gap-8 ${sidebarConfig.position === 'right' ? '' : 'lg:flex-row-reverse'}`}>
+        {/* Búsqueda y filtros */}
+        <div className="mb-8 space-y-4">
+          <div className="w-full">
+            <BlogSearchForm />
+          </div>
+          
+          <div className="sm:flex items-center gap-4">
+            <div className="sm:w-64 mb-4 sm:mb-0">
+              <Suspense fallback={<div className="h-10 bg-gray-100 animate-pulse rounded" />}>
+                <CategoryDropdown />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+        
+        <div className="w-full min-h-[calc(100vh-16rem)]">
           {/* Contenido principal */}
           <div 
-            className="w-full lg:flex-1"
+            className="w-full"
             style={{
               fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',
               fontSize: 'var(--typography-paragraph-fontSize, inherit)'
             }}
           >
             <Suspense fallback={<LoadingSpinner />}>
-              <BlogListClient />
+              <BlogListClient 
+                displayMode={blogConfig.listDisplayMode as 'grid' | 'list'} 
+                postsPerPage={blogConfig.postsPerPage}
+              />
             </Suspense>
           </div>
-
-          {/* Barra lateral (condicional) */}
-          {blogConfig.showSidebarInList && (
-            <div
-              className="w-full"
-              style={{ 
-                width: '100%', 
-                maxWidth: sidebarConfig.width || '320px',
-                fontFamily: 'var(--typography-paragraph-fontFamily, inherit)'
-              }}
-            >
-              <Suspense fallback={<div className="w-full animate-pulse bg-gray-100 h-64"></div>}>
-                <BlogSidebar />
-              </Suspense>
-            </div>
-          )}
         </div>
       </div>
     </>

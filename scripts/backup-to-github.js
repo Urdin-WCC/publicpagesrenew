@@ -34,7 +34,7 @@ function log(message, color = colors.reset) {
 // Configuración del repositorio
 const REPO_URL = 'https://github.com/Urdin-WCC/publicpagesrenew.git';
 const BRANCH_NAME = 'main';
-const COMMIT_MESSAGE = 'Backup completo antes de implementar cambios en la interfaz pública';
+const COMMIT_MESSAGE = 'Backup completo antes de auditar';
 
 // Función para ejecutar comandos con manejo de errores
 function execCommand(command, suppressOutput = false) {

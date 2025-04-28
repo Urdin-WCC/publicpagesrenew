@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CirclePicker } from "react-color";
-import ImageUploader from "@/components/core/ImageUploader";
+import { ImageUploaderSpinner } from "@/components/core/ImageUploaderSpinner";
 
 interface LoadingSpinnerConfig {
   enabled: boolean;
@@ -90,14 +90,14 @@ export default function LoadingSpinnerTab({
               </div>
               
               <div className="space-y-2">
-                <Label>Imagen de Spinner Personalizada</Label>
+                <Label>Imagen de Spinner Personalizada (extensión original preservada)</Label>
                 <Controller
                   name="loadingSpinnerConfig.spinnerImageUrl"
                   control={control}
                   render={({ field }) => (
-                    <ImageUploader
+                    <ImageUploaderSpinner
                       value={field.value || ""}
-                      onChange={(url) => field.onChange(url)}
+                      onChange={(url: string) => field.onChange(url)}
                       label="Subir imagen para spinner (opcional)"
                     />
                   )}

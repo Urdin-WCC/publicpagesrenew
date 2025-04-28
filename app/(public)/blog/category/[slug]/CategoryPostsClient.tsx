@@ -127,7 +127,21 @@ export default function CategoryPostsClient({
     : 'space-y-8';
   
   return (
-    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
+    <div className="w-full"
+      style={{
+        backgroundColor: 'var(--background-value, white)',
+        backgroundImage: 'var(--background-image)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        color: 'var(--foreground, inherit)',
+        padding: 'var(--spacing-padding)',
+        margin: 'var(--spacing-margin)',
+        maxWidth: "100%",
+        minHeight: "100%",
+        flex: "1 1 auto"
+      }}
+    >
       <h1 className="text-3xl font-bold mb-8">
         {translations.public.category}: <span className="text-primary">{category.name}</span>
       </h1>

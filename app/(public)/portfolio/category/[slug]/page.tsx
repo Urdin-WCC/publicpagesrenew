@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { getPortfolioConfig } from '@/lib/config-server';
 import { getGlobalConfig } from '@/lib/config';
+import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import { translations } from '@/app/translations';
 import LoadingSpinner from '@/components/core/LoadingSpinner';
 import PortfolioSidebar from '@/components/public/PortfolioSidebar';
@@ -100,21 +101,57 @@ export default async function CategoryPage({ params }: PageProps) {
     width: '320px',
     widgets: []
   };
+  
+  // Obtener temas específicos para la ruta de portafolio/categoría
+  const { lightConfig, darkConfig } = await getThemeConfigsForRoute(`/portfolio/category/${slug}`, globalConfig);
+  
+  // Generar CSS para los temas específicos de la página de categoría con un selector específico
+  const categoryPageThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, `.portfolio-category-page-${slug}`);
 
   return (
-    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
+    <>
+      {/* Inyectar CSS para los temas específicos de esta página de categoría */}
+      {categoryPageThemeCSS && (
+        <style id={`portfolio-category-${slug}-theme-css`} dangerouslySetInnerHTML={{ __html: categoryPageThemeCSS }} />
+      )}
+      
+      <div 
+        className={`portfolio-category-page-${slug} w-full px-4 py-8`}
+        style={{
+          backgroundColor: 'var(--background-value, white)',
+          color: 'var(--typography-paragraph-color, inherit)',
+          maxWidth: "100%"
+        }}
+      >
       <div className="mb-6">
         <Link href="/portfolio" className="text-primary hover:underline">
           ← {translations.public.allProjects}
         </Link>
       </div>
 
-      <h1 className="text-3xl font-bold mb-4">
+      <h1 
+        className="text-3xl font-bold mb-4"
+        style={{
+          fontFamily: 'var(--typography-heading-fontFamily, inherit)',
+          color: 'var(--typography-heading-color, inherit)',
+          fontWeight: 'var(--typography-heading-fontWeight, 600)',
+          fontSize: 'var(--typography-heading-fontSize, 1.875rem)'
+        }}
+      >
         {translations.public.projectsInCategory} {category.name}
       </h1>
 
       {category.description && (
-        <div className="mb-8 text-gray-600">{category.description}</div>
+        <div 
+          className="mb-8"
+          style={{
+            fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',
+            color: 'var(--typography-paragraph-color, #6b7280)',
+            fontSize: 'var(--typography-paragraph-fontSize, inherit)'
+          }}
+        >
+          {category.description}
+        </div>
       )}
 
       <div className={`flex flex-col lg:flex-row gap-8 ${sidebarConfig.position === 'right' ? '' : 'lg:flex-row-reverse'}`}>
@@ -138,5 +175,6 @@ export default async function CategoryPage({ params }: PageProps) {
         )}
       </div>
     </div>
+    </>
   );
 }
