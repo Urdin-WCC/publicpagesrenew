@@ -2,23 +2,23 @@ import React, { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 
 /**
- * Props para ImageUploaderLogo
+ * Props para ImageUploaderSpinner
  */
-interface ImageUploaderLogoProps {
+interface ImageUploaderSpinnerProps {
   value?: string;
   onChange: (url: string) => void;
   label?: string;
 }
 
 /**
- * Componente especializado para subir el logo del sitio.
- * Guarda la imagen con la extensión universal .img:
- * - /images/logo.img
+ * Componente especializado para subir la imagen del spinner de carga.
+ * Guarda la imagen con extensión universal .img:
+ * - /images/spinner.img
  */
-export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
+export const ImageUploaderSpinner: React.FC<ImageUploaderSpinnerProps> = ({
   value,
   onChange,
-  label = "Selecciona o arrastra una imagen para el logo",
+  label = "Selecciona o arrastra una imagen para el spinner de carga",
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [existingImages, setExistingImages] = useState<string[]>([]);
@@ -29,7 +29,7 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
     
     const formData = new FormData();
     formData.append("file", acceptedFiles[0]);
-    formData.append("targetType", "logo"); // Especificar que es un logo
+    formData.append("targetType", "spinner"); // Especificar que es un spinner
     
     const res = await fetch("/api/upload-image/special", {
       method: "POST",
@@ -38,9 +38,9 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
     
     if (res.ok) {
       const data = await res.json();
-      onChange(data.url); // La URL será /images/logo.img (con extensión universal)
+      onChange(data.url);
     } else {
-      alert("Error al subir el logo");
+      alert("Error al subir la imagen del spinner");
     }
   }, [onChange]);
 
@@ -69,8 +69,8 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
   // Cuando se selecciona una imagen existente
   const selectExistingImage = async (imageUrl: string) => {
     try {
-      // Especificar que queremos copiar esta imagen como logo
-      const res = await fetch("/api/copy-image-as-logo", {
+      // Especificar que queremos copiar esta imagen como spinner
+      const res = await fetch("/api/copy-image-as-spinner", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -80,16 +80,18 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
       
       if (res.ok) {
         const data = await res.json();
-        onChange(data.url); // La URL será /images/logo.img (con extensión universal)
+        onChange(data.url);
         setShowModal(false);
       } else {
-        alert("Error al establecer el logo");
+        alert("Error al establecer la imagen del spinner");
       }
     } catch (error) {
-      console.error("Error copying image as logo:", error);
-      alert("Error al establecer el logo");
+      console.error("Error copying image as spinner:", error);
+      alert("Error al establecer la imagen del spinner");
     }
   };
+
+  const expectedFilename = "/images/spinner.img";
 
   return (
     <div className="mb-4">
@@ -109,23 +111,19 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
             {value ? (
               <div className="mb-2">
                 <img 
-                  src={
-                    value
-                      ? value.replace(/\.[a-zA-Z0-9]+$/, '.img') + `?t=${Date.now()}`
-                      : ''
-                  }
-                  alt="Logo seleccionado" 
+                  src={value + `?t=${Date.now()}`} // Añadir timestamp para forzar refresco
+                  alt="Spinner seleccionado" 
                   className="mx-auto max-h-32 mb-2" 
                 />
-              <p className="text-sm text-gray-500">
-                El logo se guardará como /images/logo.img (con extensión universal)
-              </p>
+                <p className="text-sm text-gray-500">
+                  La imagen se guardará como {expectedFilename} (con extensión universal)
+                </p>
               </div>
             ) : (
               <p>
                 Arrastra una imagen o haz clic para seleccionar
                 <span className="block text-xs text-blue-600 mt-1">
-                  Se guardará como /images/logo.img (con extensión universal)
+                  Se guardará como {expectedFilename} (con extensión universal)
                 </span>
               </p>
             )}
@@ -155,7 +153,7 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
             </div>
             <h2 className="text-lg font-bold mb-4">Selecciona una imagen existente</h2>
             <p className="text-sm text-blue-600 mb-4">
-              La imagen seleccionada se copiará como /images/logo.img (con extensión universal)
+              La imagen seleccionada se copiará como {expectedFilename} (con extensión universal)
             </p>
             {loading ? (
               <p>Cargando imágenes...</p>
@@ -185,4 +183,4 @@ export const ImageUploaderLogo: React.FC<ImageUploaderLogoProps> = ({
   );
 };
 
-export default ImageUploaderLogo;
+export default ImageUploaderSpinner;

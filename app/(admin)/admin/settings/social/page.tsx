@@ -1,4 +1,4 @@
-import SocialForm from "@/components/admin/settings/SocialFormComplete";
+import SocialForm from "@/components/admin/settings/SocialForm";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 

@@ -6,17 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchSocialConfig as fetchSharingConfig, saveSocialConfig as saveSharingConfig } from "@/actions/sharing-actions";
+import { fetchSocialConfig, saveSocialConfig } from "@/actions/social-actions";
 import { toast } from "sonner";
 
 // SVG icon import — needed for dynamic list in public/icons/
-const ICONS = [];
+const ICONS = [
+  // Esta lista se debe rellenar programáticamente desde el backend en producción,
+  // aquí solo es un placeholder, se llenará en el hook useEffect.
+];
+
+function getSvgList() {
+  // Chequeo estático que será sustituido en prod por fetch/refresco
+  // Este listado estará vacío de momento, pero la UI soporta select a futuro.
+  return ICONS;
+}
 
 interface SocialIcon {
   name: string;
   url: string;
-  svgLight: string;
-  svgDark: string;
+  svgLight: string; // url SVG en modo claro (local o externo)
+  svgDark: string;  // url SVG en modo oscuro (local o externo)
 }
 
 interface SocialFormData {
@@ -32,7 +41,7 @@ function SvgSelector({
   label,
   value,
   onSelect,
-  iconList
+  iconList,
 }: {
   label: string;
   value: string;
@@ -75,6 +84,7 @@ function SvgSelector({
             style={{ display: "inline" }}
           />
         )}
+        {/* Entrada de URL personalizada (si no se elige de la lista) */}
         <Input
           className="ml-2"
           placeholder="o URL SVG externo"
@@ -82,6 +92,7 @@ function SvgSelector({
           onChange={handleCustom}
         />
         {(!iconList.includes(value) && value) && (
+          // Preview del SVG externo si es url válida
           <img
             src={value}
             alt="SVG externo"
@@ -94,7 +105,7 @@ function SvgSelector({
   );
 }
 
-export default function SharingForm() {
+export default function SocialForm() {
   const [loading, setLoading] = useState(true);
   const [iconList, setIconList] = useState<string[]>([]);
   const { register, handleSubmit, control, reset, setValue } = useForm<SocialFormData>({
@@ -110,7 +121,9 @@ export default function SharingForm() {
     name: "icons",
   });
 
+  // Cargar iconos de /public/icons y la config actual
   React.useEffect(() => {
+    // Fetch lista de SVGs
     fetch("/api/list-icons")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
@@ -118,7 +131,8 @@ export default function SharingForm() {
       })
       .catch(() => setIconList([]));
 
-    fetchSharingConfig()
+    // Fetch config social existente
+    fetchSocialConfig()
       .then((data) => {
         if (data && typeof data === "object") {
           reset({
@@ -131,9 +145,10 @@ export default function SharingForm() {
       .finally(() => setLoading(false));
   }, [reset]);
 
+  // Guardado del formulario
   const onSubmit = async (data: SocialFormData) => {
     setLoading(true);
-    const result = await saveSharingConfig(data);
+    const result = await saveSocialConfig(data);
     setLoading(false);
     if (result.success) {
       toast.success(result.message || "Configuración guardada correctamente");
@@ -148,18 +163,18 @@ export default function SharingForm() {
     <form onSubmit={handleSubmit(onSubmit)}>
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Opciones de Botones para Compartir</CardTitle>
+          <CardTitle>Opciones Generales</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Texto antes del listado de botones (opcional)</Label>
+            <Label>Texto antes del listado de iconos (opcional)</Label>
             <Input
               {...register("textBefore")}
-              placeholder='Ej: "Comparte este contenido:"'
+              placeholder='Ej: "Sígueme en las redes:"'
             />
           </div>
           <div>
-            <Label>Tamaño de botones</Label>
+            <Label>Tamaño de iconos</Label>
             <Input
               {...register("iconSize")}
               placeholder="Ej: 20px, 2em, auto..."
@@ -167,9 +182,10 @@ export default function SharingForm() {
           </div>
         </CardContent>
       </Card>
+
       <Card>
         <CardHeader>
-          <CardTitle>Listado de Botones de Compartir</CardTitle>
+          <CardTitle>Listado de Iconos Sociales</CardTitle>
         </CardHeader>
         <CardContent>
           {fields.map((field, idx) => (
@@ -210,7 +226,7 @@ export default function SharingForm() {
                   <Label>Nombre</Label>
                   <Input
                     {...register(`icons.${idx}.name` as const)}
-                    placeholder="Nombre (ej: WhatsApp)"
+                    placeholder="Nombre (ej: Facebook)"
                   />
                 </div>
                 <div>
@@ -254,13 +270,13 @@ export default function SharingForm() {
                 append({ name: "", url: "", svgLight: "", svgDark: "" })
               }
             >
-              Añadir botón
+              Añadir icono
             </Button>
           </div>
         </CardContent>
       </Card>
       <div className="flex justify-end mt-8">
-        <Button type="submit">Guardar configuración de botones de compartir</Button>
+        <Button type="submit">Guardar configuración de redes sociales</Button>
       </div>
     </form>
   );

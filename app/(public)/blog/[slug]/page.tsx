@@ -7,6 +7,8 @@ import { getGlobalConfig } from "@/lib/config-server";
 import { generatePageMetadata, GlobalConfig } from "@/lib/seoUtils";
 import RelatedPosts from "@/components/public/RelatedPosts";
 import FixedHtmlRenderer from "@/components/public/FixedHtmlRenderer";
+import Sharing from "@/components/public/Sharing";
+import { fetchSocialConfig as fetchSharingConfig } from "@/actions/sharing-actions";
 
 interface BlogPostParams {
   slug: string;
@@ -184,6 +186,9 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
     </script>
   `;
   
+  // Obtener configuración de sharing para este post
+  const sharingConfig = await fetchSharingConfig();
+
   return (
     <>
       {/* Insertar script con configuración de página */}
@@ -242,6 +247,11 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
             content={post.contentHtml || ""}
             className="prose max-w-none"
           />
+        </div>
+
+        {/* BOTONES DE COMPARTIR */}
+        <div className="mb-12">
+          <Sharing config={sharingConfig} />
         </div>
         
         {/* Posts relacionados */}

@@ -111,7 +111,11 @@ export const ImageUploaderSpinner: React.FC<ImageUploaderSpinnerProps> = ({
             {value ? (
               <div className="mb-2">
                 <img 
-                  src={value + `?t=${Date.now()}`} // Añadir timestamp para forzar refresco
+                  src={
+                    value
+                      ? value.replace(/\.[a-zA-Z0-9]+$/, '.img') + `?t=${Date.now()}`
+                      : ''
+                  }
                   alt="Spinner seleccionado" 
                   className="mx-auto max-h-32 mb-2" 
                 />

@@ -4,125 +4,102 @@ import { revalidatePath } from "next/cache";
 import { prisma } from '@/lib/prisma';
 
 /**
- * Interfaz básica para la configuración de botones para compartir
+ * Nueva interfaz para SocialConfig (v2)
+ * - textBefore: texto antes de los iconos
+ * - iconSize: tamaño global de iconos
+ * - icons: array de objetos SocialIcon v2 (name, url, svgLight, svgDark)
  */
-export interface SharingConfig {
-  buttons: SharingButton[];
-}
-
-export interface SharingButton {
+export interface SocialIcon {
   name: string;
-  shareUrlBase: string;
-  icon?: string;
-  newTab?: boolean;
+  url: string;
+  svgLight: string; // url SVG en modo claro (local o externo)
+  svgDark: string;  // url SVG en modo oscuro (local o externo)
+}
+export interface SocialConfig {
+  textBefore?: string;
+  iconSize?: string;
+  icons: SocialIcon[];
 }
 
-// Botones de compartir predeterminados
-const DEFAULT_SHARING_BUTTONS = [
-  { 
-    name: "Facebook", 
-    shareUrlBase: "https://www.facebook.com/sharer/sharer.php?u=", 
-    icon: "facebook", 
-    newTab: true 
-  },
-  { 
-    name: "Twitter", 
-    shareUrlBase: "https://twitter.com/intent/tweet?url=", 
-    icon: "twitter", 
-    newTab: true 
-  },
-  { 
-    name: "WhatsApp", 
-    shareUrlBase: "https://wa.me/?text=", 
-    icon: "whatsapp", 
-    newTab: true 
-  }
-];
+const DEFAULT_SOCIAL_CONFIG: SocialConfig = {
+  textBefore: "",
+  iconSize: "20px",
+  icons: [
+    { name: "Facebook", url: "https://facebook.com/", svgLight: "Facebook.svg", svgDark: "Facebook_black.svg" },
+    { name: "Twitter", url: "https://twitter.com/", svgLight: "Twitter.svg", svgDark: "Twitter_black.svg" },
+    { name: "Instagram", url: "https://instagram.com/", svgLight: "Instagram.svg", svgDark: "Instagram_black.svg" }
+  ]
+};
 
 /**
- * Obtiene directamente la configuración de botones para compartir de la base de datos
+ * Obtiene la configuración de SocialConfig v2 directamente de la base de datos
  */
-export async function fetchSharingConfig() {
+export async function fetchSocialConfig(): Promise<SocialConfig> {
   try {
-    console.log("🔍 Obteniendo configuración de botones para compartir directamente...");
-    
-    // Consulta SQL directa para obtener solo el campo sharing
+    // Consulta SQL directa para obtener solo el campo social
     const result = await prisma.$queryRaw`
-      SELECT sharing 
-      FROM GlobalConfig 
+      SELECT sharing
+      FROM GlobalConfig
       WHERE id = 'global'
     `;
-    
     if (!result || !Array.isArray(result) || result.length === 0) {
-      console.log("⚠️ No se encontró configuración de botones para compartir");
-      return { buttons: DEFAULT_SHARING_BUTTONS };
+      return DEFAULT_SOCIAL_CONFIG;
     }
-    
     const sharingRaw = result[0].sharing;
-    console.log("📦 Sharing obtenido:", typeof sharingRaw, sharingRaw ? 'contenido disponible' : 'null');
-    
-    // Si no hay sharing configurado
     if (!sharingRaw) {
-      console.log("⚠️ El campo sharing está vacío, usando valores predeterminados");
-      return { buttons: DEFAULT_SHARING_BUTTONS };
+      return DEFAULT_SOCIAL_CONFIG;
     }
-    
-    // Intentar parsear el JSON
     try {
-      // Parsear si es string, usar directo si ya es objeto
-      const sharingConfig = typeof sharingRaw === 'string'
-        ? JSON.parse(sharingRaw)
-        : sharingRaw;
-      
-      console.log("✅ Sharing parseado correctamente:", 
-        sharingConfig && sharingConfig.buttons ? `${sharingConfig.buttons.length} botones` : 'sin botones');
-      
-      if (!sharingConfig.buttons || !Array.isArray(sharingConfig.buttons) || sharingConfig.buttons.length === 0) {
-        console.log("✅ No hay botones configurados, utilizando valores predeterminados");
-        return { buttons: DEFAULT_SHARING_BUTTONS };
+      const config = typeof sharingRaw === "string" ? JSON.parse(sharingRaw) : sharingRaw;
+      if (Array.isArray(config.links) && !config.icons) {
+        return {
+          textBefore: "",
+          iconSize: "20px",
+          icons: config.links.map((l: any) => ({
+            name: l.name,
+            url: l.url,
+            svgLight: l.icon ?? "",
+            svgDark: l.icon ?? ""
+          }))
+        };
       }
-      
-      return { buttons: sharingConfig.buttons };
-    } catch (parseError) {
-      console.error("❌ Error al parsear sharing:", parseError);
-      console.log("📦 Contenido de sharing que falló el parseo:", sharingRaw);
-      return { buttons: DEFAULT_SHARING_BUTTONS };
+      if (Array.isArray(config.icons)) {
+        return {
+          textBefore: config.textBefore ?? "",
+          iconSize: config.iconSize ?? "20px",
+          icons: config.icons
+        };
+      }
+      return DEFAULT_SOCIAL_CONFIG;
+    } catch (e) {
+      return DEFAULT_SOCIAL_CONFIG;
     }
-  } catch (error) {
-    console.error("❌ Error al obtener configuración de sharing:", error);
-    return { buttons: DEFAULT_SHARING_BUTTONS };
+  } catch {
+    return DEFAULT_SOCIAL_CONFIG;
   }
 }
 
 /**
- * Guarda la configuración de botones para compartir en la base de datos
+ * Guarda la configuración v2 de redes sociales en la base de datos
  */
-export async function saveSharingConfig(sharingConfig: SharingConfig) {
+export async function saveSocialConfig(socialConfig: SocialConfig) {
   try {
-    console.log("🔍 Guardando configuración de botones para compartir:", sharingConfig);
-    
     // Convertir a JSON string
-    const sharingJSON = JSON.stringify(sharingConfig);
-    
+    const socialJSON = JSON.stringify(socialConfig);
     // Actualizar directamente en la base de datos
     await prisma.$executeRawUnsafe(`
       UPDATE GlobalConfig
       SET sharing = ?
       WHERE id = 'global'
-    `, sharingJSON);
-    
-    // Revalidar rutas necesarias
+    `, socialJSON);
     revalidatePath("/");
     revalidatePath("/admin/settings/sharing");
-    
-    console.log("✅ Configuración de botones para compartir guardada correctamente");
-    return { success: true, message: "Configuración de botones para compartir actualizada." };
+    return { success: true, message: "Configuración de botones de compartir actualizada." };
   } catch (error) {
-    console.error("❌ Error al guardar configuración de sharing:", error);
-    return { 
-      success: false, 
-      message: "Error al guardar la configuración: " + 
-        (error instanceof Error ? error.message : String(error)) 
+    return {
+      success: false,
+      message: "Error al guardar la configuración: " +
+        (error instanceof Error ? error.message : String(error))
     };
   }
 }

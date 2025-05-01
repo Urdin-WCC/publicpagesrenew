@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/core/LoadingSpinner';
 import PortfolioSidebar from '@/components/public/PortfolioSidebar';
 import ProjectGallery from '@/components/public/ProjectGallery';
+import Sharing from '@/components/public/Sharing';
+import { fetchSocialConfig as fetchSharingConfig } from '@/actions/sharing-actions';
 
 // Parámetros de la página
 interface PageProps {
@@ -223,6 +225,9 @@ export default async function ProjectPage({ params }: PageProps) {
     widgets: []
   };
 
+  // Configuración de sharing
+  const sharingConfig = await fetchSharingConfig();
+
   return (
     <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
       <div className="mb-6">
@@ -300,6 +305,11 @@ export default async function ProjectPage({ params }: PageProps) {
                 />
               </div>
             )}
+
+            {/* BOTONES DE COMPARTIR */}
+            <div className="mb-12">
+              <Sharing config={sharingConfig} />
+            </div>
 
             {/* Proyectos relacionados */}
             {relatedProjects.length > 0 && (
