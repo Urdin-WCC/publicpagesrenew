@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from '@/lib/prisma';
 
 /**
- * Interfaz básica para la configuración del portfolio
+ * Interfaz básica para la configuración del portfolio (sincronizada con lib/config-server.ts)
  */
 export interface PortfolioConfig {
   projectsPerPage: number;
@@ -12,15 +12,21 @@ export interface PortfolioConfig {
   layoutMode: 'grid' | 'list';
   showSidebarInList: boolean;
   showSidebarInProject: boolean;
+  sidebarPositionInList: 'left' | 'right';
+  sidebarPositionInProject: 'left' | 'right';
+  showSharingInProject: boolean;
 }
 
-// Configuración predeterminada del portfolio
+// Configuración predeterminada del portfolio (completa y sincro)
 const DEFAULT_PORTFOLIO_CONFIG: PortfolioConfig = {
   projectsPerPage: 12,
   defaultDisplayType: 'GRID',
   layoutMode: 'grid',
   showSidebarInList: true,
-  showSidebarInProject: true
+  showSidebarInProject: true,
+  sidebarPositionInList: 'right',
+  sidebarPositionInProject: 'right',
+  showSharingInProject: true
 };
 
 /**

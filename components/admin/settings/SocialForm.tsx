@@ -9,23 +9,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchSocialConfig, saveSocialConfig } from "@/actions/social-actions";
 import { toast } from "sonner";
 
-// SVG icon import — needed for dynamic list in public/icons/
-const ICONS = [
-  // Esta lista se debe rellenar programáticamente desde el backend en producción,
-  // aquí solo es un placeholder, se llenará en el hook useEffect.
-];
-
-function getSvgList() {
-  // Chequeo estático que será sustituido en prod por fetch/refresco
-  // Este listado estará vacío de momento, pero la UI soporta select a futuro.
-  return ICONS;
-}
 
 interface SocialIcon {
   name: string;
   url: string;
-  svgLight: string; // url SVG en modo claro (local o externo)
-  svgDark: string;  // url SVG en modo oscuro (local o externo)
+  svgLight: string;
+  svgDark: string;
+  openInNewTab?: boolean;
 }
 
 interface SocialFormData {
@@ -34,9 +24,6 @@ interface SocialFormData {
   icons: SocialIcon[];
 }
 
-/**
- * Selector de SVG con preview para modo claro/oscuro y soporte de input de URL alternativo.
- */
 function SvgSelector({
   label,
   value,
@@ -84,7 +71,6 @@ function SvgSelector({
             style={{ display: "inline" }}
           />
         )}
-        {/* Entrada de URL personalizada (si no se elige de la lista) */}
         <Input
           className="ml-2"
           placeholder="o URL SVG externo"
@@ -92,7 +78,6 @@ function SvgSelector({
           onChange={handleCustom}
         />
         {(!iconList.includes(value) && value) && (
-          // Preview del SVG externo si es url válida
           <img
             src={value}
             alt="SVG externo"
@@ -121,9 +106,7 @@ export default function SocialForm() {
     name: "icons",
   });
 
-  // Cargar iconos de /public/icons y la config actual
   React.useEffect(() => {
-    // Fetch lista de SVGs
     fetch("/api/list-icons")
       .then((res) => (res.ok ? res.json() : Promise.reject()))
       .then((data) => {
@@ -131,21 +114,24 @@ export default function SocialForm() {
       })
       .catch(() => setIconList([]));
 
-    // Fetch config social existente
     fetchSocialConfig()
       .then((data) => {
         if (data && typeof data === "object") {
           reset({
             textBefore: data.textBefore || "",
             iconSize: data.iconSize || "20px",
-            icons: Array.isArray(data.icons) ? data.icons : [],
+            icons: Array.isArray(data.icons)
+              ? data.icons.map(icon => ({
+                  ...icon,
+                  openInNewTab: icon.openInNewTab ?? true,
+                }))
+              : [],
           });
         }
       })
       .finally(() => setLoading(false));
   }, [reset]);
 
-  // Guardado del formulario
   const onSubmit = async (data: SocialFormData) => {
     setLoading(true);
     const result = await saveSocialConfig(data);
@@ -237,6 +223,17 @@ export default function SocialForm() {
                   />
                 </div>
                 <div>
+                  <Label>
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      {...register(`icons.${idx}.openInNewTab`)}
+                      defaultChecked={field.openInNewTab === undefined ? true : field.openInNewTab}
+                    />
+                    Abrir enlace en nueva pestaña
+                  </Label>
+                </div>
+                <div>
                   <SvgSelector
                     label="SVG modo claro"
                     value={fields[idx].svgLight || ""}
@@ -267,7 +264,7 @@ export default function SocialForm() {
             <Button
               type="button"
               onClick={() =>
-                append({ name: "", url: "", svgLight: "", svgDark: "" })
+                append({ name: "", url: "", svgLight: "", svgDark: "", openInNewTab: true })
               }
             >
               Añadir icono

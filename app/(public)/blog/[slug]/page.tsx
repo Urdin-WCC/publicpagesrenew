@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { getGlobalConfig } from "@/lib/config-server";
+import { getGlobalConfig, getBlogConfig } from "@/lib/config-server";
 import { generatePageMetadata, GlobalConfig } from "@/lib/seoUtils";
 import RelatedPosts from "@/components/public/RelatedPosts";
 import FixedHtmlRenderer from "@/components/public/FixedHtmlRenderer";
@@ -161,7 +161,7 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
   
   // Obtener categorías del post
   const categories = await getCategoriesForPost(post.categoryIds);
-  
+
   // Formato para la fecha de publicación
   const publishedDate = post.publishedAt 
     ? new Date(post.publishedAt).toLocaleDateString('es-ES', { 
@@ -171,33 +171,40 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
       })
     : null;
 
-  // Configuración de visualización de página
-  const pageConfig = {
-    showHeader: post.showHeader !== undefined ? Boolean(post.showHeader) : true,
-    showFooter: post.showFooter !== undefined ? Boolean(post.showFooter) : true,
-    showSidebar: post.showSidebar !== undefined ? Boolean(post.showSidebar) : true,
-    sidebarPosition: post.sidebarPosition || 'right'
-  };
-  
+  // Obtener configuración avanzada del blog
+  const blogConfig = await getBlogConfig();
+
+  // Si existiera pseudónimo, debería ir como post.authorPseudonym; ajusta si futuro modelo lo soporta.
+  const authorDisplay = (post.authorPseudonym && blogConfig.showAuthorName)
+    ? post.authorPseudonym
+    : (blogConfig.showAuthorName ? post.authorName : null);
+
+  // Sidebar y sharing con permisos desde config
+  const showSidebar = blogConfig.showSidebarInPost ?? true;
+  const sidebarPosition = blogConfig.sidebarPositionInPost ?? "right";
+  const showSharingBlock = blogConfig.showSharingInPost ?? true;
+
   // Almacenar la configuración para que el layout pueda acceder a ella
   const pageConfigScript = `
     <script>
-      window.__PAGE_CONFIG__ = ${JSON.stringify(pageConfig)};
+      window.__PAGE_CONFIG__ = ${JSON.stringify({
+        showHeader: post.showHeader !== undefined ? Boolean(post.showHeader) : true,
+        showFooter: post.showFooter !== undefined ? Boolean(post.showFooter) : true,
+        showSidebar: showSidebar,
+        sidebarPosition: sidebarPosition
+      })};
     </script>
   `;
-  
-  // Obtener configuración de sharing para este post
+
   const sharingConfig = await fetchSharingConfig();
 
   return (
     <>
-      {/* Insertar script con configuración de página */}
       <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
-      
       <div className="w-full" style={{ 
         maxWidth: "100%",
-        padding: 'var(--spacing-padding, 2rem 1rem)', /* Usar variable de tema para padding */
-        height: '100%', /* Asegurar que ocupa toda la altura disponible */
+        padding: 'var(--spacing-padding, 2rem 1rem)',
+        height: '100%',
         minHeight: '100%'
       }}>
         {/* Imagen destacada */}
@@ -217,14 +224,12 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
         
         {/* Metadatos: autor, fecha y categorías */}
         <div className="flex flex-wrap gap-2 text-sm text-gray-600 mb-8">
-          {post.authorName && (
-            <span className="mr-4">Por: {post.authorName}</span>
+          {authorDisplay && (
+            <span className="mr-4">Por: {authorDisplay}</span>
           )}
-          
           {publishedDate && (
             <span className="mr-4">Publicado: {publishedDate}</span>
           )}
-          
           {categories.length > 0 && (
             <div className="flex flex-wrap gap-2">
               <span>Categorías:</span>
@@ -248,12 +253,12 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
             className="prose max-w-none"
           />
         </div>
-
         {/* BOTONES DE COMPARTIR */}
-        <div className="mb-12">
-          <Sharing config={sharingConfig} />
-        </div>
-        
+        {showSharingBlock && (
+          <div className="mb-12">
+            <Sharing config={sharingConfig} />
+          </div>
+        )}
         {/* Posts relacionados */}
         <RelatedPosts postId={post.id} categoryIds={post.categoryIds} />
       </div>

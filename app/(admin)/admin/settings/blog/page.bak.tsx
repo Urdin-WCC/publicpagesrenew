@@ -1,4 +1,6 @@
-import BlogFormComplete from "@/components/admin/settings/BlogFormComplete";
+// Cambio temporal para diagnosticar el problema de rendimiento
+// import BlogFormComplete from "@/components/admin/settings/BlogFormComplete";
+import SimpleBlogFormV2 from "@/components/admin/settings/SimpleBlogFormV2";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { InfoIcon } from "lucide-react";
 
@@ -21,7 +23,7 @@ export default function BlogSettingsPage() {
         y si deseas mostrar la barra lateral en las diferentes vistas.
       </p>
       
-      <BlogFormComplete />
+      <SimpleBlogFormV2 />
     </div>
   );
 }

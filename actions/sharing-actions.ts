@@ -14,6 +14,7 @@ export interface SocialIcon {
   url: string;
   svgLight: string; // url SVG en modo claro (local o externo)
   svgDark: string;  // url SVG en modo oscuro (local o externo)
+  openInNewTab?: boolean;
 }
 export interface SocialConfig {
   textBefore?: string;
@@ -25,9 +26,9 @@ const DEFAULT_SOCIAL_CONFIG: SocialConfig = {
   textBefore: "",
   iconSize: "20px",
   icons: [
-    { name: "Facebook", url: "https://facebook.com/", svgLight: "Facebook.svg", svgDark: "Facebook_black.svg" },
-    { name: "Twitter", url: "https://twitter.com/", svgLight: "Twitter.svg", svgDark: "Twitter_black.svg" },
-    { name: "Instagram", url: "https://instagram.com/", svgLight: "Instagram.svg", svgDark: "Instagram_black.svg" }
+    { name: "Facebook", url: "https://facebook.com/", svgLight: "Facebook.svg", svgDark: "Facebook_black.svg", openInNewTab: true },
+    { name: "Twitter", url: "https://twitter.com/", svgLight: "Twitter.svg", svgDark: "Twitter_black.svg", openInNewTab: true },
+    { name: "Instagram", url: "https://instagram.com/", svgLight: "Instagram.svg", svgDark: "Instagram_black.svg", openInNewTab: true }
   ]
 };
 

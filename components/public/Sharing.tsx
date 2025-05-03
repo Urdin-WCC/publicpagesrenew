@@ -7,6 +7,7 @@ interface SharingIcon {
   url: string;
   svgLight: string;
   svgDark: string;
+  openInNewTab?: boolean;
 }
 
 interface SharingConfig {
@@ -49,15 +50,17 @@ export default function Sharing({ config, theme="auto", inline=false }: SharingP
         {config.icons.map((icon, idx) => {
           const svgUrl = effectiveTheme === "dark" ? icon.svgDark : icon.svgLight;
           const isExternal = svgUrl && (svgUrl.startsWith("http://") || svgUrl.startsWith("https://"));
+          const openNewTab = icon.openInNewTab ?? true;
           return (
             <a
               key={icon.name + idx}
               href={icon.url}
-              target="_blank"
-              rel="noopener noreferrer"
               title={icon.name}
               style={{ display: "inline-block", width: size, height: size }}
               className="sharing-link hover:scale-110 transition"
+              {...(openNewTab
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
             >
               {svgUrl ? (
                 isExternal ? (

@@ -42,14 +42,17 @@ export interface GlobalConfigWithCustomFields extends Partial<GlobalConfig> {
 export interface BlogConfig {
   postsPerPage: number;
   allowComments: boolean;
-  showAuthorName: boolean;
+  showAuthorName: boolean; // Ahora usa pseudónimo si está presente, y nombre real solo si no existe pseudónimo
   showPublishDate: boolean;
   relatedPostsEnabled: boolean;
   relatedPostsCount: number;
   // Nuevas opciones
   listDisplayMode: 'grid' | 'list'; // Modo de visualización del listado de posts
-  showSidebarInList: boolean;      // Mostrar barra lateral en el listado de posts
-  showSidebarInPost: boolean;      // Mostrar barra lateral en el post individual
+  showSidebarInList: boolean;
+  showSidebarInPost: boolean;
+  sidebarPositionInList: 'left' | 'right';    // Lado barra listado
+  sidebarPositionInPost: 'left' | 'right';    // Lado barra en publicación individual
+  showSharingInPost: boolean;                 // Mostrar botones de compartir en post individual
 }
 
 // Valores por defecto para la configuración del blog
@@ -60,10 +63,12 @@ export const defaultBlogConfig: BlogConfig = {
   showPublishDate: true,
   relatedPostsEnabled: true,
   relatedPostsCount: 3,
-  // Valores por defecto para las nuevas opciones
   listDisplayMode: 'grid',
   showSidebarInList: true,
   showSidebarInPost: true,
+  sidebarPositionInList: 'right',
+  sidebarPositionInPost: 'right',
+  showSharingInPost: true,
 };
 
 // Interfaz para la configuración específica del portfolio
@@ -72,6 +77,9 @@ export interface PortfolioConfig {
   defaultDisplayType: string;
   showSidebarInList: boolean;
   showSidebarInProject: boolean;
+  sidebarPositionInList: 'left' | 'right';
+  sidebarPositionInProject: 'left' | 'right';
+  showSharingInProject: boolean;
   layoutMode: 'grid' | 'list';
 }
 
@@ -81,6 +89,9 @@ export const defaultPortfolioConfig: PortfolioConfig = {
   defaultDisplayType: 'GALLERY',
   showSidebarInList: true,
   showSidebarInProject: true,
+  sidebarPositionInList: 'right',
+  sidebarPositionInProject: 'right',
+  showSharingInProject: true,
   layoutMode: 'grid',
 };
 

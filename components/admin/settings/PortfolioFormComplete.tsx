@@ -32,66 +32,56 @@ export default function PortfolioFormComplete() {
       defaultDisplayType: 'GRID',
       layoutMode: 'grid',
       showSidebarInList: true,
-      showSidebarInProject: true
+      showSidebarInProject: true,
+      sidebarPositionInList: 'right',
+      sidebarPositionInProject: 'right',
+      showSharingInProject: true,
     }
   });
   
   // Cargar datos iniciales
   useEffect(() => {
-    // Solo cargar los datos una vez
     if (configLoaded) return;
-    
     const loadConfig = async () => {
       try {
         console.log("🔍 Cargando configuración de portfolio...");
         const portfolioConfig = await fetchPortfolioConfig();
-        
         if (!portfolioConfig) {
-          console.log("⚠️ No se pudo cargar la configuración");
           setIsInitialDataLoaded(true);
           setConfigLoaded(true);
           return;
         }
-        
-        console.log("📦 Configuración de portfolio cargada:", portfolioConfig);
-        
-        // Establecer los valores en el formulario
+
         setValue('projectsPerPage', portfolioConfig.projectsPerPage);
         setValue('defaultDisplayType', portfolioConfig.defaultDisplayType);
         setValue('layoutMode', portfolioConfig.layoutMode);
         setValue('showSidebarInList', portfolioConfig.showSidebarInList);
         setValue('showSidebarInProject', portfolioConfig.showSidebarInProject);
-        
-        console.log("✅ Configuración cargada correctamente");
+        setValue('sidebarPositionInList', portfolioConfig.sidebarPositionInList || 'right');
+        setValue('sidebarPositionInProject', portfolioConfig.sidebarPositionInProject || 'right');
+        setValue('showSharingInProject', typeof portfolioConfig.showSharingInProject === "boolean" ? portfolioConfig.showSharingInProject : true);
+
         setIsInitialDataLoaded(true);
         setConfigLoaded(true);
       } catch (error) {
-        console.error('Error loading portfolio config:', error);
         toast.error('Error al cargar la configuración del portfolio');
         setIsInitialDataLoaded(true);
         setConfigLoaded(true);
       }
     };
-    
     loadConfig();
   }, [setValue, configLoaded]);
 
   // Enviar formulario  
   const onSubmit = async (data: PortfolioConfig) => {
     try {
-      console.log("📝 Guardando configuración de portfolio:", data);
-      
       const result = await savePortfolioConfig(data);
-      
       if (result.success) {
-        console.log("✅ Configuración guardada correctamente");
         toast.success(result.message || "Configuración guardada correctamente");
       } else {
-        console.error("❌ Error al guardar la configuración:", result.message);
         toast.error(result.message || "Error al guardar la configuración");
       }
     } catch (error) {
-      console.error('Error saving portfolio config:', error);
       toast.error("Error al guardar la configuración del portfolio");
     }
   };
@@ -132,7 +122,7 @@ export default function PortfolioFormComplete() {
             />
             {errors.projectsPerPage && <p className="text-red-500 text-xs mt-1">{errors.projectsPerPage.message}</p>}
           </div>
-
+          
           {/* Tipo de visualización predeterminado */}
           <div className="space-y-2">
             <Label htmlFor="defaultDisplayType">Tipo de visualización predeterminado</Label>
@@ -197,6 +187,15 @@ export default function PortfolioFormComplete() {
             <Label htmlFor="showSidebarInList">
               Mostrar barra lateral en el listado de proyectos
             </Label>
+            <Label className="ml-4">Posición:</Label>
+            <select
+              {...register("sidebarPositionInList")}
+              className="border rounded px-2 py-1 ml-2"
+              defaultValue="right"
+            >
+              <option value="right">Derecha</option>
+              <option value="left">Izquierda</option>
+            </select>
           </div>
 
           {/* Mostrar barra lateral en proyecto individual */}
@@ -215,10 +214,36 @@ export default function PortfolioFormComplete() {
             <Label htmlFor="showSidebarInProject">
               Mostrar barra lateral en el proyecto individual
             </Label>
+            <Label className="ml-4">Posición:</Label>
+            <select
+              {...register("sidebarPositionInProject")}
+              className="border rounded px-2 py-1 ml-2"
+              defaultValue="right"
+            >
+              <option value="right">Derecha</option>
+              <option value="left">Izquierda</option>
+            </select>
+          </div>
+
+          {/* Mostrar botones de compartir en proyecto individual */}
+          <div className="flex items-center space-x-2">
+            <Controller
+              name="showSharingInProject"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="showSharingInProject"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <Label htmlFor="showSharingInProject">
+              Mostrar botones de compartir en proyectos individuales
+            </Label>
           </div>
         </CardContent>
       </Card>
-      
       <div className="flex justify-end">
         <Button 
           type="submit" 

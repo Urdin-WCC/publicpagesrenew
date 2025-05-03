@@ -1,101 +1,92 @@
 # Documentación de la Interfaz Pública
 
 ## Visión General
-La interfaz pública de Neurowitch ha sido actualizada para proporcionar una experiencia visual consistente y personalizable a través de un sistema de temas.
+La interfaz pública de Neurowitch es visualmente consistente y completamente personalizable a través de un sistema centralizado de configuración. El sistema soporta múltiples variantes temáticas, gestión de iconos (social/sharing), y opciones avanzadas para visibilidad, sidebar, y control exhaustivo sobre posts y proyectos.
 
-## Sistema de Temas
-<!-- ... (restante sin cambios) ... -->
+## Configuración avanzada de Blog y Portfolio
 
-## Redes Sociales y Botones de Compartir
+### Esquemas de configuración (BlogConfig / PortfolioConfig)
 
-A partir de la versión 2025-05, el sistema de iconos sociales y botones de compartir ha sido modernizado y unificado bajo dos configuraciones centralizadas: `social` y `sharing`, ambas definidas y administradas desde el panel de administración.
-
-### Modelo de Datos
-
-Ambos sistemas usan el siguiente esquema:
 ```jsonc
+// BlogConfig
 {
-  "textBefore": "Síguenos en las redes:",
-  "iconSize": "24px",
-  "icons": [
-    {
-      "name": "Facebook",
-      "url": "https://facebook.com/tu-cuenta",
-      "svgLight": "Facebook.svg",
-      "svgDark": "Facebook_black.svg"
-    },
-    {
-      "name": "Twitter",
-      "url": "https://twitter.com/tu-cuenta",
-      "svgLight": "Twitter.svg",
-      "svgDark": "Twitter_black.svg"
-    }
-    // ...otros iconos configurables, con soporte también para SVG externo vía URL
-  ]
+  "postsPerPage": 10,
+  "allowComments": false,
+  "showAuthorName": true, // Usa pseudónimo si existe, nombre real si no.
+  "showPublishDate": true,
+  "relatedPostsEnabled": true,
+  "relatedPostsCount": 3,
+  "listDisplayMode": "grid", // "list" o "grid"
+  "showSidebarInList": true,
+  "sidebarPositionInList": "right", // o "left"
+  "showSidebarInPost": true,
+  "sidebarPositionInPost": "right",
+  "showSharingInPost": true
+}
+
+// PortfolioConfig (idéntico en estructura)
+{
+  "projectsPerPage": 12,
+  "defaultDisplayType": "GRID",
+  "layoutMode": "grid", // "list" o "grid"
+  "showSidebarInList": true,
+  "sidebarPositionInList": "right",
+  "showSidebarInProject": true,
+  "sidebarPositionInProject": "right",
+  "showSharingInProject": true
 }
 ```
-- `textBefore` define (opcionalmente) un texto previo tipo “Síguenos”, antes del listado.
-- `iconSize` es el tamaño global de los iconos (puede ser px, em, %, etc).
-- Cada icono incluye:
-  - `name`: Nombre visual
-  - `url`: Enlace absoluto (social) o enlace de compartir (sharing)
-  - `svgLight`: Asset SVG para modo claro (puede ser filename local o URL externa)
-  - `svgDark`: Asset SVG para modo oscuro (puede ser filename local o URL externa)
 
-### Administración
+#### ¿Qué permite cada campo?
 
-La edición y gestión de estos bloques se realiza desde `/admin/settings/social` y `/admin/settings/sharing` respectivamente, permitiendo:
+- `showSharingInPost` / `showSharingInProject`: Si se muestran o no los botones de compartir en cada post/proyecto. Impacta a nivel de UI pública.
+- `showSidebarInList`/`showSidebarInPost`/`showSidebarInProject`: Controla la visibilidad de la barra lateral en listados y detalles.
+- `sidebarPositionInList`/`sidebarPositionInPost`/`sidebarPositionInProject`: Define en qué lado aparece la sidebar (izquierda o derecha), permitiendo layouts verdaderamente responsivos y personalizados.
+- `showAuthorName`: Muestra el nombre de autor, priorizando pseudónimo si está definido; solo muestra nombre real si el pseudónimo está ausente. 
+- `listDisplayMode`/`layoutMode`: Permite conmutar entre visualización tipo lista (vertical clásica) y cuadrícula (tarjetas / grid) tanto en el listado principal como en búsquedas.
 
-- Añadir, editar, eliminar y reordenar iconos
-- Configurar SVG locales o externos
-- Personalizar texto y tamaño
+### Ejemplo de Uso en Componentes Públicos
 
-### Integración en UI Pública
-
-#### Componente Social
-
-Importa y utiliza el componente:
+**Listado del blog (page.tsx) y búsqueda:**
 ```tsx
-import Social from "@/components/public/Social";
+// page.tsx
+const blogConfig = await getBlogConfig();
+<BlogListClient 
+  displayMode={blogConfig.listDisplayMode}
+  postsPerPage={blogConfig.postsPerPage}
+/>
 
-// Obten la configuración con:
-import { fetchSocialConfig } from "@/actions/social-actions";
-
-const socialConfig = await fetchSocialConfig();
-<Social config={socialConfig} inline /> // Para mostrar en header o de forma horizontal
+// search/page.tsx
+<div className={blogConfig.listDisplayMode === 'grid'
+  ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'
+  : 'flex flex-col space-y-6'}>
+  ...posts...
+</div>
 ```
 
-#### Componente Sharing
-
-Para botones de compartir en posts, proyectos, etc:
+**Detalle de post/proyecto:**
 ```tsx
-import Sharing from "@/components/public/Sharing";
-import { fetchSocialConfig as fetchSharingConfig } from "@/actions/sharing-actions";
+const blogConfig = await getBlogConfig();
+// Mostrar/ocultar y posición sidebar:
+if (blogConfig.showSidebarInPost) {
+  // Usa blogConfig.sidebarPositionInPost ('left'/'right') para ubicarla
+}
+// Autor: muestra pseudónimo antes que nombre real
 
-const sharingConfig = await fetchSharingConfig();
-<Sharing config={sharingConfig} /> // Flex layout por defecto, o inline para variantes
+// SHARING
+if (blogConfig.showSharingInPost) {
+  <Sharing config={sharingConfig} />
+}
 ```
 
-#### Integración en Header
+### Compatibilidad y buenas prácticas
 
-Header detecta la config de social y la renderiza automáticamente:
-```tsx
-<Social config={socialConfig} inline />
-```
-Solo necesitas asegurarte de tener configurados y visibles los iconos en el panel de administración.
+- El modelo de configuración es retrocompatible; nuevos campos tienen valores por defecto seguros. Si tu instalación proviene de versiones antiguas, simplemente accede al panel admin y guarda para inicializar todos los valores nuevos.
+- No se requieren migraciones de base de datos para añadir estos campos, ya que el esquema JSON de configuración es flexible.
+- Mantén actualizados los valores y prueba con distintos layouts para verificar el efecto de los flags en el frontend.
 
-#### En Posts y Proyectos
+### Limpieza de código y componentes obsoletos
 
-En los detalles de blog y portfolio, luego del contenido principal:
-```tsx
-const sharingConfig = await fetchSharingConfig();
-<Sharing config={sharingConfig} />
-```
+Recuerda eliminar cualquier fragmento o componente anterior que use hardcode, el sistema viejo de links, o no respete los flags documentados aquí para centralizar el flujo de configuración y evitar confusión futura. 
 
-### Deprecación y Limpieza
-
-- El antiguo widget/bloque SocialLinksWidget y toda lógica acoplada a arrays de links simples está obsoleto y ha sido eliminado del proyecto.
-- Los componentes modernos deben consumir directamente desde la nueva configuración, usando los assets SVG elegidos desde el panel.
-- El sistema es compatible con SSR, client y puede usarse como widget, bloque fijo o en layouts personalizados.
-
-<!-- ... (puedes reintegrar las secciones de sistema de temas, debugging, etc. tal como ya están redactadas arriba) ... -->
+<!-- (Otras secciones no afectadas permanecen como estaban) -->

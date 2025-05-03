@@ -32,7 +32,10 @@ export default function BlogFormComplete() {
       relatedPostsCount: 3,
       listDisplayMode: 'grid',
       showSidebarInList: true,
-      showSidebarInPost: true
+      showSidebarInPost: true,
+      sidebarPositionInList: 'right',
+      sidebarPositionInPost: 'right',
+      showSharingInPost: true,
     }
   });
   
@@ -158,7 +161,10 @@ export default function BlogFormComplete() {
                 />
               )}
             />
-            <Label htmlFor="showAuthorName">Mostrar nombre del autor en posts</Label>
+            <Label htmlFor="showAuthorName">
+              Mostrar nombre del autor en posts
+              <span className="ml-2 text-xs text-gray-500">(si existe un pseudónimo se muestra el pseudónimo, si no, el nombre real)</span>
+            </Label>
           </div>
 
           {/* Mostrar Fecha Publicación */}
@@ -257,6 +263,15 @@ export default function BlogFormComplete() {
             <Label htmlFor="showSidebarInList">
               Mostrar barra lateral en el listado de posts
             </Label>
+            <Label className="ml-4">Posición:</Label>
+            <select
+              {...register("sidebarPositionInList")}
+              className="border rounded px-2 py-1 ml-2"
+              defaultValue="right"
+            >
+              <option value="right">Derecha</option>
+              <option value="left">Izquierda</option>
+            </select>
           </div>
 
           {/* Mostrar barra lateral en post individual */}
@@ -274,6 +289,33 @@ export default function BlogFormComplete() {
             />
             <Label htmlFor="showSidebarInPost">
               Mostrar barra lateral en el post individual
+            </Label>
+            <Label className="ml-4">Posición:</Label>
+            <select
+              {...register("sidebarPositionInPost")}
+              className="border rounded px-2 py-1 ml-2"
+              defaultValue="right"
+            >
+              <option value="right">Derecha</option>
+              <option value="left">Izquierda</option>
+            </select>
+          </div>
+
+          {/* Mostrar botones de compartir en post individual */}
+          <div className="flex items-center space-x-2">
+            <Controller
+              name="showSharingInPost"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="showSharingInPost"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <Label htmlFor="showSharingInPost">
+              Mostrar botones de compartir en posts individuales
             </Label>
           </div>
         </CardContent>

@@ -7,6 +7,7 @@ interface SocialIcon {
   url: string;
   svgLight: string;
   svgDark: string;
+  openInNewTab?: boolean;
 }
 
 interface SocialConfig {
@@ -18,7 +19,7 @@ interface SocialConfig {
 interface SocialProps {
   config: SocialConfig;
   theme?: "auto" | "light" | "dark";
-  inline?: boolean; // Para línea horizontal en header vs lista vertical en widget
+  inline?: boolean;
 }
 
 function useSystemTheme(): "light" | "dark" {
@@ -34,7 +35,6 @@ function useSystemTheme(): "light" | "dark" {
 }
 
 export default function Social({ config, theme="auto", inline=false }: SocialProps) {
-  // Decide theme for svg
   const systemTheme = typeof window !== "undefined" ? useSystemTheme() : "light";
   const effectiveTheme: "light"|"dark" = theme !== "auto" ? theme as "light"|"dark" : systemTheme;
   const size = config.iconSize || "20px";
@@ -50,15 +50,17 @@ export default function Social({ config, theme="auto", inline=false }: SocialPro
         {config.icons.map((icon, idx) => {
           const svgUrl = effectiveTheme === "dark" ? icon.svgDark : icon.svgLight;
           const isExternal = svgUrl && (svgUrl.startsWith("http://") || svgUrl.startsWith("https://"));
+          const openNewTab = icon.openInNewTab ?? true;
           return (
             <a
               key={icon.name + idx}
               href={icon.url}
-              target="_blank"
-              rel="noopener noreferrer"
               title={icon.name}
               style={{ display: "inline-block", width: size, height: size }}
               className="social-link hover:scale-110 transition"
+              {...(openNewTab
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
             >
               {svgUrl ? (
                 isExternal ? (

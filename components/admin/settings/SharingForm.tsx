@@ -17,6 +17,7 @@ interface SocialIcon {
   url: string;
   svgLight: string;
   svgDark: string;
+  openInNewTab?: boolean;
 }
 
 interface SocialFormData {
@@ -25,9 +26,6 @@ interface SocialFormData {
   icons: SocialIcon[];
 }
 
-/**
- * Selector de SVG con preview para modo claro/oscuro y soporte de input de URL alternativo.
- */
 function SvgSelector({
   label,
   value,
@@ -124,7 +122,12 @@ export default function SharingForm() {
           reset({
             textBefore: data.textBefore || "",
             iconSize: data.iconSize || "20px",
-            icons: Array.isArray(data.icons) ? data.icons : [],
+            icons: Array.isArray(data.icons)
+              ? data.icons.map(icon => ({
+                  ...icon,
+                  openInNewTab: icon.openInNewTab ?? true,
+                }))
+              : [],
           });
         }
       })
@@ -221,6 +224,17 @@ export default function SharingForm() {
                   />
                 </div>
                 <div>
+                  <Label>
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      {...register(`icons.${idx}.openInNewTab`)}
+                      defaultChecked={field.openInNewTab === undefined ? true : field.openInNewTab}
+                    />
+                    Abrir enlace en nueva pestaña
+                  </Label>
+                </div>
+                <div>
                   <SvgSelector
                     label="SVG modo claro"
                     value={fields[idx].svgLight || ""}
@@ -251,7 +265,7 @@ export default function SharingForm() {
             <Button
               type="button"
               onClick={() =>
-                append({ name: "", url: "", svgLight: "", svgDark: "" })
+                append({ name: "", url: "", svgLight: "", svgDark: "", openInNewTab: true })
               }
             >
               Añadir botón

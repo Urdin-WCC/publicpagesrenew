@@ -154,9 +154,17 @@ export default async function BlogSearchPage({ searchParams }: BlogSearchPagePro
           </h2>
 
           {posts.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className={
+              (blogConfig.listDisplayMode || 'grid') === 'grid'
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              : "flex flex-col space-y-6"
+            }>
               {posts.map((post) => (
-                <article key={post.id} className="border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200">
+                <article key={post.id} className={
+                  `border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 ${
+                    (blogConfig.listDisplayMode || 'grid') === 'list' ? 'flex flex-row' : ''
+                  }`
+                }>
                   {post.coverImage && (
                     <Link href={`/blog/${post.slug}`} passHref>
                       <div className="relative w-full h-48">
