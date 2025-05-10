@@ -1,4 +1,5 @@
-import { WidgetType } from '@prisma/client';
+// Importación segura del enum WidgetType para cliente/SSR
+import { WidgetType } from '@/lib/widget-client';
 import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import WidgetRenderer from './WidgetRenderer';
 
@@ -170,11 +171,96 @@ export default async function Sidebar({
                     margin-bottom: 1.5rem;
                   }
                 `}</style>
-                {allWidgets.map((widget: Widget, index: number) => (
-                  <div key={widget.id || `widget-${index}`} className="widget-card">
-                    <WidgetRenderer widget={widget} />
-                  </div>
-                ))}
+                {allWidgets.map((widget: Widget, index: number) => {
+                  // Determinar el estilo de fondo para este widget
+                  let widgetStyle: React.CSSProperties = {};
+                  
+                  // Depurar widget config para diagnóstico
+                  if (widget.id === "sidebar-widget-0") {
+                    console.log("Widget config debug:", 
+                      JSON.stringify({ 
+                        id: widget.id, 
+                        config: widget.config, 
+                        background: widget.config?.background 
+                      }));
+                  }
+                  
+                  // Para widgets con configuración de fondo específica
+                  if (widget.config?.background) {
+                    // Depurar widget background para diagnóstico
+                    console.log(`Widget ${widget.id} background:`, widget.config.background);
+                    
+                    // Obtener el tipo de fondo y valor de manera más flexible
+                    const bgType = widget.config.background?.type || 
+                                  (widget.config.background?.url ? "image" : 
+                                   (widget.config.background?.value?.includes("gradient") ? "gradient" : "color"));
+                    
+                    const bgValue = widget.config.background?.value || "";
+                    const bgUrl = widget.config.background?.url || null;
+                    
+                    // Aplicar fondo según el tipo
+                    if (bgType === "image" || bgUrl) {
+                      // Url para imagen: intentar varias convenciones
+                      const imageUrl = bgUrl || 
+                                      `/images/backgrounds/widget-${widget.id}.webp` || 
+                                      `/images/backgrounds/widget-${widget.id}.jpg` || 
+                                      `/images/backgrounds/widget-${widget.id}.png` || 
+                                      `/images/backgrounds/widget-${widget.id}.img`;
+                      
+                      // Para imágenes, configurar propiedades individuales sin usar 'background'
+                      widgetStyle = {
+                        backgroundImage: `url(${imageUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat"
+                      };
+                      
+                      console.log(`Widget ${widget.id} using image:`, imageUrl);
+                    } 
+                    // Gradiente o color plano
+                    else if (bgType === "gradient" || bgType === "color") {
+                      widgetStyle = {
+                        background: bgValue
+                      };
+                      console.log(`Widget ${widget.id} using ${bgType}:`, bgValue);
+                    }
+                  }
+                  // Si widget.background está disponible directamente (formato alternativo)
+                  else if (widget.background) {
+                    console.log(`Widget ${widget.id} has direct background:`, widget.background);
+                    
+                    if (typeof widget.background === 'string') {
+                      // Background es un string simple (color o url)
+                      widgetStyle = {
+                        background: widget.background
+                      };
+                    } else if (widget.background.type === "image" || widget.background.url) {
+                      // Background es objeto con url de imagen
+                      const imageUrl = widget.background.url || 
+                                      `/images/backgrounds/widget-${widget.id}.webp` || 
+                                      `/images/backgrounds/widget-${widget.id}.jpg`;
+                      
+                      widgetStyle = {
+                        backgroundImage: `url(${imageUrl})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat"
+                      };
+                    }
+                  }
+                  
+                  console.log(`Final widget ${widget.id} style:`, widgetStyle);
+                  
+                  return (
+                    <div 
+                      key={widget.id || `widget-${index}`} 
+                      className="widget-card"
+                      style={widgetStyle}
+                    >
+                      <WidgetRenderer widget={widget} />
+                    </div>
+                  );
+                })}
               </div>
             )}
             

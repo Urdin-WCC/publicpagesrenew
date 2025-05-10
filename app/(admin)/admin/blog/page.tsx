@@ -16,6 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TagIcon, PlusCircle, Edit, Trash2, Search, Eye, ArchiveIcon, SendToBack, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import PaginationControls from '@/components/public/PaginationControls';
+import AdminPageContainer from "@/components/admin/AdminPageContainer";
 
 // Define tipos para el post
 interface BlogPost {
@@ -162,8 +163,9 @@ export default function BlogPage() {
         return <Badge>{status}</Badge>;
     }
   };
-return (
-    <div className="container mx-auto p-4">
+
+  return (
+    <AdminPageContainer>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{translations.admin.blogList.title || 'Gestión del Blog'}</CardTitle>
@@ -258,7 +260,6 @@ return (
                       </TableCell>
                       <TableCell>{renderStatus(post.status)}</TableCell>
                       <TableCell>
-                        {/* Usar Array.isArray para garantizar que es un array antes de verificar length */}
                         {Array.isArray(post.categories) && post.categories.length > 0 ? (
                           <Badge variant="outline">
                             {post.categories[0].name}
@@ -378,6 +379,6 @@ return (
           )}
         </CardContent>
       </Card>
-    </div>
+    </AdminPageContainer>
   );
 }

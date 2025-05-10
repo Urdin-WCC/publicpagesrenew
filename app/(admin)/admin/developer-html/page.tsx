@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Role } from '@prisma/client';
+import { Role } from "@/lib/auth-client";
 import { useCurrentUserRole, checkUserRole } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';

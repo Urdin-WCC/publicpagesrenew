@@ -5,14 +5,10 @@ import { Role } from '@prisma/client';
 
 /**
  * Verifica si el usuario tiene el rol requerido o superior
- * 
- * @param currentRole Rol actual del usuario
- * @param requiredRole Rol mínimo requerido
- * @returns true si el usuario tiene permisos suficientes, false en caso contrario
  */
-function hasRequiredRole(currentRole: Role | null, requiredRole: Role): boolean {
+function hasRequiredRole(currentRole: Role | null): boolean {
   if (!currentRole) return false;
-
+  
   const roleHierarchy: Record<Role, number> = {
     COLLABORATOR: 1,
     EDITOR: 2,
@@ -20,7 +16,7 @@ function hasRequiredRole(currentRole: Role | null, requiredRole: Role): boolean 
     MASTER: 4,
   };
 
-  return (roleHierarchy[currentRole] || 0) >= (roleHierarchy[requiredRole] || Infinity);
+  return roleHierarchy[currentRole] >= roleHierarchy.COLLABORATOR;
 }
 
 /**
@@ -43,7 +39,7 @@ export async function GET() {
     }
     
     // Verificar que el usuario tenga rol COLLABORATOR o superior
-    if (!hasRequiredRole(session.user.role as Role, Role.COLLABORATOR)) {
+    if (!hasRequiredRole(session.user.role as Role)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     
@@ -97,7 +93,7 @@ export async function GET() {
     `;
     
     // Convertir los resultados a formato compatible con JSON
-    const dailyStats = dailyVisits.map(row => ({
+    const dailyStats = dailyVisits.map((row: { date: Date; count: BigInt }) => ({
       date: row.date.toISOString().split('T')[0],
       count: Number(row.count)
     }));

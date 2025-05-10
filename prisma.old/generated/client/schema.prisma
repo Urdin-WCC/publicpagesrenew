@@ -1,0 +1,335 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role      @default(COLLABORATOR)
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  posts         Post[]
+  projects      Project[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "Account_userId_fkey")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "Session_userId_fkey")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model GlobalConfig {
+  id                        String   @id @default("global")
+  siteName                  String   @default("Neurowitch")
+  description               String?  @db.Text
+  globalMetaTitle           String?  @db.VarChar(255)
+  globalMetaDescription     String?  @db.Text
+  globalKeywords            String?  @db.Text
+  defaultSocialShareImage   String?  @db.VarChar(255)
+  robotsTxtContent          String?  @db.LongText
+  googleAnalyticsId         String?  @db.VarChar(50)
+  googleTagManagerId        String?  @db.VarChar(50)
+  siteUrl                   String   @default("http://localhost:3000")
+  logoUrl                   String?
+  faviconUrl                String?
+  themeColor                String?
+  header                    String?  @db.LongText
+  footer                    String?  @db.LongText
+  sidebar                   String?  @db.LongText
+  social                    String?  @db.LongText
+  sharing                   String?  @db.LongText
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+  maintenanceMode           Boolean  @default(false)
+  blogConfig                String?  @db.LongText
+  portfolioConfig           String?  @db.LongText
+  defaultLightThemePresetId Int?
+  defaultDarkThemePresetId  Int?
+  themeAssignments          String   @db.LongText
+  loadingSpinnerConfig      String   @db.LongText
+  themeSwitcherConfig       String   @db.LongText
+  stickyElementsConfig      String   @db.LongText
+  cookieBannerLinkPageId    Int?
+  developerHtmlContent      String?  @db.LongText
+  cookieBannerText          String?  @db.Text
+  activeThemeId             String?  @db.VarChar(255)
+  passwordMinLength         Int?     @default(8)
+  passwordRequireUppercase  Boolean? @default(true)
+  passwordRequireNumber     Boolean? @default(true)
+  passwordRequireSymbol     Boolean? @default(true)
+  sessionDuration           Int?     @default(24)
+  maxLoginAttempts          Int?     @default(5)
+  captchaEnabled            Boolean? @default(false)
+  accountLockoutDuration    Int?     @default(30)
+  globalSeoTitle            String?
+  navigationMenu            String?  @db.LongText
+}
+
+model AdminAction {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  details   String?  @db.Text
+  module    String
+  createdAt DateTime @default(now())
+}
+
+model ThemePreset {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  config String @db.LongText
+}
+
+model Widget {
+  id        String      @id @default(cuid())
+  title     String
+  type      WidgetType
+  content   String?     @db.Text
+  config    String?     @db.LongText
+  order     Int         @default(0)
+  isActive  Boolean     @default(true)
+  sectionId String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId], map: "Widget_sectionId_fkey")
+}
+
+model SiteSection {
+  id        String      @id @default(cuid())
+  name      String
+  type      SectionType
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  menuItems MenuItem[]
+  widgets   Widget[]
+}
+
+model MenuItem {
+  id        String      @id @default(cuid())
+  label     String
+  url       String
+  order     Int         @default(0)
+  parentId  String?
+  sectionId String
+  isActive  Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  parent    MenuItem?   @relation("MenuItemToMenuItem", fields: [parentId], references: [id])
+  children  MenuItem[]  @relation("MenuItemToMenuItem")
+  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([parentId], map: "MenuItem_parentId_fkey")
+  @@index([sectionId], map: "MenuItem_sectionId_fkey")
+}
+
+model Visit {
+  id    String   @id @default(cuid())
+  date  DateTime @unique
+  count Int      @default(0)
+}
+
+model PageView {
+  id        Int       @id @default(autoincrement())
+  url       String    @db.VarChar(255)
+  referrer  String?   @db.VarChar(255)
+  ipAddress String?   @db.VarChar(45)
+  userAgent String?   @db.Text
+  timestamp DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([timestamp], map: "idx_timestamp")
+  @@index([url], map: "idx_url")
+}
+
+model Referrer {
+  id       String   @id @default(cuid())
+  referrer String
+  date     DateTime
+  count    Int      @default(0)
+}
+
+model Post {
+  id                String     @id @default(cuid())
+  title             String
+  slug              String     @unique
+  content           String     @db.Text
+  excerpt           String?    @db.Text
+  coverImage        String?
+  status            PostStatus @default(DRAFT)
+  publishedAt       DateTime?
+  featured          Boolean    @default(false)
+  deleted           Boolean    @default(false)
+  authorId          String?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  authorDisplayName String?
+  categoryId        String?
+  author            User?      @relation(fields: [authorId], references: [id])
+  category          Category?  @relation(fields: [categoryId], references: [id])
+
+  @@index([authorId], map: "Post_authorId_fkey")
+  @@index([categoryId], map: "Post_categoryId_fkey")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  posts       Post[]
+  projects    Project[]
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id                  String             @id @default(cuid())
+  title               String
+  slug                String             @unique
+  content             String             @db.Text
+  excerpt             String?            @db.Text
+  coverImage          String?
+  additionalImageUrls String?            @db.LongText
+  displayType         ProjectDisplayType @default(SINGLE)
+  status              ProjectStatus      @default(DRAFT)
+  publishedAt         DateTime?
+  featured            Boolean            @default(false)
+  authorDisplayName   String?
+  deleted             Boolean            @default(false)
+  authorId            String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  categoryId          String?
+  author              User?              @relation(fields: [authorId], references: [id])
+  category            Category?          @relation(fields: [categoryId], references: [id])
+
+  @@index([authorId], map: "Project_authorId_fkey")
+  @@index([categoryId], map: "Project_categoryId_fkey")
+}
+
+model StaticPage {
+  id              Int      @id @default(autoincrement())
+  title           String
+  slug            String   @unique
+  contentHtml     String   @db.LongText
+  isHomePage      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  showHeader      Boolean? @default(true)
+  showFooter      Boolean? @default(true)
+  showSidebar     Boolean? @default(false)
+  sidebarPosition String?  @default("left") @db.VarChar(10)
+  metaTitle       String?  @db.VarChar(255)
+  metaDescription String?  @db.Text
+  metaKeywords    String?  @db.VarChar(255)
+}
+
+model AdminLog {
+  id        Int       @id @default(autoincrement())
+  userId    String?   @db.VarChar(255)
+  userEmail String?   @db.VarChar(255)
+  action    String    @db.VarChar(255)
+  details   String?   @db.LongText
+  timestamp DateTime? @default(now()) @db.DateTime(0)
+
+  @@index([action], map: "idx_action")
+  @@index([timestamp], map: "idx_timestamp")
+  @@index([userId], map: "idx_userId")
+}
+
+enum Role {
+  MASTER
+  ADMIN
+  EDITOR
+  COLLABORATOR
+}
+
+enum WidgetType {
+  LATEST_POSTS
+  LATEST_PROJECTS
+  SEARCH
+  CATEGORIES
+  TAGS
+  SOCIAL_LINKS
+  TEXT
+  NEWSLETTER
+  RECENT_COMMENTS
+}
+
+enum SectionType {
+  HEADER
+  FOOTER
+  SIDEBAR
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProjectStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ProjectDisplayType {
+  SINGLE
+  GALLERY
+  SLIDER
+  GRID
+}

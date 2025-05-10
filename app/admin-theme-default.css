@@ -1,0 +1,69 @@
+/* Tema visual por defecto del panel de administración Neurowitch */
+/* Este archivo controla variables colores, backgrounds y estilos base para el admin */
+
+:root {
+  --admin-bg: #f9fafb;
+  --admin-bg-panel: #fff;
+  --admin-text: #18181a;
+  --admin-primary: #1462ff;
+  --admin-primary-hover: #205ccc;
+  --admin-accent: #6192fa;
+  --admin-border: #e8eaf0;
+  --admin-radius: 14px;
+  --admin-shadow: 0 2px 8px 0 rgba(30, 62, 97, 0.08);
+  --admin-sidebar-bg: #151b24;
+  --admin-sidebar-fg: #f2f5f7;
+  --admin-sidebar-active-bg: #242e3b;
+  --admin-sidebar-active-fg: #55a8ff;
+  --admin-card-bg: #fff;
+  --admin-card-radius: 14px;
+  --admin-card-shadow: 0 2px 8px 0 rgba(30, 62, 97, 0.08);
+}
+
+/* Fondo de la app admin */
+.admin-app-bg {
+  background: var(--admin-bg);
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.admin-sidebar {
+  background: var(--admin-sidebar-bg);
+  color: var(--admin-sidebar-fg);
+}
+.admin-sidebar .active, .admin-sidebar .active > * {
+  background: var(--admin-sidebar-active-bg);
+  color: var(--admin-sidebar-active-fg);
+}
+.admin-sidebar a {
+  color: var(--admin-sidebar-fg);
+  text-decoration: none;
+}
+.admin-sidebar a:hover {
+  color: var(--admin-primary);
+}
+
+/* Cards panel admin */
+.admin-panel-card {
+  background: var(--admin-card-bg);
+  border-radius: var(--admin-card-radius);
+  box-shadow: var(--admin-card-shadow);
+  padding: 1.5rem;
+}
+
+/* Botones principales admin */
+.admin-btn-primary {
+  background: var(--admin-primary);
+  color: #fff;
+  border-radius: 7px;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.admin-btn-primary:hover {
+  background: var(--admin-primary-hover);
+}
+
+/* Otros estilos utilitarios para formularios, inputs, etc. */

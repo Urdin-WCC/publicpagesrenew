@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 // Eliminamos la importación del adaptador de Prisma
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
-import { Role } from "@prisma/client";
+import { User_role } from "@prisma/client";
 
 /**
  * NextAuth.js v5 configuration
@@ -34,7 +34,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       // Restaurar lógica personalizada
       if (token && session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as Role; // Asegurarse que 'Role' se importa si se descomenta
+        session.user.role = token.role as User_role;
       }
       // console.log("Session Callback - Session Out:", session); // Log temporal
       return session;

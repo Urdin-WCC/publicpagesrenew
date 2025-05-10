@@ -53,7 +53,7 @@ const SocialLinksWidget = dynamic(() => import('./widgets/SocialLinksWidget'), {
 interface Widget {
   id: string;
   title: string;
-  type: string;  // Changed from WidgetType to string
+  type: string;
   content?: string | null;
   config?: any;
   order?: number;
@@ -92,7 +92,6 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
       return (
         <Suspense fallback={<WidgetSkeleton title={widget.title || "Proyectos recientes"} />}>
           <LatestProjectsWidget 
-            // Only pass props that the component accepts
             limit={widget.config?.limit || 5}
             showFeaturedOnly={widget.config?.showFeaturedOnly || false}
           />
@@ -110,7 +109,7 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
       );
       
     case WidgetTypes.SEARCH:
-    case 'SEARCH': // Include both formats
+    case 'SEARCH':
       return (
         <Suspense fallback={<WidgetSkeleton title={widget.title || "Buscar"} />}>
           <SearchWidget 
@@ -119,7 +118,6 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
         </Suspense>
       );
       
-    // Special widget for developer custom HTML 
     case WidgetTypes.DEVELOPER_HTML:
       return (
         <Suspense fallback={<WidgetSkeleton title={widget.title || "HTML personalizado"} />}>
@@ -141,7 +139,7 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
     case WidgetTypes.SOCIAL_LIST:
       return (
         <Suspense fallback={<WidgetSkeleton title={widget.title || "Redes Sociales"} />}>
-          <SocialLinksWidget 
+          <SocialLinksWidget
             title={widget.title}
             config={widget.config || {}}
           />
@@ -196,7 +194,6 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
           </CardContent>
         </Card>
       );
-
     default:
       return (
         <Card>

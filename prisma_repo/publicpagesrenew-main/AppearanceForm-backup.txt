@@ -1,0 +1,325 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { fetchGlobalConfig, saveGlobalConfig } from "@/actions/config-actions";
+import ImageUploader from "@/components/core/ImageUploader";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CirclePicker } from "react-color";
+import useSWR from "swr";
+
+// Fetcher para SWR
+const fetcher = (url: string) => fetch(url).then(async res => {
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Error al cargar los datos');
+  }
+  return res.json();
+});
+
+// Interfaz para el tema
+interface ThemePreset {
+  id: number;
+  name: string;
+}
+
+// Interfaz para el asignador de temas
+interface ThemeAssignment {
+  path: string; // Ruta o elemento (e.g., /blog, /contacto, header, footer)
+  lightThemeId: number | null; // ID del tema claro
+  darkThemeId: number | null; // ID del tema oscuro
+}
+
+// Interfaz para las páginas estáticas
+interface StaticPage {
+  id: number;
+  title: string;
+  slug: string;
+}
+
+// Interfaz para la configuración del spinner
+interface LoadingSpinnerConfig {
+  enabled: boolean;
+  overlayColor: string;
+  spinnerImageUrl?: string;
+}
+
+// Interfaz para la configuración del cambiador de temas
+interface ThemeSwitcherConfig {
+  visible: boolean;
+  style: "icon" | "icon_text";
+  position: "bottom_right" | "bottom_left" | "top_right" | "top_left";
+}
+
+// Interfaz para la configuración de elementos fijos
+interface StickyElementsConfig {
+  header: boolean;
+  sidebar: boolean;
+  footer: boolean;
+  themeSwitcher: boolean;
+}
+
+// Interfaz para los valores del formulario
+interface AppearanceFormValues {
+  defaultLightThemePresetId: number | null;
+  defaultDarkThemePresetId: number | null;
+  themeAssignments: ThemeAssignment[];
+  loadingSpinnerConfig: LoadingSpinnerConfig;
+  themeSwitcherConfig: ThemeSwitcherConfig;
+  stickyElementsConfig: StickyElementsConfig;
+}
+
+export default function AppearanceForm() {
+  // Estado para el color seleccionado del overlay del spinner
+  const [selectedOverlayColor, setSelectedOverlayColor] = useState("#00000080");
+
+  // Obtener lista de temas disponibles
+  const { data: themes, error: themesError } = useSWR<ThemePreset[]>('/api/theme/presets', fetcher, {
+    revalidateOnFocus: false,
+  });
+  
+  // Obtener lista de páginas estáticas
+  const { data: staticPages, error: pagesError } = useSWR<StaticPage[]>('/api/pages', fetcher, {
+    revalidateOnFocus: false,
+  });
+  
+  // Elementos fijos del sistema
+  const systemElements = [
+    { id: 'header', name: 'Encabezado (Header)', slug: 'header' },
+    { id: 'footer', name: 'Pie de Página (Footer)', slug: 'footer' },
+    { id: 'sidebar', name: 'Barra Lateral (Sidebar)', slug: 'sidebar' },
+    { id: 'blog', name: 'Blog', slug: 'blog' },
+    { id: 'portfolio', name: 'Portfolio', slug: 'portfolio' }
+  ];
+
+  // Configuración del formulario con react-hook-form
+  const { 
+    control, 
+    register, 
+    handleSubmit, 
+    setValue, 
+    watch,
+    formState: { errors, isSubmitting } 
+  } = useForm<AppearanceFormValues>({
+    defaultValues: {
+      defaultLightThemePresetId: null,
+      defaultDarkThemePresetId: null,
+      themeAssignments: [],
+      loadingSpinnerConfig: {
+        enabled: false,
+        overlayColor: "#00000080"
+      },
+      themeSwitcherConfig: {
+        visible: true,
+        style: "icon",
+        position: "bottom_right"
+      },
+      stickyElementsConfig: {
+        header: false,
+        sidebar: false,
+        footer: false,
+        themeSwitcher: true
+      }
+    }
+  });
+
+  // Configuración para el array de asignaciones de temas
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "themeAssignments"
+  });
+
+  // Vigilar cambios en la configuración del spinner para actualizar el estado del color
+  const loadingSpinnerConfig = watch("loadingSpinnerConfig");
+  
+  useEffect(() => {
+    if (loadingSpinnerConfig?.overlayColor) {
+      setSelectedOverlayColor(loadingSpinnerConfig.overlayColor);
+    }
+  }, [loadingSpinnerConfig?.overlayColor]);
+
+  // Definición de la función loadInitialData para que esté disponible en todo el componente
+  const loadInitialData = async () => {
+    try {
+      console.log("📝 AppearanceForm.loadInitialData - Cargando configuración...");
+      
+      // Obtener configuración global
+      const globalConfig = await fetchGlobalConfig();
+      
+      if (globalConfig) {
+        // Acceder a la configuración de temas de manera segura
+        // Evitando errores de TypeScript con casting
+        const configAny = globalConfig as any;
+        
+        // Establecer temas por defecto
+        if (configAny.defaultLightThemePresetId) {
+          setValue("defaultLightThemePresetId", configAny.defaultLightThemePresetId);
+        }
+        
+        if (configAny.defaultDarkThemePresetId) {
+          setValue("defaultDarkThemePresetId", configAny.defaultDarkThemePresetId);
+        }
+        
+        // Establecer asignaciones de temas
+        if (globalConfig.themeAssignments) {
+          try {
+            const assignments = typeof globalConfig.themeAssignments === 'string'
+              ? JSON.parse(globalConfig.themeAssignments)
+              : globalConfig.themeAssignments;
+            
+            // Convertir a formato de array si es un objeto
+            if (assignments && typeof assignments === 'object') {
+              const assignmentsArray: ThemeAssignment[] = [];
+              
+              // Si assignments es un objeto con claves de ruta, conviértelo en array
+              if (!Array.isArray(assignments)) {
+                Object.entries(assignments).forEach(([path, config]: [string, any]) => {
+                  if (path !== 'header' && path !== 'footer' && path !== 'sidebar') { // Excluimos estos porque ya tienen su propia configuración
+                    assignmentsArray.push({
+                      path,
+                      lightThemeId: config.light || null,
+                      darkThemeId: config.dark || null
+                    });
+                  }
+                });
+              } else {
+                // Si ya es un array, usarlo directamente
+                assignmentsArray.push(...assignments);
+              }
+              
+              setValue("themeAssignments", assignmentsArray);
+            }
+          } catch (e) {
+            console.error('Error parsing theme assignments:', e);
+          }
+        }
+        
+        // Establecer configuración del spinner
+        if (globalConfig.loadingSpinnerConfig) {
+          try {
+            const spinnerConfig = typeof globalConfig.loadingSpinnerConfig === 'string'
+              ? JSON.parse(globalConfig.loadingSpinnerConfig)
+              : globalConfig.loadingSpinnerConfig;
+            
+            if (spinnerConfig) {
+              setValue("loadingSpinnerConfig", {
+                enabled: !!spinnerConfig.enabled,
+                overlayColor: spinnerConfig.overlayColor || "#00000080",
+                spinnerImageUrl: spinnerConfig.spinnerImageUrl || undefined
+              });
+              
+              setSelectedOverlayColor(spinnerConfig.overlayColor || "#00000080");
+            }
+          } catch (e) {
+            console.error('Error parsing spinner config:', e);
+          }
+        }
+        
+        // Establecer configuración del cambiador de temas
+        if (globalConfig.themeSwitcherConfig) {
+          try {
+            const switcherConfig = typeof globalConfig.themeSwitcherConfig === 'string'
+              ? JSON.parse(globalConfig.themeSwitcherConfig)
+              : globalConfig.themeSwitcherConfig;
+            
+            if (switcherConfig) {
+              setValue("themeSwitcherConfig", {
+                visible: switcherConfig.visible !== false, // Por defecto visible
+                style: switcherConfig.style || "icon",
+                position: switcherConfig.position || "bottom_right"
+              });
+            }
+          } catch (e) {
+            console.error('Error parsing theme switcher config:', e);
+          }
+        }
+        
+        // Establecer configuración de elementos fijos
+        if (globalConfig.stickyElementsConfig) {
+          try {
+            const stickyConfig = typeof globalConfig.stickyElementsConfig === 'string'
+              ? JSON.parse(globalConfig.stickyElementsConfig)
+              : globalConfig.stickyElementsConfig;
+            
+            if (stickyConfig) {
+              setValue("stickyElementsConfig", {
+                header: !!stickyConfig.header,
+                sidebar: !!stickyConfig.sidebar,
+                footer: !!stickyConfig.footer,
+                themeSwitcher: stickyConfig.themeSwitcher !== false // Por defecto true
+              });
+            }
+          } catch (e) {
+            console.error('Error parsing sticky elements config:', e);
+          }
+        }
+        
+        console.log("✅ AppearanceForm.loadInitialData - Configuración cargada correctamente");
+      }
+    } catch (error) {
+      console.error('❌ Error loading initial data:', error);
+    }
+  };
+
+  // Cargar datos iniciales al montar el componente  
+  useEffect(() => {
+    console.log("📝 AppearanceForm.useEffect - Montando componente y cargando datos iniciales");
+    loadInitialData();
+    // No incluimos loadInitialData en las dependencias porque causaría un ciclo infinito
+  }, [setValue]);
+
+  // Manejar envío del formulario
+  const onSubmit = async (data: AppearanceFormValues) => {
+    try {
+      console.log("📝 AppearanceForm.onSubmit - Iniciando guardado de configuración");
+      
+      // Convertir las asignaciones de tema al formato adecuado
+      const themeAssignmentsObj: {[key: string]: {light: number | null, dark: number | null}} = {};
+      
+      data.themeAssignments.forEach(assignment => {
+        themeAssignmentsObj[assignment.path] = {
+          light: assignment.lightThemeId,
+          dark: assignment.darkThemeId
+        };
+      });
+      
+      // Preparar datos para guardar
+      const saveData = {
+        defaultLightThemePresetId: data.defaultLightThemePresetId,
+        defaultDarkThemePresetId: data.defaultDarkThemePresetId,
+        themeAssignments: JSON.stringify(themeAssignmentsObj),
+        loadingSpinnerConfig: JSON.stringify(data.loadingSpinnerConfig),
+        themeSwitcherConfig: JSON.stringify(data.themeSwitcherConfig),
+        stickyElementsConfig: JSON.stringify(data.stickyElementsConfig)
+      };
+      
+      // Guardar configuración
+      const result = await saveGlobalConfig(saveData);
+      
+      if (result.success) {
+        alert(result.message || "Configuración guardada con éxito");
+        // Forzar la recarga de los datos después de guardar
+        await loadInitialData();
+      } else {
+        alert(result.message || "Error al guardar la configuración");
+      }
+    } catch (error) {
+      console.error('❌ Error saving appearance settings:', error);
+      alert("Error al guardar la configuración de apariencia");
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit(onSubm

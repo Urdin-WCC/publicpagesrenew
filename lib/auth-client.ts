@@ -1,7 +1,18 @@
 // Este archivo contiene funciones seguras para usar en componentes cliente ('use client')
 // Ayuda a evitar que código de servidor (como PrismaAdapter) se incluya accidentalmente en el bundle del cliente.
 
-import { Role } from "@prisma/client";
+/**
+ * Polyfill temporal para el enum Role SOLO en cliente.
+ * Evita errores de import/export de enums Prisma fuera de backend.
+ */
+export const Role = {
+  COLLABORATOR: "COLLABORATOR",
+  EDITOR: "EDITOR",
+  ADMIN: "ADMIN",
+  MASTER: "MASTER"
+} as const;
+export type Role = typeof Role[keyof typeof Role];
+
 import { useSession } from "next-auth/react";
 
 /**

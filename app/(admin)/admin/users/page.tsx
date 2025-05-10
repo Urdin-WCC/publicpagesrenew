@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useCurrentUserRole } from "@/lib/auth";
-import { Role } from "@prisma/client";
+import { Role } from "@/lib/auth-client";
 import UserList from "@/components/admin/users/UserList";
 
 export default function UsersPage() {

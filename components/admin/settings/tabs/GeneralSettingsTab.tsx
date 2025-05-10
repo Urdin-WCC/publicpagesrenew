@@ -9,6 +9,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { AdminInput } from "@/components/admin/ui/AdminInput";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -22,6 +23,7 @@ interface ThemePreset {
 interface GeneralSettingsFormValues {
   defaultLightThemePresetId: number | null;
   defaultDarkThemePresetId: number | null;
+  adminPanelThemePresetId: number | null;
   [key: string]: any;
 }
 
@@ -36,11 +38,11 @@ export default function GeneralSettingsTab({ control, themes }: GeneralSettingsT
       <CardHeader>
         <CardTitle>Configuración de Temas Predeterminados</CardTitle>
         <CardDescription>
-          Selecciona los temas predeterminados para los modos claro y oscuro.
+          Selecciona los temas predeterminados para los modos claro, oscuro y el tema visual del panel de administración.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Tema claro predeterminado */}
           <div>
             <Label htmlFor="defaultLightThemePresetId">Tema por Defecto (Claro)</Label>
@@ -49,8 +51,8 @@ export default function GeneralSettingsTab({ control, themes }: GeneralSettingsT
               control={control}
               render={({ field }) => (
                 <Select
-                  value={field.value?.toString() || ""}
-                  onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
+                  value={field.value == null ? "null" : field.value.toString()}
+                  onValueChange={(value) => field.onChange(value !== "null" ? parseInt(value) : null)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecciona un tema claro..." />
@@ -67,7 +69,6 @@ export default function GeneralSettingsTab({ control, themes }: GeneralSettingsT
               )}
             />
           </div>
-
           {/* Tema oscuro predeterminado */}
           <div>
             <Label htmlFor="defaultDarkThemePresetId">Tema por Defecto (Oscuro)</Label>
@@ -76,14 +77,40 @@ export default function GeneralSettingsTab({ control, themes }: GeneralSettingsT
               control={control}
               render={({ field }) => (
                 <Select
-                  value={field.value?.toString() || ""}
-                  onValueChange={(value) => field.onChange(value ? parseInt(value) : null)}
+                  value={field.value == null ? "null" : field.value.toString()}
+                  onValueChange={(value) => field.onChange(value !== "null" ? parseInt(value) : null)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecciona un tema oscuro..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="null">Ninguno</SelectItem>
+                    {themes?.map((theme) => (
+                      <SelectItem key={theme.id} value={theme.id.toString()}>
+                        {theme.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+          {/* Tema panel admin */}
+          <div>
+            <Label htmlFor="adminPanelThemePresetId">Tema del Panel de Administración</Label>
+            <Controller
+              name="adminPanelThemePresetId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value == null ? "null" : field.value.toString()}
+                  onValueChange={(value) => field.onChange(value !== "null" ? parseInt(value) : null)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona el tema del panel..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="null">Ninguno (por defecto)</SelectItem>
                     {themes?.map((theme) => (
                       <SelectItem key={theme.id} value={theme.id.toString()}>
                         {theme.name}

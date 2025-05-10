@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
-import { Role } from '@prisma/client';
+
+// Definimos los roles como constantes para evitar problemas de inicialización
+const ROLES = {
+  COLLABORATOR: 'COLLABORATOR',
+  EDITOR: 'EDITOR',
+  ADMIN: 'ADMIN',
+  MASTER: 'MASTER'
+} as const;
+
+type UserRole = typeof ROLES[keyof typeof ROLES];
 
 /**
  * Verifica si el usuario tiene el rol requerido o superior
@@ -10,14 +19,14 @@ import { Role } from '@prisma/client';
  * @param requiredRole Rol mínimo requerido
  * @returns true si el usuario tiene permisos suficientes, false en caso contrario
  */
-function hasRequiredRole(currentRole: Role | null, requiredRole: Role): boolean {
+function hasRequiredRole(currentRole: string | null | undefined, requiredRole: string): boolean {
   if (!currentRole) return false;
 
-  const roleHierarchy: Record<Role, number> = {
-    COLLABORATOR: 1,
-    EDITOR: 2,
-    ADMIN: 3,
-    MASTER: 4,
+  const roleHierarchy: Record<string, number> = {
+    [ROLES.COLLABORATOR]: 1,
+    [ROLES.EDITOR]: 2,
+    [ROLES.ADMIN]: 3,
+    [ROLES.MASTER]: 4,
   };
 
   return (roleHierarchy[currentRole] || 0) >= (roleHierarchy[requiredRole] || Infinity);
@@ -43,7 +52,7 @@ export async function GET(request: Request) {
     }
     
     // Verificar que el usuario tenga rol ADMIN o superior
-    if (!hasRequiredRole(session.user.role as Role, Role.ADMIN)) {
+    if (!hasRequiredRole(session.user.role, ROLES.ADMIN)) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
     

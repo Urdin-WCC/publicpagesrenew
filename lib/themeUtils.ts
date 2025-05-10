@@ -19,37 +19,41 @@ export async function getAllThemePresets() {
 export async function getThemePresetConfigById(id: number | string | null | undefined) {
   if (id == null) return null;
   
-  try {
-    console.log(`Fetching theme preset with ID: ${id}`);
-    
-    const result = await prisma.$queryRaw`
-      SELECT config 
-      FROM ThemePreset 
-      WHERE id = ${id.toString()}
-    `;
-    
-    if (!Array.isArray(result) || result.length === 0 || !result[0].config) {
-      console.log(`No theme preset found for ID: ${id}`);
+  // Detect if running in the browser (client) or Node (server)
+  if (typeof window !== "undefined") {
+    try {
+      const res = await fetch(`/api/theme-preset/${id}`);
+      if (!res.ok) return null;
+      const { config } = await res.json();
+      return config || null;
+    } catch (err) {
+      console.error("Error fetching theme config from API:", err);
       return null;
     }
-    
-    const themeConfig = result[0].config;
-    
-    // Parse the config JSON if it's a string
-    if (typeof themeConfig === 'string') {
-      try {
-        return JSON.parse(themeConfig);
-      } catch (parseError) {
-        console.error(`Error parsing theme config for ID ${id}:`, parseError);
+  } else {
+    try {
+      const result = await prisma.$queryRaw`
+        SELECT config 
+        FROM ThemePreset 
+        WHERE id = ${id.toString()}
+      `;
+      if (!Array.isArray(result) || result.length === 0 || !result[0].config) {
         return null;
       }
+
+      const themeConfig = result[0].config;
+      if (typeof themeConfig === 'string') {
+        try {
+          return JSON.parse(themeConfig);
+        } catch {
+          return null;
+        }
+      }
+      return themeConfig;
+    } catch (error) {
+      console.error(`Error fetching theme preset with ID ${id}:`, error);
+      return null;
     }
-    
-    // If it's already an object, return as is
-    return themeConfig;
-  } catch (error) {
-    console.error(`Error fetching theme preset with ID ${id}:`, error);
-    return null;
   }
 }
 

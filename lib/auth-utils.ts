@@ -1,4 +1,14 @@
-import { Role } from '@prisma/client'; // Importar enum Role de Prisma
+/**
+ * Polyfill temporal para el enum Role SOLO para cliente/SSR NextJS.
+ * Evita errores de import/export de enums Prisma fuera de backend.
+ */
+export const Role = {
+  COLLABORATOR: "COLLABORATOR",
+  EDITOR: "EDITOR",
+  ADMIN: "ADMIN",
+  MASTER: "MASTER"
+} as const;
+export type Role = typeof Role[keyof typeof Role];
 
 // Definir la jerarquía de roles numéricamente para facilitar la comparación
 const roleHierarchy: Record<Role, number> = {

@@ -1,0 +1,306 @@
+#############################################################################
+# Neurowitch - Complete Modular Development Guide                           #
+# ASSIGNED TASK: Chapter 15b - Public_Frontend_Implementation               #
+#                 (Dynamic Public Site Rendering)                           #
+#############################################################################
+
+# NOTE: This document contains instructions for implementing the public-facing
+# frontend of the application. You MUST FIRST READ AND ADHERE TO "Chapter 0"
+# provided below. It assumes the codebase reflects the completion and
+# integration of ALL previous modules (1-14, Appendix B, and Module 18),
+# meaning the backend APIs, core functionalities, database models, theme system,
+# and external configurations are all in place.
+
+#############################################################################
+# Chapter 0: Common Information & Project Principles                        #
+#############################################################################
+
+# 0.1 Introduction
+# Welcome to the development guide for the "Neurowitch" project. This document
+# details the modular architecture and technical specifications for building the
+# application. The goal of this modular structure is to enable parallel and efficient
+# development, where each developer or AI agent can focus on a specific module with
+# self-contained instructions.
+#
+# This Chapter 0 contains all the fundamental and common information that all
+# developers must know before starting work on any module. The subsequent chapters
+# describe the specific modules. To work on your assigned task (Chapter 15b),
+# you will need to read this Chapter 0 thoroughly AND the specific instructions
+# in the Chapter 15b section below. This chapter focuses on building the dynamic
+# public-facing user interface based on database content and configuration.
+
+# 0.2 Project Overview
+# Neurowitch is a complete, responsive, and accessible web application featuring an
+# administration panel for managing content (blog, portfolio, static pages), SEO,
+# appearance (theming), and site statistics. This task implements the publicly
+# accessible frontend that displays this managed content and adheres to the
+# configured appearance.
+
+# 0.3 Mandatory Tech Stack
+# - Primary Framework: Next.js (version 14+ with App Router - Server Components heavily preferred, Client Components where necessary)
+# - Language: TypeScript
+# - UI Library: React (version 18+)
+# - Database: MySQL (Accessed via Core Prisma Client)
+# - ORM: Prisma (`lib/prisma.ts`)
+# - CSS Styling: Tailwind CSS (Dynamic themes applied via CSS variables injected by layout)
+# - Authentication: Next-Auth.js (Only relevant for potentially showing user state if needed, otherwise primarily for admin)
+# - UI Components (Recommended): Shadcn/ui
+# - State Management (Client-side): Zustand/Context API (Needed for ThemeSwitcher, CookieBanner acceptance)
+# - Image Display: `next/image` component
+# - Markdown/HTML Rendering: `dangerouslySetInnerHTML` for content fields.
+# - (Optional) Slider/Gallery Library: e.g., `Swiper.js` or `react-image-gallery` if needed for Portfolio display types. Install if used (`npm install swiper`).
+# - Package Manager: npm or yarn
+
+# 0.4 Credentials & Initial Setup (Reference)
+# - Database connection, Auth secrets, Asset URLs are managed via Environment Variables (handled by Module 18 / Deployment).
+
+# 0.5 General Principles & Mandatory Requirements
+# - **Dynamic Rendering:** All content (pages, posts, projects), layout structure (header/footer/sidebar widgets), and styling (themes) MUST be loaded dynamically based on data fetched from the database (via Prisma) and configuration stored primarily in the `GlobalConfig` record. Avoid hardcoding content, structure, or styles.
+# - **Server Components First:** Prioritize using Next.js Server Components for data fetching (Prisma queries) and rendering to optimize performance. Use Client Components (`'use client'`) only when necessary (e.g., for stateful logic like theme switching, cookie banner acceptance, interactive galleries/sliders, or components using hooks like `useEffect`).
+# - **Responsiveness & Accessibility:** Ensure all public pages are fully responsive and adhere to WCAG 2.1 AA guidelines. Use semantic HTML.
+# - **Performance:** Optimize data fetching. Use `next/image` for image optimization. Leverage Next.js caching where appropriate (though dynamic config might affect this). Prefer SSG (`generateStaticParams`) for content like blog posts/projects/static pages where possible, but ensure data fetching respects the dynamic `isVisible` or `status` flags.
+# - **Security:** Sanitize HTML content rendered with `dangerouslySetInnerHTML` (although primary protection comes from trusting the source - the admin editor). Be mindful when displaying user-generated data (though most content comes from admin).
+# - **Error Handling:** Implement graceful handling for cases where content is not found (use Next.js `notFound()`) or configuration is missing/invalid. Consider creating `not-found.tsx` and `error.tsx` files within relevant route groups.
+# - **Consistency:** Use the established layouts (`PublicLayout`) and core utilities/components. Follow naming conventions.
+# - **Application Language: IMPORTANT:** ALL text displayed to the end-user on the public site **MUST be in Spanish**. This includes button texts ("Leer más"), labels, fallback messages ("No se encontraron posts"), etc.
+
+# 0.6 Recommended Folder Structure (Focus Areas)
+# ```
+# neurowitch-app/
+# |- app/
+# |  |- (admin)/
+# |  |- (public)/             # <<< Your primary focus area (Module 15b)
+# |  |  |- blog/
+# |  |  |  |- page.tsx                  # List view
+# |  |  |  |- [slug]/page.tsx           # Detail view
+# |  |  |  |- category/[slug]/page.tsx # Category filter view
+# |  |  |  '- tag/[slug]/page.tsx      # Tag filter view
+# |  |  |- portfolio/
+# |  |  |  |- page.tsx                  # List view
+# |  |  |  |- [slug]/page.tsx           # Detail view
+# |  |  |  '- category/[slug]/page.tsx # Category filter view
+# |  |  |- [slug]/page.tsx           # Static page view
+# |  |  |- page.tsx                  # Homepage view
+# |  |  |- layout.tsx              # Public base layout (Already adapted)
+# |  |  |- not-found.tsx           # <<< Implement custom 404 page
+# |  |  '- error.tsx               # <<< Optional: Implement error boundary UI
+# |- components/
+# |  |- core/
+# |  |- admin/
+# |  |- public/             # <<< Your primary focus area (Module 15b)
+# |  |  |- Header.tsx          # Component rendering header based on GlobalConfig
+# |  |  |- Footer.tsx          # Component rendering footer based on GlobalConfig
+# |  |  |- Sidebar.tsx         # Component rendering sidebar based on GlobalConfig
+# |  |  |- CookieBanner.tsx    # Component for cookie consent
+# |  |  |- ThemeSwitcher.tsx   # Component for light/dark toggle
+# |  |  |- MaintenanceNotice.tsx # Component for maintenance mode
+# |  |  |- widgets/            # <<< Implement all needed widget components
+# |  |  |  |- WidgetLatestPosts.tsx
+# |  |  |  |- WidgetLatestProjects.tsx
+# |  |  |  |- WidgetSearch.tsx
+# |  |  |  |- WidgetCategories.tsx
+# |  |  |  |- WidgetTags.tsx
+# |  |  |  '- WidgetCustomHTML.tsx (uses Developer HTML)
+# |  |  |- blog/               # Components specific to blog rendering (PostCard, etc)
+# |  |  '- portfolio/        # Components specific to portfolio rendering (ProjectCard, Gallery, etc)
+# |  |- ui/
+# |- lib/
+# |  |- constants.ts        # Contains WIDGET_TYPES definition
+# |  |- queries.ts          # <<< Optional: Centralize complex Prisma queries
+# |- prisma/
+# |  |- schema.prisma       # Reference for model fields and relations
+# |- public/
+# |- .env.example           # Reference for ENV vars affecting public site
+# ```
+
+# 0.7 Core Module Interface Summary (Focus)
+# - `lib/prisma.ts`: Used extensively for fetching all dynamic content and config.
+# - `lib/config.ts`: `getGlobalConfig()` likely used heavily in `PublicLayout`.
+# - `lib/constants.ts`: `WIDGET_TYPES` used for mapping widget types in Footer/Sidebar.
+# - `components/core/`: N/A directly, unless reusing something basic.
+# - `PublicLayout` (`app/(public)/layout.tsx`): Assumed to be correctly implemented (from Appendix B) to handle theme injection, core structure, maintenance mode check, Cookie Banner logic trigger, ThemeSwitcher logic trigger, LoadingSpinner logic trigger. Your pages render *inside* this layout.
+
+# 0.8 Basic Workflow
+# - Version Control: Use Git. Create a branch (e.g., `feature/public-frontend`).
+# - Install Dependencies: `npm install swiper` if using sliders for portfolio.
+# - Develop Pages/Components: Implement each public page and supporting component.
+# - Data Fetching: Use Prisma within Server Components or API routes called by client components (prefer server).
+# - Styling: Use Tailwind CSS classes. Themes are applied via CSS variables from the layout.
+# - Test: Verify all public pages render correctly with dynamic data and configuration. Test different themes if multiple are configured. Check responsiveness. Validate 404/error states.
+
+# ---------------------------------------------------------------------------
+# End of Chapter 0
+# ---------------------------------------------------------------------------
+
+
+# ############################################################################
+# Chapter 15b: Public_Frontend_Implementation                               #
+#              (Dynamic Public Site Rendering)                              #
+# ############################################################################
+
+# **Objective:** Implement all public-facing pages of the Neurowitch application, ensuring they dynamically display content and adhere to layout/theming configurations fetched from the database via the Core Prisma client and `GlobalConfig`.
+
+# **Specific Technology:** Next.js (App Router, Server Components, Client Components), React, TypeScript, Prisma, Tailwind CSS, next/image, optional: Swiper.js.
+
+# **Detailed Responsibilities:**
+
+# 1.  **Public Layout (`app/(public)/layout.tsx`):**
+#     - **Verify understanding:** Confirm this layout (as modified by Appendix B) already handles:
+#       - Fetching `GlobalConfig`.
+#       - Checking `maintenanceModeEnabled` and rendering `<MaintenanceNotice />` if true.
+#       - Determining applicable light/dark `ThemePreset` IDs (from `themeAssignments` or defaults).
+#       - Fetching `ThemePreset.config` JSON for both themes.
+#       - Generating and injecting CSS variables into a `<style>` tag in the `<head>`.
+#       - Conditionally rendering `<LoadingSpinner>` based on `loadingSpinnerConfig`.
+#       - Conditionally rendering `<ThemeSwitcher />` based on `themeSwitcherConfig`.
+#       - Conditionally rendering `<CookieBanner />` based on `cookieBannerText`/`cookieBannerLinkPageId`.
+#       - Applying sticky classes based on `stickyElementsConfig`.
+#       - Rendering the main structural components: `<Header />`, `<Sidebar />` (optional), `<Footer />`, and the `{children}` (which will be your page components).
+#     - **Task:** No direct implementation here unless verification reveals issues with the Appendix B implementation. Focus is on components rendered *by* the layout and the pages rendered *within* it.
+
+# 2.  **Dynamic Layout Components (`components/public/`):**
+#     - **`<Header />`:**
+#       - Receive header configuration (parsed JSON from `GlobalConfig.header`) as a prop from `PublicLayout`.
+#       - Render logo (using `next/image` and `logoUrl` from `GlobalConfig`), site name (`siteName`), navigation menu, and social links based on the received config object's structure and visibility flags (as defined/saved by Module 4).
+#       - Fetch menu items (`{ title, slug }` where `includeInMenu: true`, ordered by `menuOrder`) from API route `GET /api/pages/menu` (created in Module 7) and render navigation links using `next/link`. **Menu item text in Spanish.**
+#     - **`<Footer />`:**
+#       - Receive footer configuration (parsed JSON including `footerWidgetsJson` and `footerHtmlContent`) as props from `PublicLayout`.
+#       - Render the secondary HTML content (`footerHtmlContent`) using `dangerouslySetInnerHTML`.
+#       - Dynamically render widgets based on the `footerWidgetsJson` array:
+#         - Iterate through the widget array in the JSON.
+#         - For each item, conditionally render the corresponding widget component (from `components/public/widgets/`) based on its `type` property. Pass any necessary config/props.
+#     - **`<Sidebar />` (Optional):**
+#       - If the design includes a sidebar, implement similarly to `<Footer />`.
+#       - Receive sidebar configuration (parsed `sidebarConfigJson` including widgets, position, width) as props.
+#       - Render widgets dynamically based on the JSON. Apply positioning/width styles.
+#     - **`<CookieBanner />`:**
+#       - Receive `text`, `pageSlug` (or `pageId` to construct slug) as props from `PublicLayout`.
+#       - Display the `text`. Render a `next/link` to `/` + `pageSlug`.
+#       - Include an "Aceptar" button. Use a Client Component (`'use client'`) and state (e.g., `useState`, Context, or Zustand) to hide the banner on click and persist the acceptance (e.g., set a cookie `cookieConsent=true`). **Text must be in Spanish.**
+#     - **`<ThemeSwitcher />`:**
+#       - Assume this component (likely from Module 2) already handles toggling the `dark` class on the `<html>` tag and persisting the preference (via cookie or localStorage - prefer cookie). Ensure it renders correctly based on `themeSwitcherConfig` prop (style, position).
+
+# 3.  **Widget Components (`components/public/widgets/`):**
+#     - Create a React component for **each** widget type defined in `lib/constants.ts WIDGET_TYPES`.
+#     - **Example `WidgetLatestPosts.tsx`:**
+#       - Fetch latest published posts (e.g., top 3-5) from Prisma or a dedicated API endpoint (e.g., `GET /api/blog/latest` - ensure this exists or create it).
+#       - Display posts as a list with titles/links. **UI text in Spanish.**
+#     - **Example `WidgetSearch.tsx`:**
+#       - Render a simple search form (`<input type="search">`, button).
+#       - On submit, redirect the user to the search results page (e.g., `/blog/search?q=query` or a global `/search?q=query`). **UI text in Spanish.**
+#     - **Example `WidgetCategories.tsx` / `WidgetTags.tsx`:**
+#       - Fetch categories/tags from Prisma (potentially with post counts).
+#       - Display as a list of links pointing to `/blog/category/[slug]` or `/blog/tag/[slug]`. **UI text in Spanish.**
+#     - **Example `WidgetCustomHTML.tsx`:**
+#       - Fetch `developerHtmlContent` from `GlobalConfig` (best if passed as prop from layout).
+#       - Render using `dangerouslySetInnerHTML`. Include comments about security reliance on [master] input.
+#     - Ensure all widgets receive necessary configuration/props from Footer/Sidebar and render content correctly. **All user-facing text must be in Spanish.**
+
+# 4.  **Public Page Implementations (`app/(public)/`):**
+#     - Use **Server Components** for data fetching (Prisma) and rendering wherever possible.
+#     - Use the **Metadata API** (`export async function generateMetadata(...)`) in each page file to set page-specific titles, descriptions, OG tags, canonical URLs, etc., fetching necessary data.
+#     - Render all page content within the `PublicLayout` (happens implicitly via `{children}`).
+#     - **Homepage (`page.tsx`):**
+#       - Fetch `StaticPage` where `isHomePage: true` and `isVisible: true`.
+#       - Render its `contentHtml` using `dangerouslySetInnerHTML`. Handle case where no homepage is set.
+#       - Generate appropriate metadata.
+#     - **Static Pages (`[slug]/page.tsx`):**
+#       - Implement `generateStaticParams` to fetch slugs of visible `StaticPage`s (if using SSG).
+#       - Fetch `StaticPage` by `params.slug`. Check `isVisible`. Return `notFound()` if not found/visible.
+#       - Render `contentHtml` using `dangerouslySetInnerHTML`.
+#       - Generate metadata based on the page's title/content.
+#     - **Blog List (`blog/page.tsx`):**
+#       - Fetch published `Post`s, ordered by `publishedAt` or `createdAt` descending. Implement pagination (using searchParams `?page=N`). Fetch total count for pagination UI.
+#       - Use `GlobalConfig.blogConfig` (if available) for settings like posts per page.
+#       - Render a list of posts (e.g., using a `PostCard` component) showing title, excerpt, cover image (`next/image`), author, date, category link. Include "Leer más" links. **Text in Spanish.**
+#       - Render pagination controls.
+#       - Generate metadata (e.g., "Blog - Página N").
+#     - **Blog Detail (`blog/[slug]/page.tsx`):**
+#       - Implement `generateStaticParams` for published post slugs (if using SSG).
+#       - Fetch `Post` by `params.slug`. Check status is `PUBLISHED`. Return `notFound()` otherwise. Fetch related category/tags/author.
+#       - Render title, cover image, author name, date, category link, tags links. Render `content` using `dangerouslySetInnerHTML`.
+#       - Generate metadata using post title, excerpt, cover image.
+#     - **Blog Category/Tag (`blog/category/[slug]/page.tsx`, `blog/tag/[slug]/page.tsx`):**
+#       - Implement `generateStaticParams` for category/tag slugs.
+#       - Fetch the Category/Tag by slug to get its ID/name. Return `notFound()` if not found.
+#       - Fetch published `Post`s filtered by the categoryId/tagId (requires Prisma relation query). Implement pagination.
+#       - Render the list similar to the main blog list, potentially displaying the category/tag name as a title. **Text in Spanish.**
+#       - Generate metadata (e.g., "Posts en Categoría X").
+#       *(Assumption: Need Post<->Tag relation implemented, possibly ManyToMany)*
+#     - **Portfolio List (`portfolio/page.tsx`):**
+#       - Fetch published `Project`s (paginated).
+#       - Use `GlobalConfig.portfolioConfig` for layout settings (e.g., grid columns).
+#       - Render list/grid of projects (e.g., `ProjectCard` component) with title, cover image, excerpt, category link. **Text in Spanish.**
+#       - Render pagination.
+#       - Generate metadata.
+#     - **Portfolio Detail (`portfolio/[slug]/page.tsx`):**
+#       - Implement `generateStaticParams` for published project slugs.
+#       - Fetch `Project` by `params.slug`. Check status is `PUBLISHED`. Return `notFound()`. Fetch related category.
+#       - Render title, category link, content (`dangerouslySetInnerHTML`).
+#       - **Render Images based on `displayType`:**
+#         - `SINGLE`: Show `coverImage`.
+#         - `GALLERY`/`GRID`: Display `coverImage` and images from `additionalImageUrls` JSON array in a gallery/grid layout (may require client component).
+#         - `SLIDER`: Display images in a slider/carousel (requires client component and likely a library like `Swiper.js`).
+#       - Generate metadata.
+#     - **Portfolio Category (`portfolio/category/[slug]/page.tsx`):**
+#       - Implement `generateStaticParams` for category slugs.
+#       - Fetch Category by slug. Fetch published `Project`s filtered by categoryId (paginated).
+#       - Render list similar to main portfolio list. **Text in Spanish.**
+#       - Generate metadata.
+#     - **Not Found Page (`not-found.tsx`):**
+#       - Create `app/(public)/not-found.tsx`.
+#       - Design a user-friendly 404 page. **Text must be in Spanish.** (e.g., "Página No Encontrada", "Lo sentimos, la página que buscas no existe."). Include a link back to the homepage.
+
+# 5.  **Final Checks:**
+#     - Ensure all links (`next/link`) work correctly.
+#     - Verify responsiveness across different screen sizes.
+#     - Confirm accessibility standards (semantic HTML, alt text for images where appropriate).
+#     - Double-check that ALL user-visible text is in Spanish.
+
+# **Dependencies:**
+# - Core_Module: Prisma client, `getGlobalConfig`, potentially other utils.
+# - UI_Framework_Module: `PublicLayout`.
+# - Content Modules (Blog, Portfolio, StaticPages): Prisma models and potentially specific API routes (like `/api/blog/latest`).
+# - Theme Module: `ThemePreset` model (used indirectly via layout).
+# - Site Config Module: `GlobalConfig` structure, `WIDGET_TYPES`.
+# - External Libraries: Optionally `swiper`.
+
+# **Completion Criteria:**
+# - All public pages (Homepage, Static Pages, Blog List/Detail/Category/Tag, Portfolio List/Detail/Category) are implemented and functional.
+# - Content, layout structure (Header/Footer/Sidebar widgets), and theming are dynamically driven by database configuration (`GlobalConfig`, `ThemePreset`, content models).
+# - Server Components are prioritized for data fetching and rendering.
+# - Dynamic `generateMetadata` is implemented for relevant pages providing good SEO defaults.
+# - Pages handle "not found" scenarios correctly.
+# - Components like Cookie Banner and Theme Switcher are functional.
+# - All user-facing text is confirmed to be in Spanish.
+# - The public site is responsive and reasonably accessible.
+# - Code follows project principles.
+
+# ############################################################################
+# End of Chapter 15b                                                        #
+# ############################################################################
+
+Apéndice
+
+-Para generar el menu de navegación de las páginas públicas, el listado de paginas está en la tabla PageView
+-Implementar el sistema de estadísticas y conteo de visitas
+-Tomar del código la información relevante
+
+Nota a tener en cuenta:
+
+# Manejo de Errores en Archivos Grandes
+Durante el desarrollo del proyecto se identificaron problemas con la edición de archivos grandes o complejos, como truncamiento de contenido o corrupciones en la edición. Para evitar estos problemas, se recomiendan las siguientes estrategias:
+
+1. **División en Componentes Más Pequeños**: Dividir componentes grandes en subcomponentes más pequeños y manejables. Por ejemplo, en lugar de un solo archivo `AppearanceForm.tsx`, podría dividirse en `GeneralSettingsTab.tsx`, `ThemeAssignmentsTab.tsx`, etc.
+
+2. **Método de Creación por Partes**:
+   - Cuando se trabaje con archivos grandes, crearlos por partes y luego combinarlos mediante comandos de terminal.
+   - Ejemplo: Dividir el archivo en `Part1.tsx`, `Part2.tsx`, etc., y luego combinarlos con `Get-Content file1.tsx, file2.tsx | Set-Content finalFile.tsx`
+
+3. **Actualizaciones Incrementales**:
+   - Al modificar archivos grandes, realizar cambios pequeños e incrementales en lugar de actualizaciones extensas en una sola operación.
+   - Probar cada cambio incremental antes de continuar con el siguiente.
+
+4. **Verificación de Completitud**:
+   - Después de crear o actualizar archivos grandes, siempre verificar que el contenido esté completo y correcto.
+   - Utilizar herramientas como `Get-Content` para inspeccionar el archivo completo.

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCurrentUserRole } from "@/lib/auth";
-import { Role } from "@prisma/client";
+import { Role } from "@/lib/auth-client";
 import UserForm from "@/components/admin/users/UserForm";
 
 export default function NewUserPage() {

@@ -15,7 +15,8 @@ import { generateBaseMetadata, generateWebsiteJsonLd, GlobalConfig } from "@/lib
 import { getGlobalConfig } from "@/lib/config";
 import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from "@/lib/themeUtils";
 import { getSectionWithItems, SiteSectionWithItems } from "@/lib/config";
-import { SectionType } from "@prisma/client";
+// Importación segura para cliente/SSR del enum SectionType
+import { SectionType } from "@/lib/section-client";
 import { Metadata } from "next";
 import Script from "next/script";
 

@@ -1,4 +1,5 @@
-import { WidgetType } from '@prisma/client';
+// Importación segura del enum WidgetType para cliente/SSR
+import { WidgetType } from '@/lib/widget-client';
 import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import WidgetRenderer from './WidgetRenderer';
 import dynamic from 'next/dynamic';
@@ -139,28 +140,50 @@ export default async function Footer({
                 }
               `}</style>
               {configWidgets.map((widget, index: number) => {
-                // Detección del tipo de fondo
-                let cardBackgroundType = lightConfig?.cards?.background?.type || "color";
-                let cardBackgroundValue = lightConfig?.cards?.background?.value || "#fff";
-                let cardThemeId = lightConfig?.id;
-                let style: React.CSSProperties = {};
-                if (cardBackgroundType === "image" && cardThemeId) {
-                  style.backgroundImage = `url(/images/backgrounds/card-${cardThemeId}.jpg)`;
-                  style.backgroundSize = "cover";
-                  style.backgroundPosition = "center";
-                  style.backgroundRepeat = "no-repeat";
-                } else if (cardBackgroundType === "gradient") {
-                  style.backgroundImage = cardBackgroundValue;
-                } else if (cardBackgroundType === "color") {
-                  style.background = cardBackgroundValue;
+                // Determinar el estilo de fondo para este widget específico
+                let widgetStyle: React.CSSProperties = {};
+                
+                // Si el widget tiene una configuración de fondo específica
+                if (widget.config?.background) {
+                  if (widget.config.background.type === "image") {
+                    // Para imágenes, configurar propiedades individuales sin usar 'background'
+                    widgetStyle = {
+                      backgroundImage: `url(/images/backgrounds/widget-${widget.id}.img)`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                      backgroundRepeat: "no-repeat"
+                    };
+                  } else if (widget.config.background.value) {
+                    // Para gradientes o colores planos, usar la propiedad 'background'
+                    widgetStyle = {
+                      background: widget.config.background.value
+                    };
+                  }
+                } else {
+                  // Fallback al estilo del tema del footer cuando no hay config específico
+                  let cardBackgroundType = lightConfig?.cards?.background?.type || "color";
+                  let cardBackgroundValue = lightConfig?.cards?.background?.value || "#fff";
+                  let cardThemeId = lightConfig?.id;
+                  
+                  if (cardBackgroundType === "image" && cardThemeId) {
+                    widgetStyle.backgroundImage = `url(/images/backgrounds/card-${cardThemeId}.img)`;
+                    widgetStyle.backgroundSize = "cover";
+                    widgetStyle.backgroundPosition = "center";
+                    widgetStyle.backgroundRepeat = "no-repeat";
+                  } else if (cardBackgroundType === "gradient") {
+                    widgetStyle.background = cardBackgroundValue;
+                  } else if (cardBackgroundType === "color") {
+                    widgetStyle.background = cardBackgroundValue;
+                  }
                 }
+                
                 return (
-                  <div key={widget.id || `widget-${index}`} className="widget-card" style={style}>
+                  <div key={widget.id || `widget-${index}`} className="widget-card" style={widgetStyle}>
                     <WidgetRenderer 
                       widget={widget as any} 
                     />
                   </div>
-                )
+                );
               })}
             </div>
           )}

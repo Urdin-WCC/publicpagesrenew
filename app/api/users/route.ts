@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUserRole } from "@/lib/auth";
-import { Role } from "@prisma/client";
 import { logAdminAction } from "@/lib/stats";
 import { hashSync } from "bcrypt";
 
@@ -19,7 +18,7 @@ export async function GET(req: NextRequest) {
     // Check if the user is authorized (ADMIN or MASTER)
     const currentUserRole = await getCurrentUserRole();
     
-    if (!currentUserRole || (currentUserRole !== Role.ADMIN && currentUserRole !== Role.MASTER)) {
+    if (!currentUserRole || (currentUserRole !== "ADMIN" && currentUserRole !== "MASTER")) {
       return NextResponse.json(
         { error: "No tienes permiso para acceder a esta información" },
         { status: 403 }
@@ -60,7 +59,7 @@ export async function POST(req: NextRequest) {
     // Check if the user is authorized (ADMIN or MASTER)
     const currentUserRole = await getCurrentUserRole();
     
-    if (!currentUserRole || (currentUserRole !== Role.ADMIN && currentUserRole !== Role.MASTER)) {
+    if (!currentUserRole || (currentUserRole !== "ADMIN" && currentUserRole !== "MASTER")) {
       return NextResponse.json(
         { error: "No tienes permiso para crear usuarios" },
         { status: 403 }
@@ -92,18 +91,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate role hierarchy
-    const roleValues: Record<Role, number> = {
-      [Role.COLLABORATOR]: 1,
-      [Role.EDITOR]: 2,
-      [Role.ADMIN]: 3,
-      [Role.MASTER]: 4,
+    const roleOrder: Record<string, number> = {
+      COLLABORATOR: 1,
+      EDITOR: 2,
+      ADMIN: 3,
+      MASTER: 4,
     };
 
-    const requestedRoleValue = roleValues[role as Role] || 0;
-    const currentRoleValue = roleValues[currentUserRole] || 0;
+    const requestedRoleValue = roleOrder[role] || 0;
+    const currentRoleValue = roleOrder[currentUserRole] || 0;
 
-    // MASTER users can create other MASTER users, but other roles must create lower roles
-    if (currentUserRole !== Role.MASTER && requestedRoleValue >= currentRoleValue) {
+    // MASTER users can create other MASTER users, pero otros roles sólo usuarios de menor rango
+    if (currentUserRole !== "MASTER" && requestedRoleValue >= currentRoleValue) {
       return NextResponse.json(
         { error: "No puedes crear un usuario con un rol igual o superior al tuyo" },
         { status: 403 }
@@ -128,11 +127,12 @@ export async function POST(req: NextRequest) {
     // Create the user
     const newUser = await prisma.user.create({
       data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: role as Role,
-      },
+        name: String(name),
+        email: String(email),
+        password: String(hashedPassword),
+        role: String(role),
+        updatedAt: new Date(),
+      } as any,
     });
 
     // Log the admin action

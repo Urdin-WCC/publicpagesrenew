@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { fetchGlobalConfig, saveGlobalConfig } from "@/actions/config-actions";
-import { Button } from "@/components/ui/button";
+import { AdminButton } from "@/components/admin/ui/AdminButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useSWR from "swr";
 import { toast } from "sonner";
@@ -55,6 +55,7 @@ interface StickyElementsConfig {
 interface AppearanceFormValues {
   defaultLightThemePresetId: number | null;
   defaultDarkThemePresetId: number | null;
+  adminPanelThemePresetId: number | null;
   themeAssignments: ThemeAssignment[];
   loadingSpinnerConfig: LoadingSpinnerConfig;
   themeSwitcherConfig: ThemeSwitcherConfig;
@@ -100,6 +101,7 @@ export default function AppearanceForm() {
     defaultValues: {
       defaultLightThemePresetId: null,
       defaultDarkThemePresetId: null,
+      adminPanelThemePresetId: null,
       themeAssignments: [],
       loadingSpinnerConfig: {
         enabled: false,
@@ -144,10 +146,13 @@ export default function AppearanceForm() {
           setValue("defaultLightThemePresetId", Number(config.defaultLightThemePresetId));
           console.log("✅ Tema claro predeterminado establecido:", config.defaultLightThemePresetId);
         }
-        
         if (config.defaultDarkThemePresetId) {
           setValue("defaultDarkThemePresetId", Number(config.defaultDarkThemePresetId));
           console.log("✅ Tema oscuro predeterminado establecido:", config.defaultDarkThemePresetId);
+        }
+        if (config.adminPanelThemePresetId) {
+          setValue("adminPanelThemePresetId", Number(config.adminPanelThemePresetId));
+          console.log("✅ Tema de panel de administración establecido:", config.adminPanelThemePresetId);
         }
         
         // Cargar asignaciones de temas
@@ -270,6 +275,7 @@ export default function AppearanceForm() {
       const saveData = {
         defaultLightThemePresetId: data.defaultLightThemePresetId,
         defaultDarkThemePresetId: data.defaultDarkThemePresetId,
+        adminPanelThemePresetId: data.adminPanelThemePresetId,
         // Convertimos a JSON string todos los objetos
         themeAssignments: JSON.stringify(themeAssignmentsObj),
         loadingSpinnerConfig: JSON.stringify(data.loadingSpinnerConfig),
@@ -359,9 +365,9 @@ export default function AppearanceForm() {
       </Tabs>
       
       <div className="mt-6 flex justify-center">
-        <Button type="submit" disabled={isSubmitting} className="px-8">
+        <AdminButton type="submit" disabled={isSubmitting} className="px-8">
           {isSubmitting ? "Guardando..." : "Guardar Configuración de Apariencia"}
-        </Button>
+        </AdminButton>
       </div>
       
       {/* Muestra el estado de carga de datos iniciales */}

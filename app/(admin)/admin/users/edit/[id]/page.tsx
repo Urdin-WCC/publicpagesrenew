@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useCurrentUserRole } from "@/lib/auth";
-import { Role } from "@prisma/client";
+import { Role } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import UserForm from "@/components/admin/users/UserForm";

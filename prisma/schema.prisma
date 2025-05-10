@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/client"
 }
 
 datasource db {
@@ -8,24 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  password      String
-  role          Role      @default(COLLABORATOR)
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  posts         Post[]
-  projects      Project[]
-  sessions      Session[]
-}
-
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id
   userId            String
   type              String
   provider          String
@@ -37,30 +20,46 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
   @@index([userId], map: "Account_userId_fkey")
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId], map: "Session_userId_fkey")
+model AdminAction {
+  id        String   @id
+  userId    String
+  action    String
+  details   String?  @db.Text
+  module    String
+  createdAt DateTime @default(now())
 }
 
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
+model AdminLog {
+  id        Int       @id @default(autoincrement())
+  userId    String?   @db.VarChar(255)
+  userEmail String?   @db.VarChar(255)
+  action    String    @db.VarChar(255)
+  details   String?   @db.LongText
+  timestamp DateTime? @default(now()) @db.DateTime(0)
 
-  @@unique([identifier, token])
+  @@index([action], map: "idx_action")
+  @@index([timestamp], map: "idx_timestamp")
+  @@index([userId], map: "idx_userId")
 }
 
+model Category {
+  id          String    @id
+  name        String
+  slug        String    @unique
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  Post        Post[]
+  Project     Project[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model GlobalConfig {
   id                        String   @id @default("global")
   siteName                  String   @default("Neurowitch")
@@ -82,7 +81,7 @@ model GlobalConfig {
   social                    String?  @db.LongText
   sharing                   String?  @db.LongText
   createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  updatedAt                 DateTime
   maintenanceMode           Boolean  @default(false)
   blogConfig                String?  @db.LongText
   portfolioConfig           String?  @db.LongText
@@ -106,72 +105,25 @@ model GlobalConfig {
   accountLockoutDuration    Int?     @default(30)
   globalSeoTitle            String?
   navigationMenu            String?  @db.LongText
-}
-
-model AdminAction {
-  id        String   @id @default(cuid())
-  userId    String
-  action    String
-  details   String?  @db.Text
-  module    String
-  createdAt DateTime @default(now())
-}
-
-model ThemePreset {
-  id     Int    @id @default(autoincrement())
-  name   String @unique
-  config String @db.LongText
-}
-
-model Widget {
-  id        String      @id @default(cuid())
-  title     String
-  type      WidgetType
-  content   String?     @db.Text
-  config    String?     @db.LongText
-  order     Int         @default(0)
-  isActive  Boolean     @default(true)
-  sectionId String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-
-  @@index([sectionId], map: "Widget_sectionId_fkey")
-}
-
-model SiteSection {
-  id        String      @id @default(cuid())
-  name      String
-  type      SectionType
-  isActive  Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  menuItems MenuItem[]
-  widgets   Widget[]
+  adminPanelThemePresetId   Int?
 }
 
 model MenuItem {
-  id        String      @id @default(cuid())
-  label     String
-  url       String
-  order     Int         @default(0)
-  parentId  String?
-  sectionId String
-  isActive  Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  parent    MenuItem?   @relation("MenuItemToMenuItem", fields: [parentId], references: [id])
-  children  MenuItem[]  @relation("MenuItemToMenuItem")
-  section   SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  id             String      @id
+  label          String
+  url            String
+  order          Int         @default(0)
+  parentId       String?
+  sectionId      String
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime
+  MenuItem       MenuItem?   @relation("MenuItemToMenuItem", fields: [parentId], references: [id])
+  other_MenuItem MenuItem[]  @relation("MenuItemToMenuItem")
+  SiteSection    SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@index([parentId], map: "MenuItem_parentId_fkey")
   @@index([sectionId], map: "MenuItem_sectionId_fkey")
-}
-
-model Visit {
-  id    String   @id @default(cuid())
-  date  DateTime @unique
-  count Int      @default(0)
 }
 
 model PageView {
@@ -186,78 +138,80 @@ model PageView {
   @@index([url], map: "idx_url")
 }
 
-model Referrer {
-  id       String   @id @default(cuid())
-  referrer String
-  date     DateTime
-  count    Int      @default(0)
-}
-
 model Post {
-  id                String     @id @default(cuid())
+  id                String      @id
   title             String
-  slug              String     @unique
-  content           String     @db.Text
-  excerpt           String?    @db.Text
+  slug              String      @unique
+  content           String      @db.Text
+  excerpt           String?     @db.Text
   coverImage        String?
-  status            PostStatus @default(DRAFT)
+  status            Post_status @default(DRAFT)
   publishedAt       DateTime?
-  featured          Boolean    @default(false)
-  deleted           Boolean    @default(false)
+  featured          Boolean     @default(false)
+  deleted           Boolean     @default(false)
   authorId          String?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime
   authorDisplayName String?
   categoryId        String?
-  author            User?      @relation(fields: [authorId], references: [id])
-  category          Category?  @relation(fields: [categoryId], references: [id])
+  User              User?       @relation(fields: [authorId], references: [id])
+  Category          Category?   @relation(fields: [categoryId], references: [id])
 
   @@index([authorId], map: "Post_authorId_fkey")
   @@index([categoryId], map: "Post_categoryId_fkey")
 }
 
-model Category {
-  id          String    @id @default(cuid())
-  name        String
-  slug        String    @unique
-  description String?   @db.Text
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  posts       Post[]
-  projects    Project[]
-}
-
-model Tag {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
 model Project {
-  id                  String             @id @default(cuid())
+  id                  String              @id
   title               String
-  slug                String             @unique
-  content             String             @db.Text
-  excerpt             String?            @db.Text
+  slug                String              @unique
+  content             String              @db.Text
+  excerpt             String?             @db.Text
   coverImage          String?
-  additionalImageUrls String?            @db.LongText
-  displayType         ProjectDisplayType @default(SINGLE)
-  status              ProjectStatus      @default(DRAFT)
+  additionalImageUrls String?             @db.LongText
+  displayType         Project_displayType @default(SINGLE)
+  status              Project_status      @default(DRAFT)
   publishedAt         DateTime?
-  featured            Boolean            @default(false)
+  featured            Boolean             @default(false)
   authorDisplayName   String?
-  deleted             Boolean            @default(false)
+  deleted             Boolean             @default(false)
   authorId            String?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime
   categoryId          String?
-  author              User?              @relation(fields: [authorId], references: [id])
-  category            Category?          @relation(fields: [categoryId], references: [id])
+  User                User?               @relation(fields: [authorId], references: [id])
+  Category            Category?           @relation(fields: [categoryId], references: [id])
 
   @@index([authorId], map: "Project_authorId_fkey")
   @@index([categoryId], map: "Project_categoryId_fkey")
+}
+
+model Referrer {
+  id       String   @id
+  referrer String
+  date     DateTime
+  count    Int      @default(0)
+}
+
+model Session {
+  id           String   @id
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "Session_userId_fkey")
+}
+
+model SiteSection {
+  id        String           @id
+  name      String
+  type      SiteSection_type
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime
+  MenuItem  MenuItem[]
+  Widget    Widget[]
 }
 
 model StaticPage {
@@ -267,7 +221,7 @@ model StaticPage {
   contentHtml     String   @db.LongText
   isHomePage      Boolean  @default(false)
   createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  updatedAt       DateTime
   showHeader      Boolean? @default(true)
   showFooter      Boolean? @default(true)
   showSidebar     Boolean? @default(false)
@@ -277,27 +231,67 @@ model StaticPage {
   metaKeywords    String?  @db.VarChar(255)
 }
 
-model AdminLog {
-  id        Int       @id @default(autoincrement())
-  userId    String?   @db.VarChar(255)
-  userEmail String?   @db.VarChar(255)
-  action    String    @db.VarChar(255)
-  details   String?   @db.LongText
-  timestamp DateTime? @default(now()) @db.DateTime(0)
-
-  @@index([action], map: "idx_action")
-  @@index([timestamp], map: "idx_timestamp")
-  @@index([userId], map: "idx_userId")
+model Tag {
+  id        String   @id
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime
 }
 
-enum Role {
-  MASTER
-  ADMIN
-  EDITOR
-  COLLABORATOR
+model ThemePreset {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  config String @db.LongText
 }
 
-enum WidgetType {
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          User_role @default(COLLABORATOR)
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime
+  Account       Account[]
+  Post          Post[]
+  Project       Project[]
+  Session       Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Visit {
+  id    String   @id
+  date  DateTime @unique
+  count Int      @default(0)
+}
+
+model Widget {
+  id          String      @id
+  title       String
+  type        Widget_type
+  content     String?     @db.Text
+  config      String?     @db.LongText
+  order       Int         @default(0)
+  isActive    Boolean     @default(true)
+  sectionId   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  SiteSection SiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@index([sectionId], map: "Widget_sectionId_fkey")
+}
+
+enum Widget_type {
   LATEST_POSTS
   LATEST_PROJECTS
   SEARCH
@@ -309,27 +303,34 @@ enum WidgetType {
   RECENT_COMMENTS
 }
 
-enum SectionType {
+enum SiteSection_type {
   HEADER
   FOOTER
   SIDEBAR
 }
 
-enum PostStatus {
+enum User_role {
+  MASTER
+  ADMIN
+  EDITOR
+  COLLABORATOR
+}
+
+enum Post_status {
   DRAFT
   PUBLISHED
   ARCHIVED
 }
 
-enum ProjectStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
-
-enum ProjectDisplayType {
+enum Project_displayType {
   SINGLE
   GALLERY
   SLIDER
   GRID
+}
+
+enum Project_status {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
 }

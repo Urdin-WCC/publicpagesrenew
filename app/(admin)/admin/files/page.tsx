@@ -1,5 +1,5 @@
 import { withRoleProtection } from '@/lib/auth';
-import { Role } from '@prisma/client';
+import { Role } from "@/lib/auth-client";
 import FileExplorer from '@/components/admin/files/FileExplorer';
 
 // Protect this page - only ADMIN and MASTER roles can access it

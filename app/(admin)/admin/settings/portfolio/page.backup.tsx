@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Role } from '@prisma/client';
+import { Role } from "@/lib/auth-client";
 import useSWR from 'swr';
 
 // Importar la interfaz PortfolioConfig desde config-server.ts
@@ -33,55 +33,12 @@ interface ThemePreset {
 
 // Fetcher para SWR
 const fetcher = (url: string) => fetch(url).then(async res => {
-'use client';
-
-import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { hasPermission } from '@/lib/auth-utils';
-import { translations } from '@/app/translations';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { Role } from '@prisma/client';
-import useSWR from 'swr';
-
-'use client';
-
-import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { hasPermission } from '@/lib/auth-utils';
-import { translations } from '@/app/translations';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from 'sonner';
-import { Role } from '@prisma/client';
-import useSWR from 'swr';
-
-// Importar la interfaz PortfolioConfig desde config-server.ts
-import { PortfolioConfig } from '@/lib/config-server';
-
-// Fetcher para SWR
-const fetcher = (url: string) => fetch(url).then(async res => {
-    if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Error al cargar la configuración');
-    }
-    return res.json();
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Error al cargar la configuración');
+  }
+  return res.json();
 });
-
-
 
 export default function PortfolioSettingsPage() {
   const router = useRouter();
@@ -98,28 +55,24 @@ export default function PortfolioSettingsPage() {
     }
   );
 
-  // Configurar formulario
   const {
     register,
     handleSubmit,
     control,
     reset,
     watch,
-    setValue, // Añadir setValue para poder actualizar campos
-    formState: { errors, isDirty }, // isDirty para saber si hay cambios
+    setValue,
+    formState: { errors, isDirty },
   } = useForm<PortfolioConfig>();
 
-  // Resetear el formulario cuando la configuración se carga
   useEffect(() => {
     if (portfolioConfig) {
       reset(portfolioConfig);
     }
   }, [portfolioConfig, reset]);
 
-  // Verificar permisos (ADMIN+)
   const canManageSettings = hasPermission(session?.user?.role, 'manage_settings');
 
-  // Manejar envío del formulario
   const onSubmit = async (data: PortfolioConfig) => {
     setIsSaving(true);
 
@@ -138,8 +91,8 @@ export default function PortfolioSettingsPage() {
       }
 
       const updatedConfig = await response.json();
-      mutate(updatedConfig, false); // Actualizar caché SWR sin revalidar
-      reset(updatedConfig); // Resetear form para quitar 'isDirty'
+      mutate(updatedConfig, false);
+      reset(updatedConfig);
       toast.success(translations.notifications.saveSuccess);
     } catch (error: any) {
       console.error('Error saving portfolio config:', error);
@@ -160,8 +113,6 @@ export default function PortfolioSettingsPage() {
   if (error) {
     return <p className="text-red-500 p-4">Error al cargar la configuración: {error.message}</p>
   }
-
-
 
   return (
     <div className="container mx-auto p-4">

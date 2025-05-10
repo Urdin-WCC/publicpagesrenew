@@ -1,0 +1,298 @@
+// Importación segura del enum WidgetType para cliente/SSR
+import { WidgetType } from '@/lib/widget-client';
+import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
+import WidgetRenderer from './WidgetRenderer';
+
+// Widget interface
+interface Widget {
+  id: string;
+  title: string;
+  type: WidgetType;
+  content: string | null;
+  config: any;
+  order: number;
+  isActive: boolean;
+  sectionId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Sidebar configuration interface
+interface SidebarConfig {
+  showWidgets?: boolean;
+  backgroundColor?: string;
+  textColor?: string;
+  width?: string;
+  visible?: boolean;
+  customHtml?: string;
+  widgets?: any[];
+}
+
+export interface SidebarProps {
+  widgets?: Widget[];
+  config?: any; // Config from GlobalConfig
+  position?: 'left' | 'right';
+  className?: string;
+  globalConfig?: any; // Global config for theme assignments
+  pathname?: string; // Current path
+}
+
+export default async function Sidebar({ 
+  widgets = [],
+  config,
+  position = 'right',
+  className = '',
+  globalConfig,
+  pathname = '/'
+}: SidebarProps) {
+  // Obtener temas específicos para el componente Sidebar en la ruta actual
+  const { lightConfig, darkConfig } = globalConfig 
+    ? await getThemeConfigsForComponent('sidebar', pathname, globalConfig)
+    : { lightConfig: null, darkConfig: null };
+  
+  // Generar CSS para los temas específicos del Sidebar
+  const sidebarThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.sidebar-component');
+  
+  // Parse config con valores predeterminados
+  let sidebarConfig: SidebarConfig = {
+    showWidgets: true,
+    backgroundColor: 'bg-gray-50',
+    textColor: 'text-gray-700',
+    width: 'w-64',
+    visible: true,
+    customHtml: ''
+  };
+  
+  try {
+    // Parse sidebar configuration if available
+    if (config) {
+      // Si es string, intentar parsearlo
+      const configData = typeof config === 'string' ? JSON.parse(config) : config;
+      
+      // Combinar con valores predeterminados
+      sidebarConfig = {
+        ...sidebarConfig,
+        ...configData,
+      };
+      
+      console.log('Parsed sidebar config:', sidebarConfig);
+    }
+  } catch (error) {
+    console.error('Error parsing sidebar config:', error);
+  }
+  
+  // Obtener el HTML personalizado
+  const customHtml = sidebarConfig.customHtml || '';
+  
+  // Clases de posición
+  const positionClasses = position === 'left' ? 'order-first' : 'order-last';
+  
+  // Visibilidad
+  if (sidebarConfig.visible === false) {
+    // Si está explícitamente configurado como invisible, no renderizar
+    return null;
+  }
+
+  // Obtener widgets de la configuración si están disponibles
+  // y asegurar que todos tengan un id válido
+  const configWidgets = (sidebarConfig.widgets || []).map((widget, index) => ({
+    ...widget,
+    id: widget.id || `sidebar-widget-${index}` // Garantizar que siempre hay un id
+  }));
+  
+  // Combinar widgets externos con los de la configuración
+  // y asegurar que todos tengan un id válido
+  const allWidgets = [
+    ...widgets.map((widget, index) => ({
+      ...widget,
+      id: widget.id || `sidebar-extern-${index}`
+    })),
+    ...configWidgets
+  ];
+
+  return (
+    <>
+      {/* Inyectar CSS para los temas específicos del sidebar */}
+      {sidebarThemeCSS && (
+        <style id="sidebar-theme-css" dangerouslySetInnerHTML={{ __html: sidebarThemeCSS }} />
+      )}
+      
+      {/* Estilos para los widgets - usando !important para sobrescribir estilos por defecto */}
+      <style>{`
+        .sidebar-component {
+          min-width: 0;
+          overflow-x: auto;
+          padding: var(--sidebar-padding-base, 1rem);
+          box-sizing: border-box;
+          flex-shrink: 0;
+        }
+        
+        /* Estilos base para todas las cards de widgets */
+        .sidebar-widget-card {
+          background-color: var(--sidebar-cards-background, white) !important;
+          border-radius: var(--sidebar-cards-borderRadius, 12px) !important;
+          box-shadow: var(--sidebar-cards-boxShadow, 0 4px 6px rgba(0,0,0,0.1)) !important;
+          border: var(--sidebar-cards-borderWidth, 1px) solid var(--sidebar-cards-borderColor, #e2e8f0) !important;
+          padding: var(--sidebar-cards-padding, 1rem) !important;
+          margin-bottom: 1.5rem !important;
+          transition: all 0.3s ease !important;
+          color: var(--sidebar-cards-foreground, inherit) !important;
+        }
+        
+        /* Sobreescritura para widgets con imágenes de fondo */
+        .sidebar-widget-card[data-bg-type="image"] {
+          background-color: transparent !important;
+          background-size: cover !important;
+          background-position: center !important;
+          background-repeat: no-repeat !important;
+        }
+        
+        /* Sobreescritura para widgets con fondos de color o gradiente */
+        .sidebar-widget-card[data-bg-type="color"],
+        .sidebar-widget-card[data-bg-type="gradient"] {
+          background-color: transparent !important;
+        }
+        
+        /* Hijos interiores no tienen fondo */
+        .sidebar-widget-card > * {
+          background: transparent !important;
+        }
+             
+        /* Modo oscuro - soporte para temas */
+        [data-theme="dark"] .sidebar-widget-card {
+          border-color: var(--sidebar-cards-borderColor-dark, #2d3748) !important;
+          color: var(--sidebar-cards-foreground-dark, inherit) !important;
+        }
+      `}</style>
+      
+      {/** 
+        Resolución del ancho:
+        - Si es px/%, se pone en style.
+        - Si empieza por "w-", se agrega a la clase.
+      */}
+      {(() => {
+        let widthClass = "";
+        let widthStyle: React.CSSProperties = {};
+        if (typeof sidebarConfig.width === "string") {
+          if (/^\d+(px|rem|em|vw|%)$/.test(sidebarConfig.width.trim())) {
+            widthStyle.width = sidebarConfig.width.trim();
+          } else if (sidebarConfig.width.startsWith("w-")) {
+            widthClass = sidebarConfig.width;
+          }
+        }
+        return (
+          <aside 
+            className={`sidebar-component ${positionClasses} ${widthClass} ${className}`}
+            data-position={position}
+            data-visible="true"
+            style={{
+              backgroundColor: 'var(--background-value, #f5f5f5)',
+              color: 'var(--typography-paragraph-color, inherit)',
+              ...widthStyle,
+              border: 'none',
+              height: '100%', /* Altura mínima para ocupar todo el espacio disponible */
+              minHeight: '100vh',
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
+            {/* Widgets - solo si showWidgets es true y hay widgets */}
+            {sidebarConfig.showWidgets && allWidgets.length > 0 && (
+              <div className="space-y-6">
+                {allWidgets.map((widget: Widget, index: number) => {
+                  // Configuración de fondo basada en widget.config
+                  let backgroundType = 'default';
+                  let backgroundStyle = {};
+                  let backgroundUrl = '';
+                  let backgroundValue = '';
+                  
+                  // Para diagnóstico
+                  if (widget.id === configWidgets[0]?.id || index === 0) {
+                    console.log('First widget data:', JSON.stringify({
+                      id: widget.id,
+                      config: widget.config,
+                      background: widget.config?.background
+                    }, null, 2));
+                  }
+
+                  // Si el widget tiene config de background específica
+                  if (widget.config?.background) {
+                    // Detectar tipo de fondo (imagen/color/gradiente)
+                    if (widget.config.background.type === 'image' || widget.config.background.url) {
+                      backgroundType = 'image';
+                      backgroundUrl = widget.config.background.url || 
+                                     `/images/backgrounds/widget-${widget.id}.webp`;
+                      
+                      // Estilo en línea para imagen de fondo (NO usar background shorthand)
+                      backgroundStyle = {
+                        backgroundImage: `url(${backgroundUrl})`
+                      };
+                    }
+                    else if (widget.config.background.value) {
+                      if (widget.config.background.value.includes('gradient')) {
+                        backgroundType = 'gradient';
+                      } else {
+                        backgroundType = 'color';
+                      }
+                      backgroundValue = widget.config.background.value;
+                      
+                      // Estilo para color/gradiente (directamente como background)
+                      backgroundStyle = {
+                        background: backgroundValue
+                      };
+                    }
+                  }
+                  // Si el widget tiene propiedad background directa
+                  else if ((widget as any).background) {
+                    const widgetBg = (widget as any).background;
+                    
+                    if (typeof widgetBg === 'string') {
+                      backgroundType = widgetBg.includes('gradient') ? 'gradient' : 'color';
+                      backgroundValue = widgetBg;
+                      backgroundStyle = { background: widgetBg };
+                    } 
+                    else if (widgetBg.type === 'image' || widgetBg.url) {
+                      backgroundType = 'image';
+                      backgroundUrl = widgetBg.url || 
+                                    `/images/backgrounds/widget-${widget.id}.webp`;
+                      backgroundStyle = {
+                        backgroundImage: `url(${backgroundUrl})`
+                      };
+                    }
+                  }
+                  
+                  return (
+                    <div 
+                      key={widget.id || `widget-${index}`}
+                      className="sidebar-widget-card"
+                      data-widget-id={widget.id}
+                      data-bg-type={backgroundType}
+                      data-bg-url={backgroundUrl || 'none'}
+                      style={{
+                        ...backgroundStyle
+                      }}
+                    >
+                      <WidgetRenderer widget={widget} />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
+            {/* HTML Personalizado */}
+            {customHtml && (
+              <div 
+                className="content-html"
+                style={{
+                  fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',
+                  fontSize: 'var(--typography-paragraph-fontSize, inherit)'
+                }}
+                dangerouslySetInnerHTML={{ __html: customHtml }}
+              />
+            )}
+          </aside>
+        );
+      })()}
+    </>
+  );
+}

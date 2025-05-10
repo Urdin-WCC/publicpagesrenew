@@ -1,5 +1,7 @@
 import { prisma } from './prisma';
-import { ThemePreset, SiteSection, MenuItem, Widget, SectionType } from '@prisma/client';
+// Importación segura para cliente/SSR del enum SectionType
+import { SectionType } from '@/lib/section-client';
+import { ThemePreset, SiteSection, MenuItem, Widget } from '@prisma/client';
 import type { GlobalConfig } from './config-server';
 
 /**
@@ -17,6 +19,7 @@ export async function getGlobalConfig(): Promise<GlobalConfig | null> {
         SELECT 
           id, siteName, description, maintenanceMode, 
           defaultLightThemePresetId, defaultDarkThemePresetId,
+          adminPanelThemePresetId,
           themeAssignments, loadingSpinnerConfig, 
           themeSwitcherConfig, stickyElementsConfig, sharing,
           navigationMenu
@@ -146,10 +149,17 @@ export async function getActiveTheme(): Promise<ThemePreset | null> {
 
 /**
  * Type definition for SiteSection including its related items.
+ * Esta interfaz mantiene la compatibilidad API existente (menuItems/widgets minúsculas)
  */
 export type SiteSectionWithItems = SiteSection & {
   menuItems: MenuItem[];
   widgets: Widget[];
+};
+
+// Tipo para el formato de respuesta actual de Prisma (MenuItem/Widget mayúsculas)
+type PrismaSectionResponse = SiteSection & {
+  MenuItem: MenuItem[];
+  Widget: Widget[];
 };
 
 /**
@@ -160,23 +170,35 @@ export type SiteSectionWithItems = SiteSection & {
  */
 export async function getSectionWithItems(sectionType: SectionType): Promise<SiteSectionWithItems | null> {
   try {
-    const section = await prisma.siteSection.findFirst({
+    // Obtenemos el resultado con los nombres actuales del schema (MenuItem/Widget)
+    const rawSection = await prisma.siteSection.findFirst({
       where: {
         type: sectionType,
-        isActive: true, // Ensure the section itself is active
+        isActive: true,
       },
       include: {
-        menuItems: {
-          where: { isActive: true }, // Only include active menu items
-          orderBy: { order: 'asc' }, // Order menu items
+        MenuItem: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
         },
-        widgets: {
-          where: { isActive: true }, // Only include active widgets
-          orderBy: { order: 'asc' }, // Order widgets
+        Widget: {
+          where: { isActive: true },
+          orderBy: { order: 'asc' },
         },
       },
-    });
-    return section;
+    }) as PrismaSectionResponse | null;
+    
+    // Si no hay sección, devolvemos null
+    if (!rawSection) return null;
+    
+    // Adaptamos el resultado para cumplir con el tipo SiteSectionWithItems
+    const adaptedSection: SiteSectionWithItems = {
+      ...rawSection,
+      menuItems: rawSection.MenuItem || [], // Mapeo de MenuItem → menuItems
+      widgets: rawSection.Widget || [],     // Mapeo de Widget → widgets
+    };
+    
+    return adaptedSection;
   } catch (error) {
     console.error(`Error fetching section ${sectionType}:`, error);
     return null; // Or throw error

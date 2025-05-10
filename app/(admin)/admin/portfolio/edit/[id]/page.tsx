@@ -19,7 +19,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { toast } from 'sonner';
 import HtmlEditor from '@/components/core/HtmlEditor';
 import ImageUploader from '@/components/core/ImageUploader';
-import { Role } from '@prisma/client';
+import { Role } from "@/lib/auth-client";
 
 // Custom types for ProjectStatus and ProjectDisplayType since they might not be exported from Prisma
 type ProjectStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
