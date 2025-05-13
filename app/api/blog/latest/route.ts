@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { PostStatus } from '@prisma/client';
+import { Post_status } from '@prisma/client';
 
 // GET - Obtener los posts más recientes para widgets, etc.
 export async function GET(request: Request) {
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   try {
     const latestPosts = await prisma.post.findMany({
       where: {
-        status: PostStatus.PUBLISHED, // Solo posts publicados
+        status: Post_status.PUBLISHED, // Solo posts publicados
         deleted: false,             // No eliminados lógicamente
       },
       orderBy: {

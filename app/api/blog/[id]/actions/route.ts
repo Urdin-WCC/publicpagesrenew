@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/auth';
 import { hasPermission } from '@/lib/auth-utils';
 import { logAdminAction } from '@/lib/stats';
-import { PostStatus } from '@prisma/client';
+import { Post_status } from '@prisma/client';
 
 interface RouteParams {
   params: { id: string };
@@ -65,7 +65,7 @@ export async function POST(request: Request, { params }: RouteParams) {
           );
         }
         updateData = { 
-          status: PostStatus.PUBLISHED,
+          status: Post_status.PUBLISHED,
           publishedAt: new Date()
         };
         actionType = 'PUBLISH_POST';
@@ -73,13 +73,13 @@ export async function POST(request: Request, { params }: RouteParams) {
         break;
 
       case 'archive':
-        updateData = { status: PostStatus.ARCHIVED };
+        updateData = { status: Post_status.ARCHIVED };
         actionType = 'ARCHIVE_POST';
         actionDetails = `Post archivado: ${existingPost.title} (ID: ${id})`;
         break;
 
       case 'unarchive':
-        updateData = { status: PostStatus.DRAFT };
+        updateData = { status: Post_status.DRAFT };
         actionType = 'UNARCHIVE_POST';
         actionDetails = `Post desarchivado: ${existingPost.title} (ID: ${id})`;
         break;

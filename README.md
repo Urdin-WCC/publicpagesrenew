@@ -54,22 +54,31 @@ Este módulo implementa toda la funcionalidad relacionada con el blog de la apli
 - `app/api/settings/blog/`: Ruta API de configuración del blog.
 - `prisma/schema.prisma`: Modelos `Post`, `Category`, `Tag`, `PostStatus`.
 
-## Tema Multi-Ruta (Anexo B)
+## Sistema de Temas
 
-Se ha implementado un sistema de temas flexible que permite:
+Neurowitch implementa un sistema avanzado de gestión de temas que permite:
 
 - Configuración separada de temas para modos claro y oscuro
 - Asignación de diferentes temas según la ruta/contexto
 - Control detallado de elementos UI como LoadingSpinner y ThemeSwitcher
 - Configuración de posicionamiento sticky para elementos de interfaz
 
-La refactorización incluyó:
-- Nuevos modelos de datos para ThemePreset y campos en GlobalConfig
-- Funciones de utilidad en `lib/themeUtils.ts`
-- Actualización del layout público para usar el nuevo sistema
-- Base para la futura interfaz administrativa de temas (Módulo 7)
+### Componente ThemeStyleManager (Actualización Mayo 2025)
 
-Para más detalles, consulta la [documentación completa del sistema de temas](./docs/theme-system-refactoring.md).
+Se ha implementado una actualización importante del sistema de temas mediante el componente `ThemeStyleManager`, que:
+
+- **Centraliza** toda la lógica relacionada con temas en un único componente
+- **Simplifica** la aplicación de temas en páginas y componentes
+- **Mejora** la consistencia y mantenibilidad del código
+- **Optimiza** el rendimiento al reducir la duplicación en la generación de CSS
+
+Esta actualización reemplaza el enfoque anterior que utilizaba funciones `getThemeConfigsForRoute`/`getThemeConfigsForComponent` y `generateCssFromThemeConfigs` directamente en cada archivo.
+
+Para más detalles, consulta:
+- [Documentación del nuevo sistema ThemeStyleManager](./README-theme-manager.md)
+- [Guía de aplicación de estilos de tema](./README-theme-styling-guide.md)
+- [Documentación del sistema anterior de temas](./README-theme-fix.md)
+- [Guía de desarrollo para la interfaz pública](./PUBLIC-INTERFACE-GUIDE.md)
 
 ## Módulo 14: HTML Wrapper (Developer Custom Content Widget)
 

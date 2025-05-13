@@ -165,21 +165,22 @@ export default function WidgetRenderer({ widget }: WidgetRendererProps) {
     case WidgetTypes.LOGO:
     case 'logo':
       return (
-        <a href="/" style={{ display: "block", width: "100%", height: "100%" }}>
-          <img
-            src="/images/logo.img"
-            alt="Logo"
-            style={{
-              display: "block",
-              maxWidth: "100%",
-              maxHeight: "100%",
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              margin: "0 auto"
-            }}
-          />
-        </a>
+        <div className="flex items-center justify-center h-full">
+          <a href="/" style={{ display: "block" }}>
+            <img
+              src="/images/logo.img"
+              alt="Logo"
+              style={{
+                display: "block",
+                maxWidth: "100%",
+                width: "auto",
+                maxHeight: "150px", /* Altura máxima razonable */
+                objectFit: "contain",
+                margin: "0 auto"
+              }}
+            />
+          </a>
+        </div>
       );
     case WidgetTypes.NAVIGATION:
       return (

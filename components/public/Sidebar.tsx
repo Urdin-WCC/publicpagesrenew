@@ -1,6 +1,9 @@
-// Importación segura del enum WidgetType para cliente/SSR
+'use client'
+
+import { useState, useEffect } from "react";
 import { WidgetType } from '@/lib/widget-client';
-import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
+// Ya no usamos estas imports
+// import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import WidgetRenderer from './WidgetRenderer';
 
 // Widget interface
@@ -37,7 +40,7 @@ export interface SidebarProps {
   pathname?: string; // Current path
 }
 
-export default async function Sidebar({ 
+export default function Sidebar({
   widgets = [],
   config,
   position = 'right',
@@ -45,15 +48,24 @@ export default async function Sidebar({
   globalConfig,
   pathname = '/'
 }: SidebarProps) {
-  // Obtener temas específicos para el componente Sidebar en la ruta actual
-  const { lightConfig, darkConfig } = globalConfig 
-    ? await getThemeConfigsForComponent('sidebar', pathname, globalConfig)
-    : { lightConfig: null, darkConfig: null };
-  
-  // Generar CSS para los temas específicos del Sidebar
-  const sidebarThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.sidebar-component');
-  
-  // Parse config con valores predeterminados
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return document.documentElement.classList.contains("dark");
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
+
+  // El CSS del tema ya se inyecta desde layout.tsx
+  // No necesitamos generar ni inyectar CSS aquí
+
   let sidebarConfig: SidebarConfig = {
     showWidgets: true,
     backgroundColor: 'bg-gray-50',
@@ -62,46 +74,31 @@ export default async function Sidebar({
     visible: true,
     customHtml: ''
   };
-  
+
   try {
-    // Parse sidebar configuration if available
     if (config) {
-      // Si es string, intentar parsearlo
       const configData = typeof config === 'string' ? JSON.parse(config) : config;
-      
-      // Combinar con valores predeterminados
       sidebarConfig = {
         ...sidebarConfig,
         ...configData,
       };
-      
-      console.log('Parsed sidebar config:', sidebarConfig);
     }
   } catch (error) {
     console.error('Error parsing sidebar config:', error);
   }
-  
-  // Obtener el HTML personalizado
+
   const customHtml = sidebarConfig.customHtml || '';
-  
-  // Clases de posición
   const positionClasses = position === 'left' ? 'order-first' : 'order-last';
-  
-  // Visibilidad
+
   if (sidebarConfig.visible === false) {
-    // Si está explícitamente configurado como invisible, no renderizar
     return null;
   }
 
-  // Obtener widgets de la configuración si están disponibles
-  // y asegurar que todos tengan un id válido
   const configWidgets = (sidebarConfig.widgets || []).map((widget, index) => ({
     ...widget,
-    id: widget.id || `sidebar-widget-${index}` // Garantizar que siempre hay un id
+    id: widget.id || `sidebar-widget-${index}`
   }));
-  
-  // Combinar widgets externos con los de la configuración
-  // y asegurar que todos tengan un id válido
+
   const allWidgets = [
     ...widgets.map((widget, index) => ({
       ...widget,
@@ -112,11 +109,8 @@ export default async function Sidebar({
 
   return (
     <>
-      {/* Inyectar CSS para los temas específicos del sidebar */}
-      {sidebarThemeCSS && (
-        <style id="sidebar-theme-css" dangerouslySetInnerHTML={{ __html: sidebarThemeCSS }} />
-      )}
-      
+      {/* El CSS del tema ya se inyecta desde layout.tsx */}
+
       <style>{`
         .sidebar-component {
           min-width: 0;
@@ -126,11 +120,6 @@ export default async function Sidebar({
           flex-shrink: 0;
         }
       `}</style>
-      {/** 
-        Resolución del ancho:
-        - Si es px/%, se pone en style.
-        - Si empieza por "w-", se agrega a la clase.
-      */}
       {(() => {
         let widthClass = "";
         let widthStyle: React.CSSProperties = {};
@@ -142,7 +131,7 @@ export default async function Sidebar({
           }
         }
         return (
-          <aside 
+          <aside
             className={`sidebar-component ${positionClasses} ${widthClass} ${className}`}
             data-position={position}
             data-visible="true"
@@ -151,13 +140,12 @@ export default async function Sidebar({
               color: 'var(--typography-paragraph-color, inherit)',
               ...widthStyle,
               border: 'none',
-              height: '100%', /* Altura mínima para ocupar todo el espacio disponible */
+              height: '100%',
               minHeight: '100vh',
               display: 'flex',
               flexDirection: 'column'
             }}
           >
-            {/* Widgets - solo si showWidgets es true y hay widgets */}
             {sidebarConfig.showWidgets && allWidgets.length > 0 && (
               <div className="space-y-6">
                 <style>{`
@@ -168,92 +156,53 @@ export default async function Sidebar({
                     border: var(--sidebar-cards-borderWidth, 1px) solid var(--sidebar-cards-borderColor, #e5e7eb);
                     color: var(--sidebar-cards-color, inherit);
                     padding: var(--sidebar-cards-padding, 1rem);
-                    margin-bottom: 1.5rem;
+                    margin: var(--sidebar-cards-margin, 0 0 1.5rem 0);
+                    box-sizing: border-box;
+                  }
+                  .widget-card > * {
+                    background: transparent !important;
+                    box-shadow: none !important;
+                    border: none !important;
+                  }
+                  .widget-card > [data-slot="card"] {
+                    background: transparent !important;
                   }
                 `}</style>
                 {allWidgets.map((widget: Widget, index: number) => {
-                  // Determinar el estilo de fondo para este widget
                   let widgetStyle: React.CSSProperties = {};
-                  
-                  // Depurar widget config para diagnóstico
-                  if (widget.id === "sidebar-widget-0") {
-                    console.log("Widget config debug:", 
-                      JSON.stringify({ 
-                        id: widget.id, 
-                        config: widget.config, 
-                        background: widget.config?.background 
-                      }));
-                  }
-                  
-                  // Para widgets con configuración de fondo específica
                   if (widget.config?.background) {
-                    // Depurar widget background para diagnóstico
-                    console.log(`Widget ${widget.id} background:`, widget.config.background);
-                    
-                    // Obtener el tipo de fondo y valor de manera más flexible
-                    const bgType = widget.config.background?.type || 
-                                  (widget.config.background?.url ? "image" : 
-                                   (widget.config.background?.value?.includes("gradient") ? "gradient" : "color"));
-                    
+                    const bgType = widget.config.background?.type ||
+                      (widget.config.background?.url ? "image" :
+                        (widget.config.background?.value?.includes("gradient") ? "gradient" : "color"));
                     const bgValue = widget.config.background?.value || "";
                     const bgUrl = widget.config.background?.url || null;
-                    
-                    // Aplicar fondo según el tipo
                     if (bgType === "image" || bgUrl) {
-                      // Url para imagen: intentar varias convenciones
-                      const imageUrl = bgUrl || 
-                                      `/images/backgrounds/widget-${widget.id}.webp` || 
-                                      `/images/backgrounds/widget-${widget.id}.jpg` || 
-                                      `/images/backgrounds/widget-${widget.id}.png` || 
-                                      `/images/backgrounds/widget-${widget.id}.img`;
-                      
-                      // Para imágenes, configurar propiedades individuales sin usar 'background'
+                      const imageUrl = bgUrl ||
+                        `/images/backgrounds/widget-${widget.id}.webp` ||
+                        `/images/backgrounds/widget-${widget.id}.jpg` ||
+                        `/images/backgrounds/widget-${widget.id}.png` ||
+                        `/images/backgrounds/widget-${widget.id}.img`;
                       widgetStyle = {
                         backgroundImage: `url(${imageUrl})`,
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         backgroundRepeat: "no-repeat"
                       };
-                      
-                      console.log(`Widget ${widget.id} using image:`, imageUrl);
-                    } 
-                    // Gradiente o color plano
-                    else if (bgType === "gradient" || bgType === "color") {
+                    } else if (bgType === "gradient" || bgType === "color") {
                       widgetStyle = {
                         background: bgValue
                       };
-                      console.log(`Widget ${widget.id} using ${bgType}:`, bgValue);
                     }
+                  } else {
+                    // Widget no tiene estilo custom, usar variables CSS
+                    widgetStyle = {
+                      background: 'var(--sidebar-cards-background, #f5f5f5)'
+                    };
                   }
-                  // Si widget.background está disponible directamente (formato alternativo)
-                  else if (widget.background) {
-                    console.log(`Widget ${widget.id} has direct background:`, widget.background);
-                    
-                    if (typeof widget.background === 'string') {
-                      // Background es un string simple (color o url)
-                      widgetStyle = {
-                        background: widget.background
-                      };
-                    } else if (widget.background.type === "image" || widget.background.url) {
-                      // Background es objeto con url de imagen
-                      const imageUrl = widget.background.url || 
-                                      `/images/backgrounds/widget-${widget.id}.webp` || 
-                                      `/images/backgrounds/widget-${widget.id}.jpg`;
-                      
-                      widgetStyle = {
-                        backgroundImage: `url(${imageUrl})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        backgroundRepeat: "no-repeat"
-                      };
-                    }
-                  }
-                  
-                  console.log(`Final widget ${widget.id} style:`, widgetStyle);
-                  
+
                   return (
-                    <div 
-                      key={widget.id || `widget-${index}`} 
+                    <div
+                      key={widget.id || `widget-${index}`}
                       className="widget-card"
                       style={widgetStyle}
                     >
@@ -263,10 +212,9 @@ export default async function Sidebar({
                 })}
               </div>
             )}
-            
-            {/* HTML Personalizado */}
+
             {customHtml && (
-              <div 
+              <div
                 className="content-html"
                 style={{
                   fontFamily: 'var(--typography-paragraph-fontFamily, inherit)',

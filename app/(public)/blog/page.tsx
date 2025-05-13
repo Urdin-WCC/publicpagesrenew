@@ -6,7 +6,7 @@ import CategoryDropdown from './CategoryDropdown';
 import BlogSearchForm from './BlogSearchForm';
 import { getBlogConfig } from '@/lib/config-server';
 import { getGlobalConfig } from '@/lib/config';
-import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from '@/lib/themeUtils';
+import ThemeStyleManager from '@/components/ThemeStyleManager';
 
 // La página ahora es un Server Component que obtiene la configuración y renderiza el layout adecuado
 export default async function BlogIndexPage() {
@@ -19,18 +19,16 @@ export default async function BlogIndexPage() {
   // Obtener la configuración de la barra lateral
   const sidebarConfig = globalConfig?.sidebar as { position?: 'left' | 'right', width?: string } || {};
   
-  // Obtener temas específicos para la ruta de blog
-  const { lightConfig, darkConfig } = await getThemeConfigsForRoute('/blog', globalConfig);
-  
-  // Generar CSS para los temas específicos del blog
-  const blogThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.blog-page');
+  // Los estilos de tema ahora se manejan con el componente ThemeStyleManager
 
   return (
     <>
-      {/* Inyectar CSS para los temas específicos del blog */}
-      {blogThemeCSS && (
-        <style id="blog-theme-css" dangerouslySetInnerHTML={{ __html: blogThemeCSS }} />
-      )}
+      {/* Gestor de tema para la página del blog */}
+      <ThemeStyleManager
+        pathname="/blog"
+        globalConfig={globalConfig}
+        selector=".blog-page"
+      />
       
       <div 
         className="blog-page w-full h-full"

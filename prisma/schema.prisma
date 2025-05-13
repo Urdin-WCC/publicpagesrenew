@@ -56,7 +56,12 @@ model Category {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime
   Post        Post[]
+
+  // Relación 1:N: todos los proyectos con categoryId = id actual
   Project     Project[]
+
+  // Relación N:M con proyectos, usando nombre de relación explícito para evitar conflicto
+  projects    Project[] @relation("CategoryProjects")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -180,7 +185,12 @@ model Project {
   updatedAt           DateTime
   categoryId          String?
   User                User?               @relation(fields: [authorId], references: [id])
+
+  // Relación 1:N (principal) - nombre de campo "Category"
   Category            Category?           @relation(fields: [categoryId], references: [id])
+
+  // Relación N:M – nombre de campo explícito igual que en Category y con el mismo atributo @relation
+  categories          Category[]          @relation("CategoryProjects")
 
   @@index([authorId], map: "Project_authorId_fkey")
   @@index([categoryId], map: "Project_categoryId_fkey")

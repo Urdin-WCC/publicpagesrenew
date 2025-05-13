@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Visual Variables Tema</title>
+  <style>
+    body { font-family: sans-serif; background: #f3f4f6; }
+    pre { background: #222; color: #fff; padding: 1rem; white-space: pre-wrap; overflow-x: auto; }
+    .check-block { 
+      border: 1px solid #ccc; 
+      padding: 1rem; 
+      background: #fff; 
+      margin-bottom: 2rem; 
+      border-radius: 8px;
+    }
+  </style>
+  <script>
+    function dumpVars(selectors) {
+      const out = [];
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (el) {
+          const styles = getComputedStyle(el);
+          const vars = [];
+          for (const key in styles) {
+            if (typeof styles[key] === 'string' && styles[key].startsWith('--')) {
+              vars.push(styles[key] + ': ' + styles.getPropertyValue(styles[key]));
+            }
+          }
+          out.push('SELECTOR: ' + sel + '\\n' + vars.join('\\n'));
+        }
+      }
+      return out.join('\\n\\n');
+    }
+    window.addEventListener('DOMContentLoaded', function() {
+      const output = [];
+      const sidebar = document.querySelector('.sidebar-component');
+      const footer = document.querySelector('.footer-component');
+      const widget = document.querySelector('.widget-card');
+      output.push('Selector: .sidebar-component');
+      if (sidebar) {
+        const styles = getComputedStyle(sidebar);
+        Array.from(styles).forEach(key => {
+          if (key.startsWith('--') || key.includes('background')) {
+            output.push(key + ': ' + styles.getPropertyValue(key));
+          }
+        });
+      }
+      output.push('\\nSelector: .footer-component');
+      if (footer) {
+        const styles = getComputedStyle(footer);
+        Array.from(styles).forEach(key => {
+          if (key.startsWith('--') || key.includes('background')) {
+            output.push(key + ': ' + styles.getPropertyValue(key));
+          }
+        });
+      }
+      output.push('\\nSelector: .widget-card (primer widget)');
+      if (widget) {
+        const styles = getComputedStyle(widget);
+        Array.from(styles).forEach(key => {
+          if (key.startsWith('--') || key.includes('background')) {
+            output.push(key + ': ' + styles.getPropertyValue(key));
+          }
+        });
+      }
+      document.getElementById('css-vars-dump').innerText = output.join('\\n');
+    });
+  </script>
+</head>
+<body>
+  <h1>Depuración variables CSS de tema – Sidebar y Footer</h1>
+  <div class="check-block sidebar-component">
+    <div class="widget-card">Widget sidebar</div>
+  </div>
+  <div class="check-block footer-component">
+    <div class="widget-card">Widget footer</div>
+  </div>
+  <pre id="css-vars-dump">Cargando...</pre>
+  <p>Comprueba los valores de las variables y su origen. Cambia el modo OS claro/oscuro para ver el cambio de variables. Esto no replica el framework, pero sí permite visualizar la inyección de estilos y depurar posibles problemas de cascade, specificity o falta de atributo.</p>
+</body>
+</html>

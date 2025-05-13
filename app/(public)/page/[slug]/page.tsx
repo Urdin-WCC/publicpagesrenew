@@ -3,8 +3,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getGlobalConfig } from "@/lib/config-server";
 import { generatePageMetadata, GlobalConfig } from "@/lib/seoUtils";
-import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from "@/lib/themeUtils";
 import FixedHtmlRenderer from "@/components/public/FixedHtmlRenderer";
+import ThemeStyleManager from "@/components/ThemeStyleManager";
 
 interface StaticPageParams {
   slug: string;
@@ -116,12 +116,9 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
   // Obtener configuración global para temas
   const globalConfig = await getGlobalConfig();
   
-  // Obtener temas específicos para esta ruta
-  const { lightConfig, darkConfig } = await getThemeConfigsForRoute(`/page/${slug}`, globalConfig);
-  
-  // Generar CSS para los temas específicos de esta página usando un selector específico
-  // Usamos una clase que identifique unívocamente esta página por su slug
-  const pageThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, `.page-${slug}`);
+  // Los estilos de tema se manejarán mediante el componente ThemeStyleManager
+  // que se renderizará dentro del componente para aplicar las configuraciones específicas
+  // para esta página.
 
   // Configuración de visualización de página
   const pageConfig = {
@@ -143,10 +140,12 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
       {/* Insertar script con configuración de página */}
       <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
       
-      {/* Inyectar CSS para los temas específicos de esta página */}
-      {pageThemeCSS && (
-        <style id={`page-${slug}-theme-css`} dangerouslySetInnerHTML={{ __html: pageThemeCSS }} />
-      )}
+      {/* Gestor de estilos de tema para esta página específica */}
+      <ThemeStyleManager 
+        pathname={`/page/${slug}`} 
+        globalConfig={globalConfig}
+        selector={`.page-${slug}`}
+      />
       
       <div 
         className={`page-${slug} w-full`}

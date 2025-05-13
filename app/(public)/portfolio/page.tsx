@@ -1,16 +1,16 @@
-import React, { Suspense } from 'react';
+ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { prisma } from '@/lib/prisma';
-import { SectionType } from '@prisma/client';
+import { SectionType } from '@/lib/section-client';
 import { getPortfolioConfig } from '@/lib/config-server';
 import { getGlobalConfig, getSectionWithItems } from '@/lib/config';
-import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import { translations } from '@/app/translations';
 import PaginationControls from '@/components/public/PaginationControls';
 import LoadingSpinner from '@/components/core/LoadingSpinner';
 import PortfolioSearchForm from './PortfolioSearchForm';
 import PortfolioCategoryDropdown from './PortfolioCategoryDropdown';
+import ThemeStyleManager from '@/components/ThemeStyleManager';
 
 // Componente cliente para la lista de proyectos
 import PortfolioListClient from './PortfolioListClient';
@@ -52,18 +52,16 @@ export default async function PortfolioPage({ searchParams }: PageProps) {
     widgets: []
   };
 
-  // Obtener temas específicos para la ruta de portfolio
-  const { lightConfig, darkConfig } = await getThemeConfigsForRoute('/portfolio', globalConfig);
-  
-  // Generar CSS para los temas específicos de portfolio
-  const portfolioThemeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig, '.portfolio-page');
+  // Los estilos de tema ahora se manejan con el componente ThemeStyleManager
 
   return (
     <>
-      {/* Inyectar CSS para los temas específicos de portfolio */}
-      {portfolioThemeCSS && (
-        <style id="portfolio-theme-css" dangerouslySetInnerHTML={{ __html: portfolioThemeCSS }} />
-      )}
+      {/* Gestor de tema para la página del portfolio */}
+      <ThemeStyleManager
+        pathname="/portfolio"
+        globalConfig={globalConfig}
+        selector=".portfolio-page"
+      />
       
       <div 
         className="portfolio-page w-full h-full"

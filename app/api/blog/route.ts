@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma'; // Asegurar que se importa la instancia corre
 import { auth } from '@/auth'; // Importar auth para obtener sesión
 import { logAdminAction } from '@/lib/stats'; // Importar logAdminAction desde lib/stats.ts
 import { hasPermission } from '@/lib/auth-utils'; // Importar hasPermission
-import { Role, PostStatus } from '@prisma/client'; // Importar tipos necesarios
+import { User_role, Post_status } from '@prisma/client'; // Importar tipos necesarios
 import { getBlogConfig } from '@/lib/config-server'; // Importar función para obtener la configuración del blog
 
 export async function GET(request: Request) {
@@ -221,7 +221,7 @@ export async function POST(request: Request) {
         title: string;
         content: string;
         slug: string;
-        status?: PostStatus;
+        status?: Post_status;
         categories?: string[];
         coverImage?: string;
         excerpt?: string;
@@ -235,11 +235,11 @@ export async function POST(request: Request) {
     }
 
     // Establecer estado por defecto si no se proporciona
-    status = status || PostStatus.DRAFT;
+    status = status || Post_status.DRAFT;
 
     // Verificar permiso para publicar (si el estado es PUBLISHED)
-    if (status === PostStatus.PUBLISHED && !hasPermission(userRole, 'publish_post')) {
-        status = PostStatus.DRAFT; // Forzar a borrador si no tiene permiso
+    if (status === Post_status.PUBLISHED && !hasPermission(userRole, 'publish_post')) {
+        status = Post_status.DRAFT; // Forzar a borrador si no tiene permiso
     }
 
     // Verificar si el slug ya existe usando SQL directo

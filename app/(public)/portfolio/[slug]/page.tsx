@@ -14,6 +14,7 @@ import PortfolioSidebar from '@/components/public/PortfolioSidebar';
 import ProjectGallery from '@/components/public/ProjectGallery';
 import Sharing from '@/components/public/Sharing';
 import { fetchSocialConfig as fetchSharingConfig } from '@/actions/sharing-actions';
+import ThemeStyleManager from '@/components/ThemeStyleManager';
 
 // Parámetros de la página
 interface PageProps {
@@ -229,136 +230,145 @@ export default async function ProjectPage({ params }: PageProps) {
   const sharingConfig = await fetchSharingConfig();
 
   return (
-    <div className="w-full px-4 py-8" style={{ maxWidth: "100%" }}>
-      <div className="mb-6">
-        <Link href="/portfolio" className="text-primary hover:underline">
-          ← {translations.public.allProjects}
-        </Link>
-      </div>
+    <>
+      {/* Gestor de tema para la página del proyecto */}
+      <ThemeStyleManager
+        pathname={`/portfolio/${slug}`}
+        globalConfig={globalConfig}
+        selector={`.portfolio-project-${slug}`}
+      />
+      
+      <div className={`portfolio-project-${slug} w-full px-4 py-8`} style={{ maxWidth: "100%" }}>
+        <div className="mb-6">
+          <Link href="/portfolio" className="text-primary hover:underline">
+            ← {translations.public.allProjects}
+          </Link>
+        </div>
 
-      <div className={`flex flex-col lg:flex-row gap-8 ${(sidebarConfig as any).position === 'right' ? '' : 'lg:flex-row-reverse'}`}>
-        {/* Contenido principal */}
-        <div className="w-full lg:flex-1">
-          <article>
-            <header className="mb-8">
-              <h1 className="text-3xl font-bold mb-4">{project.title}</h1>
+        <div className={`flex flex-col lg:flex-row gap-8 ${(sidebarConfig as any).position === 'right' ? '' : 'lg:flex-row-reverse'}`}>
+          {/* Contenido principal */}
+          <div className="w-full lg:flex-1">
+            <article>
+              <header className="mb-8">
+                <h1 className="text-3xl font-bold mb-4">{project.title}</h1>
 
-              {/* Metadatos del proyecto */}
-              <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-                {project.publishedAt && (
-                  <div>
-                    {translations.public.projectPostedOn.replace(
-                      '{0}',
-                      new Date(project.publishedAt).toLocaleDateString()
-                    )}
-                  </div>
-                )}
+                {/* Metadatos del proyecto */}
+                <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
+                  {project.publishedAt && (
+                    <div>
+                      {translations.public.projectPostedOn.replace(
+                        '{0}',
+                        new Date(project.publishedAt).toLocaleDateString()
+                      )}
+                    </div>
+                  )}
 
-                {(project.author?.name || project.authorDisplayName) && (
-                  <div className="flex items-center gap-2">
-                    {project.author?.image && (
-                      <img
-                        src={project.author.image}
-                        alt={project.author.name || ''}
-                        className="w-6 h-6 rounded-full"
-                      />
-                    )}
-                    <span>{project.authorDisplayName || project.author?.name}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Categoría - ACTUALIZADO PARA CATEGORÍA ÚNICA */}
-              {project.categories && project.categories.length > 0 && (
-                <div className="mb-6">
-                  <Link
-                    href={`/portfolio/category/${project.categories[0].slug}`}
-                    className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm"
-                  >
-                    {project.categories[0].name}
-                  </Link>
+                  {(project.author?.name || project.authorDisplayName) && (
+                    <div className="flex items-center gap-2">
+                      {project.author?.image && (
+                        <img
+                          src={project.author.image}
+                          alt={project.author.name || ''}
+                          className="w-6 h-6 rounded-full"
+                        />
+                      )}
+                      <span>{project.authorDisplayName || project.author?.name}</span>
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {/* Imagen de portada */}
-              {project.coverImage && (
-                <div className="mb-8">
-                  <img
-                    src={project.coverImage}
-                    alt={project.title}
-                    className="w-full h-auto rounded-lg"
+                {/* Categoría - ACTUALIZADO PARA CATEGORÍA ÚNICA */}
+                {project.categories && project.categories.length > 0 && (
+                  <div className="mb-6">
+                    <Link
+                      href={`/portfolio/category/${project.categories[0].slug}`}
+                      className="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full text-sm"
+                    >
+                      {project.categories[0].name}
+                    </Link>
+                  </div>
+                )}
+
+                {/* Imagen de portada */}
+                {project.coverImage && (
+                  <div className="mb-8">
+                    <img
+                      src={project.coverImage}
+                      alt={project.title}
+                      className="w-full h-auto rounded-lg"
+                    />
+                  </div>
+                )}
+              </header>
+
+              {/* Contenido del proyecto */}
+              <div className="prose prose-lg max-w-none mb-8" dangerouslySetInnerHTML={{ __html: project.content }} />
+
+              {/* Galería de imágenes adicionales */}
+              {project.additionalImageUrls && (
+                <div className="mt-8">
+                  <h2 className="text-2xl font-bold mb-4">{translations.public.projectDetails}</h2>
+                  <ProjectGallery
+                    images={JSON.parse(project.additionalImageUrls as string) as string[]}
+                    displayType={project.displayType}
                   />
                 </div>
               )}
-            </header>
 
-            {/* Contenido del proyecto */}
-            <div className="prose prose-lg max-w-none mb-8" dangerouslySetInnerHTML={{ __html: project.content }} />
-
-            {/* Galería de imágenes adicionales */}
-            {project.additionalImageUrls && (
-              <div className="mt-8">
-                <h2 className="text-2xl font-bold mb-4">{translations.public.projectDetails}</h2>
-                <ProjectGallery
-                  images={JSON.parse(project.additionalImageUrls as string) as string[]}
-                  displayType={project.displayType}
-                />
+              {/* BOTONES DE COMPARTIR */}
+              <div className="mb-12">
+                <Sharing config={sharingConfig} />
               </div>
-            )}
 
-            {/* BOTONES DE COMPARTIR */}
-            <div className="mb-12">
-              <Sharing config={sharingConfig} />
-            </div>
-
-            {/* Proyectos relacionados */}
-            {relatedProjects.length > 0 && (
-              <div className="mt-12">
-                <h2 className="text-2xl font-bold mb-6">{translations.public.relatedProjects}</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {relatedProjects.map((relatedProject: any) => (
-                    <Card key={relatedProject.id}>
-                      {relatedProject.coverImage && (
-                        <Link href={`/portfolio/${relatedProject.slug}`}>
-                          <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                            <img
-                              src={relatedProject.coverImage}
-                              alt={relatedProject.title}
-                              className="object-cover w-full h-full transition-transform hover:scale-105"
-                            />
-                          </div>
-                        </Link>
-                      )}
-                      <CardContent className="p-4">
-                        <Link href={`/portfolio/${relatedProject.slug}`}>
-                          <h3 className="font-bold text-lg mb-2 hover:text-primary transition-colors">
-                            {relatedProject.title}
-                          </h3>
-                        </Link>
-                        {relatedProject.excerpt && (
-                          <p className="text-gray-600 line-clamp-2">{relatedProject.excerpt}</p>
+              {/* Proyectos relacionados */}
+              {relatedProjects.length > 0 && (
+                <div className="mt-12">
+                  <h2 className="text-2xl font-bold mb-6">{translations.public.relatedProjects}</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {relatedProjects.map((relatedProject: any) => (
+                      <Card key={relatedProject.id}>
+                        {relatedProject.coverImage && (
+                          <Link href={`/portfolio/${relatedProject.slug}`}>
+                            <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                              <img
+                                src={relatedProject.coverImage}
+                                alt={relatedProject.title}
+                                className="object-cover w-full h-full transition-transform hover:scale-105"
+                              />
+                            </div>
+                          </Link>
                         )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                        <CardContent className="p-4">
+                          <Link href={`/portfolio/${relatedProject.slug}`}>
+                            <h3 className="font-bold text-lg mb-2 hover:text-primary transition-colors">
+                              {relatedProject.title}
+                            </h3>
+                          </Link>
+                          {relatedProject.excerpt && (
+                            <p className="text-gray-600 line-clamp-2">{relatedProject.excerpt}</p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </article>
-        </div>
-
-        {/* Barra lateral (condicional) */}
-        {portfolioConfig.showSidebarInProject && (
-          <div
-            className="w-full"
-            style={{ width: '100%', maxWidth: (sidebarConfig as any).width || '320px' }}
-          >
-            <Suspense fallback={<div className="w-full animate-pulse bg-gray-100 h-64"></div>}>
-              <PortfolioSidebar />
-            </Suspense>
+              )}
+            </article>
           </div>
-        )}
+
+          {/* Barra lateral (condicional) */}
+          {portfolioConfig.showSidebarInProject && (
+            <div
+              className="w-full"
+              style={{ width: '100%', maxWidth: (sidebarConfig as any).width || '320px' }}
+            >
+              <Suspense fallback={<div className="w-full animate-pulse bg-gray-100 h-64"></div>}>
+                <PortfolioSidebar />
+              </Suspense>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

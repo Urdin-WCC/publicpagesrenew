@@ -9,6 +9,7 @@ import RelatedPosts from "@/components/public/RelatedPosts";
 import FixedHtmlRenderer from "@/components/public/FixedHtmlRenderer";
 import Sharing from "@/components/public/Sharing";
 import { fetchSocialConfig as fetchSharingConfig } from "@/actions/sharing-actions";
+import ThemeStyleManager from "@/components/ThemeStyleManager";
 
 interface BlogPostParams {
   slug: string;
@@ -198,10 +199,21 @@ export default async function BlogPost({ params }: { params: BlogPostParams }) {
 
   const sharingConfig = await fetchSharingConfig();
 
+  // Asegurarnos de tener acceso a la configuración global para temas
+  const globalConfig = await getGlobalConfig();
+
   return (
     <>
+      {/* Configuración de página */}
       <div dangerouslySetInnerHTML={{ __html: pageConfigScript }} />
-      <div className="w-full" style={{ 
+      
+      {/* Gestor de tema para la página del post */}
+      <ThemeStyleManager
+        pathname={`/blog/${slug}`}
+        globalConfig={globalConfig}
+        selector={`.blog-post-${slug}`}
+      />
+      <div className={`blog-post-${slug} w-full`} style={{ 
         maxWidth: "100%",
         padding: 'var(--spacing-padding, 2rem 1rem)',
         height: '100%',

@@ -13,8 +13,8 @@ import PageConfigHandler from "@/components/public/PageConfigHandler";
 import JsonLdScript from "@/components/core/JsonLdScript";
 import { generateBaseMetadata, generateWebsiteJsonLd, GlobalConfig } from "@/lib/seoUtils";
 import { getGlobalConfig } from "@/lib/config";
-import { getThemeConfigsForRoute, generateCssFromThemeConfigs } from "@/lib/themeUtils";
 import { getSectionWithItems, SiteSectionWithItems } from "@/lib/config";
+import ThemeStyleManager from "@/components/ThemeStyleManager";
 // Importación segura para cliente/SSR del enum SectionType
 import { SectionType } from "@/lib/section-client";
 import { Metadata } from "next";
@@ -144,19 +144,9 @@ export default async function PublicLayout({
   // Verificar si el sitio está en modo mantenimiento
   const isMaintenanceMode = config?.maintenanceMode || false;
 
-  // Get theme configurations based on current route
-  const { lightConfig, darkConfig } = config ? await getThemeConfigsForRoute('/', config) : { lightConfig: null, darkConfig: null };
-  
-  // Debug theme configurations
-  console.log("Light theme config:", lightConfig);
-  console.log("Dark theme config:", darkConfig);
-  console.log("Theme assignments:", config?.themeAssignments);
-  
-  // Generate CSS for themes
-  const themeCSS = generateCssFromThemeConfigs(lightConfig, darkConfig);
-  
-  // Debug generated CSS
-  console.log("Generated theme CSS:", themeCSS);
+  // La gestión de temas ahora la manejarán componentes ThemeStyleManager individuales
+  // para cada componente y ruta. Cada ThemeStyleManager cargará sus propias configuraciones
+  // de tema y aplicará el CSS correspondiente de manera reactiva.
 
   // Parse configs for various components
   let loadingSpinnerConfig: any = { enabled: true }; // Default to enabled for testing
@@ -292,8 +282,11 @@ export default async function PublicLayout({
 
   return (
     <>
-      {/* Inject theme CSS variables */}
-      <style id="neurowitch-theme-css" dangerouslySetInnerHTML={{ __html: themeCSS }} />
+      {/* Gestores de estilos de tema para cada componente y la ruta principal */}
+      <ThemeStyleManager pathname="/" globalConfig={config} />
+      <ThemeStyleManager pathname="/" globalConfig={config} componentName="header" selector=".header-component" />
+      <ThemeStyleManager pathname="/" globalConfig={config} componentName="footer" selector=".footer-component" />
+      <ThemeStyleManager pathname="/" globalConfig={config} componentName="sidebar" selector=".sidebar-component" />
       
       {/* Add JSON-LD structured data for the website */}
       {websiteJsonLd && <JsonLdScript data={websiteJsonLd} />}
