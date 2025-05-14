@@ -78,11 +78,16 @@ export default function DirectLoadingSpinner({ globalConfig }: DirectLoadingSpin
   return (
     <div 
       id="loading-spinner" 
-      className={`fixed inset-0 ${spinnerConfig.backgroundColor} flex flex-col items-center justify-center z-50`}
+      className="fixed inset-0 flex flex-col items-center justify-center z-50"
       role="status"
       aria-live="polite"
       data-component="loading-spinner"
       data-visible="true"
+      style={{
+        backgroundColor: (spinnerConfig.overlayColor ||
+                          spinnerConfig.backgroundColor ||
+                          "rgba(0,0,0,0.5)")
+      }}
     >
       {/* Spinner personalizado o el predeterminado */}
       {spinnerConfig.spinnerImage ? (

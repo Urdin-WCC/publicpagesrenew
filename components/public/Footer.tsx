@@ -106,7 +106,10 @@ export default function Footer({
         .footer-component {
           min-width: 0;
           overflow: hidden; /* Cambiado de overflow-x: auto para evitar barras de desplazamiento */
-          padding: var(--footer-padding-base, 1rem);
+          padding-top: var(--footer-padding-top, var(--footer-padding-base, 1rem));
+          padding-bottom: var(--footer-padding-bottom, var(--footer-padding-base, 1rem));
+          padding-left: var(--footer-padding-left, var(--footer-padding-base, 1rem));
+          padding-right: var(--footer-padding-right, var(--footer-padding-base, 1rem));
           box-sizing: border-box;
           display: flex;
           flex-direction: column;
@@ -124,7 +127,7 @@ export default function Footer({
       >
         <div className="w-full" style={{ maxWidth: "100%", height: "100%", overflow: "hidden" }}>
           {configWidgets.length > 0 && (
-            <div className={`grid ${columnClasses} gap-6 mb-6 w-full`}>
+            <div className={`grid ${columnClasses} w-full`} style={{ gap: "var(--footer-cards-gap, 20px)" }}>
               <style>{`
                 .footer-component .grid, .footer-component .mb-6 {
                   min-height: unset !important;
@@ -134,6 +137,7 @@ export default function Footer({
                   display: grid;
                   align-items: stretch; /* Estira los widgets para que compartan la misma altura */
                   grid-auto-rows: 1fr; /* Hace que todas las filas tengan la misma altura */
+                  gap: var(--footer-cards-gap, 20px);
                 }
                 
                 /* Override de columnas del grid para tamaño mediano y superior */
@@ -144,13 +148,21 @@ export default function Footer({
                 }
                 
                 .footer-component .widget-card {
-                  background: var(--footer-cards-background, #f5f5f5);
+                  background: var(--footer-cards-background, transparent);
                   border-radius: var(--footer-cards-borderRadius, 12px);
                   box-shadow: var(--footer-cards-boxShadow, 0 2px 4px rgba(0,0,0,0.1));
+                  /* El tema puede poner múltiples sombras separadas por coma, por ejemplo:
+                   --footer-cards-boxShadow: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.05); */
                   border: var(--footer-cards-borderWidth, 1px) solid var(--footer-cards-borderColor, #e5e7eb);
                   color: var(--footer-cards-color, inherit);
-                  padding: var(--footer-cards-padding, 1rem);
-                  margin: var(--footer-cards-margin, 0 0 1rem 0);
+                  padding-top: var(--footer-cards-padding-top, var(--footer-cards-padding, 1rem));
+                  padding-bottom: var(--footer-cards-padding-bottom, var(--footer-cards-padding, 1rem));
+                  padding-left: var(--footer-cards-padding-left, var(--footer-cards-padding, 1rem));
+                  padding-right: var(--footer-cards-padding-right, var(--footer-cards-padding, 1rem));
+                  margin-top: var(--footer-cards-margin-top, var(--footer-cards-margin, 0 0 1rem 0));
+                  margin-bottom: var(--footer-cards-margin-bottom, var(--footer-cards-margin, 0 0 1rem 0));
+                  margin-left: var(--footer-cards-margin-left, var(--footer-cards-margin, 0 0 1rem 0));
+                  margin-right: var(--footer-cards-margin-right, var(--footer-cards-margin, 0 0 1rem 0));
                   font-family: var(--footer-cards-fontFamily, inherit);
                   font-size: var(--footer-cards-fontSize, inherit);
                   font-weight: var(--footer-cards-fontWeight, inherit);
@@ -190,8 +202,19 @@ export default function Footer({
                   };
                 }
 
+                // Construcción de styles para margin y padding explícitos desde variables CSS
+                const marginStyles: React.CSSProperties = {
+                  marginTop: "var(--footer-cards-margin-top, var(--footer-cards-margin, 0 0 1rem 0))",
+                  marginBottom: "var(--footer-cards-margin-bottom, var(--footer-cards-margin, 0 0 1rem 0))",
+                  marginLeft: "var(--footer-cards-margin-left, var(--footer-cards-margin, 0 0 1rem 0))",
+                  marginRight: "var(--footer-cards-margin-right, var(--footer-cards-margin, 0 0 1rem 0))",
+                  paddingTop: "var(--footer-cards-padding-top, var(--footer-cards-padding, 1rem))",
+                  paddingBottom: "var(--footer-cards-padding-bottom, var(--footer-cards-padding, 1rem))",
+                  paddingLeft: "var(--footer-cards-padding-left, var(--footer-cards-padding, 1rem))",
+                  paddingRight: "var(--footer-cards-padding-right, var(--footer-cards-padding, 1rem))"
+                };
                 return (
-                  <div key={widget.id || `widget-${index}`} className="widget-card" style={widgetStyle}>
+                  <div key={widget.id || `widget-${index}`} className="widget-card" style={{ ...widgetStyle, ...marginStyles }}>
                     <WidgetRenderer
                       widget={widget as any}
                     />

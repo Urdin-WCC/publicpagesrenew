@@ -5,6 +5,7 @@ import { WidgetType } from '@/lib/widget-client';
 // Ya no usamos estas imports
 // import { getThemeConfigsForComponent, generateCssFromThemeConfigs } from '@/lib/themeUtils';
 import WidgetRenderer from './WidgetRenderer';
+import ThemeStyleManager from "@/components/ThemeStyleManager";
 
 // Widget interface
 interface Widget {
@@ -109,13 +110,22 @@ export default function Sidebar({
 
   return (
     <>
-      {/* El CSS del tema ya se inyecta desde layout.tsx */}
+      {/* Inyección de variables CSS para sidebar mediante ThemeStyleManager */}
+      <ThemeStyleManager
+        pathname={pathname ? pathname : "/sidebar"}
+        globalConfig={globalConfig}
+        selector=".sidebar-component"
+        componentName="sidebar"
+      />
 
       <style>{`
         .sidebar-component {
           min-width: 0;
           overflow-x: auto;
-          padding: var(--sidebar-padding-base, 1rem);
+          padding-top: var(--sidebar-padding-top, var(--sidebar-padding-base, 1rem));
+          padding-bottom: var(--sidebar-padding-bottom, var(--sidebar-padding-base, 1rem));
+          padding-left: var(--sidebar-padding-left, var(--sidebar-padding-base, 1rem));
+          padding-right: var(--sidebar-padding-right, var(--sidebar-padding-base, 1rem));
           box-sizing: border-box;
           flex-shrink: 0;
         }
@@ -147,16 +157,24 @@ export default function Sidebar({
             }}
           >
             {sidebarConfig.showWidgets && allWidgets.length > 0 && (
-              <div className="space-y-6">
+              <div style={{ gap: "var(--sidebar-cards-gap, var(--sidebar-cards-margin, 20px))", display: "flex", flexDirection: "column" }}>
                 <style>{`
                   .widget-card {
-                    background: var(--sidebar-cards-background, #fff);
+                    background: var(--sidebar-cards-background, transparent);
                     border-radius: var(--sidebar-cards-borderRadius, 12px);
                     box-shadow: var(--sidebar-cards-boxShadow, none);
+                    /* Si el tema necesita sombras diferentes según el lado, puede definir múltiples valores separados por coma aquí:
+                     --sidebar-cards-boxShadow: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.05); */
                     border: var(--sidebar-cards-borderWidth, 1px) solid var(--sidebar-cards-borderColor, #e5e7eb);
                     color: var(--sidebar-cards-color, inherit);
-                    padding: var(--sidebar-cards-padding, 1rem);
-                    margin: var(--sidebar-cards-margin, 0 0 1.5rem 0);
+                    padding-top: var(--sidebar-cards-padding-top, var(--sidebar-cards-padding, 1rem));
+                    padding-bottom: var(--sidebar-cards-padding-bottom, var(--sidebar-cards-padding, 1rem));
+                    padding-left: var(--sidebar-cards-padding-left, var(--sidebar-cards-padding, 1rem));
+                    padding-right: var(--sidebar-cards-padding-right, var(--sidebar-cards-padding, 1rem));
+                    margin-top: var(--sidebar-cards-margin-top, var(--sidebar-cards-margin, 0 0 1.5rem 0));
+                    margin-bottom: var(--sidebar-cards-margin-bottom, var(--sidebar-cards-margin, 0 0 1.5rem 0));
+                    margin-left: var(--sidebar-cards-margin-left, var(--sidebar-cards-margin, 0 0 1.5rem 0));
+                    margin-right: var(--sidebar-cards-margin-right, var(--sidebar-cards-margin, 0 0 1.5rem 0));
                     box-sizing: border-box;
                   }
                   .widget-card > * {
@@ -200,11 +218,22 @@ export default function Sidebar({
                     };
                   }
 
+                  // Construcción de styles para margin y padding explícitos desde variables CSS
+                  const marginStyles: React.CSSProperties = {
+                    marginTop: "var(--sidebar-cards-margin-top, var(--sidebar-cards-margin, 0 0 1.5rem 0))",
+                    marginBottom: "var(--sidebar-cards-margin-bottom, var(--sidebar-cards-margin, 0 0 1.5rem 0))",
+                    marginLeft: "var(--sidebar-cards-margin-left, var(--sidebar-cards-margin, 0 0 1.5rem 0))",
+                    marginRight: "var(--sidebar-cards-margin-right, var(--sidebar-cards-margin, 0 0 1.5rem 0))",
+                    paddingTop: "var(--sidebar-cards-padding-top, var(--sidebar-cards-padding, 1rem))",
+                    paddingBottom: "var(--sidebar-cards-padding-bottom, var(--sidebar-cards-padding, 1rem))",
+                    paddingLeft: "var(--sidebar-cards-padding-left, var(--sidebar-cards-padding, 1rem))",
+                    paddingRight: "var(--sidebar-cards-padding-right, var(--sidebar-cards-padding, 1rem))"
+                  };
                   return (
                     <div
                       key={widget.id || `widget-${index}`}
                       className="widget-card"
-                      style={widgetStyle}
+                      style={{ ...widgetStyle, ...marginStyles }}
                     >
                       <WidgetRenderer widget={widget} />
                     </div>

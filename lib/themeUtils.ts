@@ -284,8 +284,28 @@ function flattenThemeConfig(config: any, prefix: string = '--'): Record<string, 
   const result: Record<string, string> = {};
   
   Object.entries(config).forEach(([key, value]) => {
-    // If the value is an object, recursively flatten it
-    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    // Si la clave es boxShadow y el valor es objeto, concatenar los parámetros x, y, blur, extend/spread y rgba
+    if (
+      key.toLowerCase().includes('boxshadow') &&
+      typeof value === 'object' &&
+      value !== null
+    ) {
+      // Permite: x, y, blur, spread (extend), rgba, con typeguard/optional chaining defensivo
+      const safeValue = value as Record<string, any>;
+      const x = typeof safeValue.x === "string" || typeof safeValue.x === "number" ? safeValue.x : "0px";
+      const y = typeof safeValue.y === "string" || typeof safeValue.y === "number" ? safeValue.y : "0px";
+      const blur = typeof safeValue.blur === "string" || typeof safeValue.blur === "number" ? safeValue.blur : "0px";
+      const spread =
+        typeof safeValue.extend === "string" || typeof safeValue.extend === "number"
+          ? safeValue.extend
+          : typeof safeValue.spread === "string" || typeof safeValue.spread === "number"
+          ? safeValue.spread
+          : "0px";
+      const rgba = typeof safeValue.rgba === "string" ? safeValue.rgba : "rgba(0,0,0,0.12)";
+      result[`${prefix}${key}`] = `${x} ${y} ${blur} ${spread} ${rgba}`;
+    }
+    // If the value is an object, recursively flatten it (para no perder otros objetos anidados)
+    else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       const nestedValues = flattenThemeConfig(value, `${prefix}${key}-`);
       Object.assign(result, nestedValues);
     } else {

@@ -51,9 +51,10 @@ async function getStaticPage(slug: string) {
 }
 
 export async function generateMetadata({ params }: { params: StaticPageParams }): Promise<Metadata> {
-  // Asegúrate de que params sea esperado antes de usarlo
-  const slug = String(params?.slug || '');
-  
+  // Esperar params si es una promesa (rutas dinámicas NextJS App Router)
+  const awaitedParams = await params;
+  const slug = String(awaitedParams?.slug || '');
+
   // Obtener la página estática
   const page = await getStaticPage(slug);
   
@@ -148,12 +149,22 @@ export default async function StaticPage({ params }: { params: StaticPageParams 
       />
       
       <div 
-        className={`page-${slug} w-full`}
+        className={`page-${slug} w-full min-h-screen`}
         style={{
-          maxWidth: "100%",
-          padding: 'var(--spacing-padding, 2rem 1rem)', /* Usar variable de tema para padding */
-          height: '100%', /* Asegurar que ocupa toda la altura disponible */
-          minHeight: '100%'
+          width: "100vw",
+          minHeight: "100vh",
+          height: "100dvh",
+          maxWidth: "100vw",
+          boxSizing: "border-box",
+          background: "var(--page-background, var(--background-value, #fff))",
+          backgroundImage: "var(--page-backgroundImage, none)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+          paddingTop: "var(--page-padding-top, var(--spacing-padding-top, var(--spacing-padding, 2rem)))",
+          paddingBottom: "var(--page-padding-bottom, var(--spacing-padding-bottom, var(--spacing-padding, 2rem)))",
+          paddingLeft: "var(--page-padding-left, var(--spacing-padding-left, var(--spacing-padding, 1rem)))",
+          paddingRight: "var(--page-padding-right, var(--spacing-padding-right, var(--spacing-padding, 1rem)))",
         }}
       >
         {/* Título de la página (opcional, depende del diseño) */}

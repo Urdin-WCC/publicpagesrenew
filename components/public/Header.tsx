@@ -250,15 +250,68 @@ export default function Header({
           width: 100%;
           height: 100%;
           display: flex;
-          justify-content: center;
-          align-items: center;
           pointer-events: none;
           z-index: 1;
           padding: 0;
           background: transparent;
         }
+
+        /* Control de alineación por cuadrante */
+        .header-position-layer.vertical-top { align-items: flex-start; }
+        .header-position-layer.vertical-center { align-items: center; }
+        .header-position-layer.vertical-bottom { align-items: flex-end; }
+
+        .header-position-layer.horizontal-left { justify-content: flex-start; }
+        .header-position-layer.horizontal-center { justify-content: center; }
+        .header-position-layer.horizontal-right { justify-content: flex-end; }
+
         .logo-element img { max-height: 60px; }
-        .header-element { pointer-events: auto; max-width: 100%; box-sizing: border-box; padding: var(--header-padding-base, 4px);}
+
+        .header-component {
+          background: var(--header-background, var(--background-value, white));
+          background-image: var(--header-backgroundImage, none);
+          background-size: var(--header-backgroundSize, cover);
+          background-position: var(--header-backgroundPosition, center);
+          border-radius: var(--header-borderRadius, 0);
+          box-shadow: var(--header-boxShadow, none); /* scoped por ThemeStyleManager */
+          border: var(--header-borderWidth, 0) solid var(--header-borderColor, transparent);
+          color: var(--header-color, var(--typography-heading-color, inherit));
+          padding: var(--header-padding-base, 4px);
+          /* El margen global SE ELIMINA para evitar espacios o scroll indeseados. */
+          transition: background 0.3s, color 0.3s;
+        }
+
+        .header-element {
+          pointer-events: auto;
+          max-width: 100%;
+          box-sizing: border-box;
+          /* Permitir personalización granular si el preset define más variables */
+          padding-top: var(--header-padding-top, var(--header-padding-base, 4px));
+          padding-bottom: var(--header-padding-bottom, var(--header-padding-base, 4px));
+          padding-left: var(--header-padding-left, var(--header-padding-base, 4px));
+          padding-right: var(--header-padding-right, var(--header-padding-base, 4px));
+          margin-top: var(--header-margin-top, var(--header-elements-margin, 0 6px));
+          margin-bottom: var(--header-margin-bottom, var(--header-elements-margin, 0 6px));
+          margin-left: var(--header-margin-left, var(--header-elements-margin, 0 6px));
+          margin-right: var(--header-margin-right, var(--header-elements-margin, 0 6px));
+          box-shadow: var(--header-element-boxShadow, none); /* scoped por ThemeStyleManager */
+        }
+
+        .header-element {
+          pointer-events: auto;
+          max-width: 100%;
+          box-sizing: border-box;
+          /* Permitir personalización granular si el preset define más variables */
+          padding-top: var(--header-padding-top, var(--header-padding-base, 4px));
+          padding-bottom: var(--header-padding-bottom, var(--header-padding-base, 4px));
+          padding-left: var(--header-padding-left, var(--header-padding-base, 4px));
+          padding-right: var(--header-padding-right, var(--header-padding-base, 4px));
+          margin-top: var(--header-margin-top, var(--header-elements-margin, 0 6px));
+          margin-bottom: var(--header-margin-bottom, var(--header-elements-margin, 0 6px));
+          margin-left: var(--header-margin-left, var(--header-elements-margin, 0 6px));
+          margin-right: var(--header-margin-right, var(--header-elements-margin, 0 6px));
+        }
+
         @media (max-width: 768px) { .header-position-layer { padding: 4px; } }
       `}} />
 
